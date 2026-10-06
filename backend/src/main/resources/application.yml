@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: autoops
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/autoops}
+    username: ${DATABASE_USERNAME:autoops}
+    password: ${DATABASE_PASSWORD:autoops}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+server:
+  port: ${SERVER_PORT:8080}
+autoops:
+  jwt:
+    secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
+    access-expiration: ${JWT_ACCESS_EXPIRATION:900000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  ai:
+    base-url: ${AI_BASE_URL:https://openrouter.ai/api/v1}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:}
+    ssl-verify: ${AI_SSL_VERIFY:false}
+  execution:
+    max-concurrency: ${EXECUTION_MAX_CONCURRENCY:3}
