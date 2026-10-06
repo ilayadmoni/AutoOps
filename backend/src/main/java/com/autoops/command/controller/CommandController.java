@@ -1,1 +1,57 @@
-package com.autoops.command.controller;import com.autoops.command.dto.CommandDtos;import com.autoops.command.entity.CommandDefinition;import com.autoops.command.repository.CommandDefinitionRepository;import com.autoops.command.risk.CommandRiskAnalyzer;import com.autoops.command.service.SafeCommandResolver;import com.autoops.common.security.CurrentUser;import jakarta.validation.Valid;import org.springframework.web.bind.annotation.*;import java.util.*;@RestController @RequestMapping("/api/commands")public class CommandController{private final CommandDefinitionRepository repo;private final CommandRiskAnalyzer risk;private final SafeCommandResolver resolver;private final CurrentUser current;public CommandController(CommandDefinitionRepository r,CommandRiskAnalyzer x,SafeCommandResolver s,CurrentUser c){repo=r;risk=x;resolver=s;current=c;}@GetMapping public List<CommandDefinition> list(){return repo.findAll();}@PostMapping public CommandDefinition create(@Valid @RequestBody CommandDtos.Create x){var c=new CommandDefinition();c.setName(x.name());c.setDescription(x.description());c.setCategory(x.category());c.setCommandTemplate(x.commandTemplate());var rr=risk.analyze(x.commandTemplate());c.setRiskLevel(rr.name());c.setRequiresApproval(rr==CommandRiskAnalyzer.Risk.HIGH);c.setCreatedBy(current.id());return repo.save(c);}@PostMapping("/{id}/resolve")public CommandDtos.Resolved resolve(@PathVariable Long id,@RequestBody CommandDtos.Resolve x){var c=repo.findById(id).orElseThrow();return new CommandDtos.Resolved(id,resolver.resolve(c.getCommandTemplate(),x.parameters()==null?Map.of():x.parameters()),c.getRiskLevel(),c.isRequiresApproval());}}
+package com.autoops.command.controller;
+
+import com.autoops.command.dto.CommandDtos;
+import com.autoops.command.retrieval.CommandRetrievalService;
+import com.autoops.command.service.CommandService;
+import com.autoops.common.security.CurrentUser;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/commands")
+public class CommandController {
+    private final CommandService service;
+    private final CommandRetrievalService retrieval;
+    private final CurrentUser current;
+
+    public CommandController(CommandService service, CommandRetrievalService retrieval, CurrentUser current) {
+        this.service = service;
+        this.retrieval = retrieval;
+        this.current = current;
+    }
+
+    @GetMapping
+    public List<CommandDtos.CommandView> list(@RequestParam(required = false) String q,
+                                              @RequestParam(required = false) String category,
+                                              @RequestParam(required = false) String risk,
+                                              @RequestParam(required = false) String status) {
+        return service.list(current.get(), q, category, risk, status);
+    }
+
+    @GetMapping("/search")
+    public CommandRetrievalService.Result search(@RequestParam String q,
+                                                 @RequestParam(required = false) String category,
+                                                 @RequestParam(required = false) String maxRisk) {
+        return retrieval.search(q, category, maxRisk, current.id());
+    }
+
+    @GetMapping("/{id}")
+    public CommandDtos.CommandView get(@PathVariable Long id) {
+        return service.get(current.get(), id);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommandDtos.CommandView create(@Valid @RequestBody CommandDtos.Create x) {
+        return service.create(current.get(), x);
+    }
+
+    /** Server-side resolution preview. The resolved string is informational only; executions resolve again server-side. */
+    @PostMapping("/{id}/preview")
+    public CommandDtos.PreviewResult preview(@PathVariable Long id, @RequestBody CommandDtos.Preview x) {
+        return service.preview(current.get(), id, x.parameters(), Boolean.TRUE.equals(x.runWithSudo()));
+    }
+}
