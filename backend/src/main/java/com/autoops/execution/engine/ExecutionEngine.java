@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -58,6 +59,8 @@ public class ExecutionEngine {
     private final ExecutorService coordinators;
     private final ExecutorService machinePool;
     private final Duration approvalTimeout;
+    /** Set when the server stops: running threads are interrupted and must not record misleading final states. */
+    private volatile boolean shuttingDown;
 
     public ExecutionEngine(ExecutionStore store, ExecutionRuntime runtime, ExecutionPlanFactory plans, PreflightRunner preflight,
                            StepResolver resolver, StepRunner steps, MachineRepository machines, CredentialRepository credentials,
@@ -80,6 +83,12 @@ public class ExecutionEngine {
         this.approvalTimeout = Duration.ofMinutes(Math.max(1, approvalTimeoutMinutes));
     }
 
+    /** In-flight work is closed by ExecutionRecovery on the next start ("Interrupted by server restart"). */
+    @PreDestroy
+    void shutdown() {
+        shuttingDown = true;
+    }
+
     /** Starts the asynchronous run of a persisted PENDING execution. */
     public void launch(Long executionId) {
         runtime.register(executionId);
@@ -97,7 +106,12 @@ public class ExecutionEngine {
             coordinators.execute(() -> {
                 try {
                     body.run();
+                } catch (ShutdownInProgress ex) {
+                    log.info("Execution {} left for restart recovery", executionId);
                 } catch (Exception ex) {
+                    if (shuttingDown) {
+                        return;
+                    }
                     log.error("Execution {} crashed", executionId, ex);
                     store.setExecutionFailureReason(executionId, "Internal engine error");
                     finish(executionId);
@@ -156,6 +170,7 @@ public class ExecutionEngine {
             store.setExecutionStatus(id, ExecutionStatus.WAITING_APPROVAL);
             events.publish(id, "APPROVAL_REQUIRED", Map.of("approvalId", a.getId(), "scope", "EXECUTION", "riskLevel", e.getRiskLevel()));
             ExecutionRuntime.Decision d = runtime.await(id, a.getId(), approvalTimeout, () -> store.approvalStatus(a.getId()));
+            checkShutdown();
             if (d != ExecutionRuntime.Decision.APPROVED) {
                 closeUndecided(a.getId(), d);
                 String why = switch (d) {
@@ -197,6 +212,8 @@ public class ExecutionEngine {
                     boolean ok;
                     try {
                         ok = job.apply(mr);
+                    } catch (ShutdownInProgress ex) {
+                        throw ex;
                     } catch (Exception ex) {
                         log.error("Machine run {} crashed", mr.getId(), ex);
                         store.finishMachine(mr.getId(), ExecutionStatus.FAILED, "Internal engine error");
@@ -218,9 +235,11 @@ public class ExecutionEngine {
                 }
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
+                checkShutdown();
                 break;
             } catch (ExecutionException ex) {
                 active--;
+                checkShutdown();
             }
         }
         while (it.hasNext()) {
@@ -298,6 +317,7 @@ public class ExecutionEngine {
             store.setExecutionStatus(id, ExecutionStatus.WAITING_APPROVAL);
             events.publish(id, "APPROVAL_REQUIRED", Map.of("approvalId", a.getId(), "scope", "STEP", "stepRunId", run.getId(), "machineRunId", mr.getId(), "riskLevel", resolved.riskLevel()));
             ExecutionRuntime.Decision d = runtime.await(id, a.getId(), approvalTimeout, () -> store.approvalStatus(a.getId()));
+            checkShutdown();
             store.resumeAfterApproval(id);
             store.setMachineStatus(mr.getId(), ExecutionStatus.RUNNING);
             if (d != ExecutionRuntime.Decision.APPROVED) {
@@ -312,7 +332,8 @@ public class ExecutionEngine {
         }
         store.markStepRunning(run.getId(), resolved);
         events.publish(id, "STEP_STARTED", Map.of("machineRunId", mr.getId(), "stepRunId", run.getId(), "name", step.name(), "attempt", run.getAttemptNumber()));
-        StepResult r = steps.run(machine, credential, resolved, () -> runtime.isCancelled(id), streamer(id, run.getId()));
+        StepResult r = steps.run(machine, credential, resolved, () -> runtime.isCancelled(id) || shuttingDown, streamer(id, run.getId()));
+        checkShutdown();
         store.finishStep(run.getId(), r);
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("machineRunId", mr.getId());
@@ -347,7 +368,20 @@ public class ExecutionEngine {
         }
     }
 
+    private void checkShutdown() {
+        if (shuttingDown) {
+            throw new ShutdownInProgress();
+        }
+    }
+
+    private static final class ShutdownInProgress extends RuntimeException {
+        ShutdownInProgress() {
+            super(null, null, false, false);
+        }
+    }
+
     private void finish(Long id) {
+        checkShutdown();
         Execution done = store.finalizeExecution(id);
         String type = switch (done.getStatus()) {
             case ExecutionStatus.SUCCESS -> "EXECUTION_COMPLETED";
