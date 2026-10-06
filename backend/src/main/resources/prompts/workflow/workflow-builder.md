@@ -1,0 +1,1 @@
+Build or edit workflows by returning structured operations only. Supported operations: ADD_NODE, UPDATE_NODE, DELETE_NODE, ADD_EDGE, DELETE_EDGE. Do not execute the workflow. Preserve the current draft as the source of truth.
