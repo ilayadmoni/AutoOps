@@ -6,6 +6,7 @@ import com.autoops.execution.realtime.ExecutionEventPublisher;
 import com.autoops.execution.service.ExecutionControlService;
 import com.autoops.execution.service.ExecutionQueryService;
 import com.autoops.execution.service.ExecutionService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -58,8 +59,11 @@ public class ExecutionController {
 
     /** Live events. Authorization (owner or Admin) is checked before the stream opens. */
     @GetMapping(value = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter events(@PathVariable Long id) {
+    public SseEmitter events(@PathVariable Long id, HttpServletResponse response) {
         queries.requireVisible(current.get(), id);
+        // Tell reverse proxies (Nginx) not to buffer the stream.
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache");
         return events.subscribe(id);
     }
 }

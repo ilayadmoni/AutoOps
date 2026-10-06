@@ -1,40 +1,99 @@
+# AutoOps stack. Run from the repository root:
+#   docker compose --env-file .env -f deploy/docker-compose.yml up --build
+name: autoops
+
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: autoops
-      POSTGRES_USER: autoops
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-autoops}
-    volumes: [postgres-data:/var/lib/postgresql/data]
-    healthcheck: {test: ["CMD-SHELL","pg_isready -U autoops"], interval: 5s, timeout: 5s, retries: 10}
+      POSTGRES_USER: ${DATABASE_USERNAME:-autoops}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-autoops} -d autoops"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
   minio:
-    image: minio/minio:latest
+    # Any S3-compatible server works; override MINIO_IMAGE to use another distribution or a mirror.
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
     command: server /data --console-address ':9001'
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-autoops}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-autoops-secret}
-    volumes: [minio-data:/data]
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
   backend:
-    build: {context: .., dockerfile: deploy/backend/Dockerfile}
+    build:
+      context: ..
+      dockerfile: deploy/backend/Dockerfile
     environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/autoops
-      DATABASE_USERNAME: autoops
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-autoops}
-      JWT_SECRET: ${JWT_SECRET:-change-me-change-me-change-me-change-me}
+      DATABASE_URL: ${DATABASE_URL:-jdbc:postgresql://postgres:5432/autoops}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-autoops}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required (>= 32 bytes)}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      AUTOOPS_ADMIN_USERNAME: ${AUTOOPS_ADMIN_USERNAME:-}
+      AUTOOPS_ADMIN_PASSWORD: ${AUTOOPS_ADMIN_PASSWORD:-}
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?CREDENTIAL_ENCRYPTION_KEY is required}
       AI_BASE_URL: ${AI_BASE_URL:-https://openrouter.ai/api/v1}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-}
+      AI_SSL_VERIFY: ${AI_SSL_VERIFY:-true}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-LOCAL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-autoops}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-autoops-secret}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
       MINIO_BUCKET: ${MINIO_BUCKET:-autoops}
+      FILES_MAX_SIZE: ${FILES_MAX_SIZE:-100MB}
+      FILES_ORPHAN_RETENTION_DAYS: ${FILES_ORPHAN_RETENTION_DAYS:-7}
+      DATASET_MAX_SIZE: ${DATASET_MAX_SIZE:-20MB}
+      EXECUTION_MAX_CONCURRENCY: ${EXECUTION_MAX_CONCURRENCY:-3}
+      EXECUTION_WORKER_THREADS: ${EXECUTION_WORKER_THREADS:-24}
+      EXECUTION_APPROVAL_TIMEOUT_MINUTES: ${EXECUTION_APPROVAL_TIMEOUT_MINUTES:-1440}
+      EXECUTION_MAX_OUTPUT_BYTES: ${EXECUTION_MAX_OUTPUT_BYTES:-65536}
+      EXECUTION_REQUIRE_RHEL: ${EXECUTION_REQUIRE_RHEL:-true}
     depends_on:
       postgres:
         condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /actuator/health/readiness HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 10
+    restart: unless-stopped
+
   frontend:
-    build: {context: .., dockerfile: deploy/frontend/Dockerfile}
-    ports: ['8088:80']
-    depends_on: [backend]
-volumes: {postgres-data: {}, minio-data: {}}
+    build:
+      context: ..
+      dockerfile: deploy/frontend/Dockerfile
+    ports:
+      - "${AUTOOPS_HTTP_PORT:-8088}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data: {}
+  minio-data: {}
