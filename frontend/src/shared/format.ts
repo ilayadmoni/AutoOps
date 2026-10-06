@@ -3,6 +3,14 @@ export function formatDate(iso?: string | null, lang = 'en') {
   return new Date(iso).toLocaleString(lang === 'he' ? 'he-IL' : 'en-GB', { dateStyle: 'medium', timeStyle: 'medium' });
 }
 
+/** Compact date for dense lists: day + month, with the year only when it is not the current one. */
+export function shortDate(iso?: string | null, lang = 'en') {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short', year: sameYear ? undefined : 'numeric' });
+}
+
 export function formatBytes(n?: number | null) {
   if (n == null) return '—';
   if (n < 1024) return n + ' B';

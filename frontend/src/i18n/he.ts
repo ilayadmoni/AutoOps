@@ -93,6 +93,10 @@ export const he: Record<keyof typeof en, string> = {
   'execution.retryStarted': 'ההרצה החוזרת החלה', 'execution.liveOutput': 'פלט חי', 'execution.approvalHistory': 'היסטוריית אישורים',
   'preflight.title': 'בדיקה מקדימה', 'preflight.parametersStatus': 'פרמטרים', 'preflight.filesStatus': 'קבצים', 'preflight.hostVerificationStatus': 'מפתח שרת',
   'preflight.sshStatus': 'SSH', 'preflight.authenticationStatus': 'הזדהות', 'preflight.osStatus': 'מערכת הפעלה (RHEL)', 'preflight.sudoStatus': 'Sudo',
+  'workflows.approval': 'אישור', 'workflows.ok': 'הצלחה', 'workflows.fail': 'כשל',
+  'workflows.noSelection': 'לא נבחר צעד', 'workflows.noSelectionHint': 'בחרו צעד בלוח כדי להגדיר אותו.',
+  'workflows.canvasHint': 'גררו נקודת חיבור כדי לקשר לצעד הבא. לחיצה כפולה על חיבור מסירה אותו.',
+  'stepHints.COMMAND': 'הרצת פקודה מאושרת', 'stepHints.FILE_TRANSFER': 'שליחת קובץ שמור', 'stepHints.WAIT_UNTIL': 'בדיקה חוזרת עד שמתקיים תנאי',
   'steps.COMMAND': 'פקודה', 'steps.FILE_TRANSFER': 'העברת קובץ', 'steps.WAIT_UNTIL': 'המתנה עד',
 
   'approvals.title': 'אישורים', 'approvals.subtitle': 'הרצות שממתינות להחלטתכם.', 'approvals.empty': 'אין פריטים הממתינים לאישור.',
@@ -127,6 +131,7 @@ export const he: Record<keyof typeof en, string> = {
   'workflows.serviceName': 'שם שירות', 'workflows.interval': 'בדוק כל (שניות)', 'workflows.discardConfirm': 'לבטל שינויים שלא נשמרו?',
   'checks.SERVICE_ACTIVE': 'השירות פעיל', 'checks.FILE_EXISTS': 'הקובץ קיים', 'checks.OUTPUT_CONTAINS': 'פלט הפקודה מכיל', 'checks.EXIT_CODE': 'קוד היציאה של הפקודה הוא',
 
+  'ai.history': 'היסטוריה', 'ai.hintSend': 'לשליחה', 'ai.hintNewline': 'לשורה חדשה', 'ai.stepCount': '{n} צעדים',
   'ai.newChat': 'שיחה חדשה', 'ai.title': 'עוזר תפעול AI', 'ai.subtitle': 'מציאת פקודות, טיוטות לתהליכי עבודה והסבר כשלונות. העוזר מציע; אתם מחליטים.',
   'ai.quickFind': 'מציאת פקודה', 'ai.quickWorkflow': 'טיוטת תהליך עבודה', 'ai.quickExplain': 'הסבר כשלון', 'ai.quickMachines': 'השרתים שלי',
   'ai.quick.find': 'איזו פקודה מציגה את השימוש בדיסק?', 'ai.quick.workflow': 'בנה תהליך עבודה שמפעיל מחדש את nginx וממתין עד שהוא פעיל',

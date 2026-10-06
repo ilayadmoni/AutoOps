@@ -1,15 +1,17 @@
 import { useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Bot, Server, Workflow, TerminalSquare, History, Settings, Shield, KeyRound, FileUp, LogOut, Menu, CheckSquare, Users, Database, ScrollText } from 'lucide-react';
+import { Bot, Server, Workflow, TerminalSquare, History, Settings, Shield, KeyRound, FileUp, Menu, CheckSquare, Users, Database, ScrollText } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import { useI18n } from '../i18n/I18nProvider';
+import Brand from '../shared/ui/Brand';
 import { get } from '../shared/api/client';
 import type { ApprovalView } from '../shared/api/types';
+import SidebarFooter from './SidebarFooter';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { user, isAdmin, logout } = useAuth();
-  const { t, lang, setLang } = useI18n();
+  const { isAdmin } = useAuth();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const pending = useQuery({ queryKey: ['approvals', 'pending', false], queryFn: () => get<ApprovalView[]>('/approvals/pending'), refetchInterval: 15000 });
   const link = (to: string, icon: ReactNode, label: string, badge?: number) => (
@@ -21,10 +23,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className={'shell' + (open ? ' navOpen' : '')}>
       <header className="topbar">
         <button className="icon" aria-label="menu" onClick={() => setOpen(!open)}><Menu /></button>
-        <div className="brand">Auto<span>Ops</span></div>
+        <Brand size={22} />
       </header>
       <aside>
-        <div className="brand">Auto<span>Ops</span></div>
+        <Brand size={28} />
         <nav>
           {link('/', <Bot />, t('nav.assistant'))}
           {link('/workflows', <Workflow />, t('nav.workflows'))}
@@ -46,16 +48,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           )}
           {link('/settings', <Settings />, t('nav.settings'))}
         </nav>
-        <div className="userBox">
-          <div>
-            <strong dir="ltr">{user?.username}</strong>
-            <small className="muted">{t('role.' + user?.role)}</small>
-          </div>
-          <div className="row gap">
-            <button className="btn small ghost" onClick={() => setLang(lang === 'en' ? 'he' : 'en')}>{lang === 'en' ? 'עברית' : 'English'}</button>
-            <button className="btn small ghost" onClick={logout} title={t('nav.logout')}><LogOut size={16} /> {t('nav.logout')}</button>
-          </div>
-        </div>
+        <SidebarFooter />
       </aside>
       <main>{children}</main>
     </div>

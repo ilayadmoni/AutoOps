@@ -1,0 +1,60 @@
+/* App shell: fixed sidebar, scrolling main, mobile topbar. */
+.shell { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+.topbar { display: none; }
+aside {
+  padding: var(--s5) 14px; border-inline-end: 1px solid var(--border); background: var(--sidebar);
+  display: flex; flex-direction: column; gap: var(--s3);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start;
+}
+.brand { width: var(--brand-width); height: var(--brand-height); overflow: hidden; flex: none; margin: 0 var(--s1) var(--s2); }
+.brandLogo { display: block; width: var(--brand-width); height: auto; mix-blend-mode: lighten; }
+[data-theme='light'] .brandLogo { filter: invert(1) hue-rotate(180deg); mix-blend-mode: multiply; }
+
+nav { display: grid; gap: 2px; }
+nav a {
+  display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-radius: var(--radius-sm);
+  color: var(--text); opacity: .86; position: relative; transition: background var(--fast) var(--ease), color var(--fast) var(--ease), opacity var(--fast) var(--ease);
+}
+nav a:hover { background: var(--surface-2); text-decoration: none; opacity: 1; }
+nav a.active { background: var(--primary-soft); color: var(--primary); opacity: 1; font-weight: 600; }
+/* Active marker is a shape as well as a colour, so state does not rely on hue alone. */
+nav a.active::before {
+  content: ''; position: absolute; inset-inline-start: 0; inset-block: 6px;
+  width: 3px; border-radius: var(--radius-pill); background: var(--primary);
+}
+nav svg { width: 18px; height: 18px; flex: none; }
+.navSection { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: var(--s3) 10px var(--s1); }
+.navBadge { margin-inline-start: auto; background: var(--warn); color: #000; border-radius: var(--radius-pill); font-size: 11px; padding: 0 7px; font-weight: 700; }
+
+.sidebarFooter { margin-top: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--s3); display: grid; gap: var(--s3); background: var(--sidebar); }
+.sidebarIdentity { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.userAvatar { width: 34px; height: 34px; border-radius: var(--radius-pill); display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+.userDetails { display: grid; min-width: 0; }
+.userDetails strong { overflow: hidden; text-overflow: ellipsis; }
+.userDetails small { color: var(--muted); }
+.sidebarControls { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--border); padding-top: var(--s3); }
+.sidebarControl, .sidebarLogout {
+  height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.sidebarControl { padding: 0 10px; font-weight: 600; }
+.sidebarControl.iconOnly { width: 36px; padding: 0; background: transparent; color: var(--muted); }
+.sidebarControl svg, .sidebarLogout svg { width: 16px; height: 16px; }
+.languageControl svg { color: var(--primary); }
+.sidebarLogout { margin-inline-start: auto; padding: 0 6px; border-color: transparent; background: transparent; color: var(--muted); white-space: nowrap; }
+.sidebarControl:hover, .sidebarLogout:hover { color: var(--text); background: var(--surface-2); }
+
+main { padding: 28px var(--s7) 60px; max-width: 1240px; width: 100%; margin: 0 auto; }
+.pageTitle { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); margin-bottom: var(--s5); flex-wrap: wrap; }
+.actionsRow { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; }
+.back { display: inline-flex; gap: 6px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.searchBox {
+  display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 9px; padding: 0 10px; flex: 1; min-width: 220px;
+  transition: border-color var(--fast) var(--ease);
+}
+.searchBox:focus-within { border-color: var(--primary); }
+.searchBox input { border: 0; background: transparent; flex: 1; padding-inline: 0; }
+.searchBox input:focus { outline: none; }

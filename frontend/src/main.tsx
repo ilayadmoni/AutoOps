@@ -8,6 +8,7 @@ import { ThemeProvider } from './features/settings/ThemeProvider';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { ToastProvider } from './shared/ui/Toast';
 import { ApiError } from './shared/api/client';
+import '@xyflow/react/dist/style.css';
 import './styles.css';
 
 const queryClient = new QueryClient({

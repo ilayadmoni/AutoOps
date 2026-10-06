@@ -3,8 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './features/auth/AuthProvider';
 import LoginPage from './features/auth/LoginPage';
 import AppLayout from './layouts/AppLayout';
-import { Loading } from './shared/ui';
-import { useI18n } from './i18n/I18nProvider';
+import { BootLoader, Loading } from './shared/ui';
 
 const AIAssistantPage = lazy(() => import('./features/ai-assistant/AIAssistantPage'));
 const MachinesPage = lazy(() => import('./features/machines/MachinesPage'));
@@ -30,8 +29,7 @@ function RequireAdmin({ children }: { children: ReactNode }) {
 
 export default function App() {
   const { user, ready } = useAuth();
-  const { t } = useI18n();
-  if (!ready) return <div className="login"><Loading label={t('common.starting')} /></div>;
+  if (!ready) return <BootLoader />;
   if (!user) return <LoginPage />;
   return (
     <AppLayout>

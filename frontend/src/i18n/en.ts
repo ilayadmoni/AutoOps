@@ -91,6 +91,10 @@ export const en = {
   'execution.retryStarted': 'Retry started', 'execution.liveOutput': 'live output', 'execution.approvalHistory': 'Approval history',
   'preflight.title': 'Preflight', 'preflight.parametersStatus': 'Parameters', 'preflight.filesStatus': 'Files', 'preflight.hostVerificationStatus': 'Host key',
   'preflight.sshStatus': 'SSH', 'preflight.authenticationStatus': 'Authentication', 'preflight.osStatus': 'OS (RHEL)', 'preflight.sudoStatus': 'Sudo',
+  'workflows.approval': 'approval', 'workflows.ok': 'ok', 'workflows.fail': 'fail',
+  'workflows.noSelection': 'No step selected', 'workflows.noSelectionHint': 'Pick a step on the canvas to configure it.',
+  'workflows.canvasHint': 'Drag a handle to wire the next step. Double-click a connection to remove it.',
+  'stepHints.COMMAND': 'Run an approved command', 'stepHints.FILE_TRANSFER': 'Send a stored file', 'stepHints.WAIT_UNTIL': 'Poll until a condition holds',
   'steps.COMMAND': 'Command', 'steps.FILE_TRANSFER': 'File transfer', 'steps.WAIT_UNTIL': 'Wait until',
 
   'approvals.title': 'Approvals', 'approvals.subtitle': 'Executions waiting for your decision.', 'approvals.empty': 'Nothing is waiting for approval.',
@@ -125,6 +129,7 @@ export const en = {
   'workflows.serviceName': 'Service name', 'workflows.interval': 'Check every (seconds)', 'workflows.discardConfirm': 'Discard unsaved changes?',
   'checks.SERVICE_ACTIVE': 'Service is active', 'checks.FILE_EXISTS': 'File exists', 'checks.OUTPUT_CONTAINS': 'Command output contains', 'checks.EXIT_CODE': 'Command exit code is',
 
+  'ai.history': 'History', 'ai.hintSend': 'to send', 'ai.hintNewline': 'for a new line', 'ai.stepCount': '{n} steps',
   'ai.newChat': 'New chat', 'ai.title': 'AI Operations Assistant', 'ai.subtitle': 'Find commands, draft workflows and explain failures. The assistant proposes; you decide.',
   'ai.quickFind': 'Find a command', 'ai.quickWorkflow': 'Draft a workflow', 'ai.quickExplain': 'Explain a failure', 'ai.quickMachines': 'My machines',
   'ai.quick.find': 'Which command shows disk usage?', 'ai.quick.workflow': 'Build a workflow that restarts nginx and waits until it is active',

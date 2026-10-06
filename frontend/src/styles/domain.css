@@ -1,0 +1,19 @@
+/* Machines, trust checks, executions and approvals. */
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+.checkItem { display: flex; justify-content: space-between; align-items: center; gap: 6px; background: var(--surface-2); border-radius: var(--radius-sm); padding: 6px var(--s2); font-size: 13px; }
+.previewBox { display: grid; gap: var(--s1); background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px; }
+
+.machineRun { gap: 10px; }
+.preflight { display: grid; gap: 6px; }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.step { border: 1px solid var(--border); border-inline-start: 4px solid var(--border); border-radius: var(--radius-sm); padding: var(--s2) 10px; display: grid; gap: 6px; background: var(--surface-2); }
+.step.success { border-inline-start-color: var(--ok); }
+.step.failed { border-inline-start-color: var(--bad); }
+.step.running { border-inline-start-color: var(--info); }
+.step.waiting_approval { border-inline-start-color: var(--warn); }
+.step.cancelled { border-inline-start-color: var(--muted); }
+.stepBody { display: grid; gap: var(--s2); }
+.approval { border: 1px solid var(--warn); background: var(--warn-soft); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; margin-bottom: var(--s3); }
+.approval.high { border-color: var(--bad); background: var(--bad-soft); }
+details.card summary { cursor: pointer; font-weight: 600; }
+.fileRow { align-items: flex-end; }

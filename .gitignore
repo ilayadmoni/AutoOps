@@ -6,3 +6,4 @@ backend/target/
 .idea/
 .vscode/
 .DS_Store
+backend/bin/

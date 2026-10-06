@@ -1,0 +1,52 @@
+/* Loading, empty, modal and toast feedback. */
+.loading { display: flex; gap: 10px; align-items: center; color: var(--muted); padding: var(--s6) 0; justify-content: center; }
+.aoRing { width: 20px; height: 20px; border-radius: var(--radius-pill); border: 2px solid color-mix(in srgb, var(--primary) 20%, transparent); border-top-color: var(--primary); animation: aoSpin .8s linear infinite; box-sizing: border-box; flex: none; }
+.aoRingInk { width: 16px; height: 16px; border-color: color-mix(in srgb, var(--primary-ink) 25%, transparent); border-top-color: var(--primary-ink); }
+
+.bootLoader { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: var(--s6); background: var(--bg); }
+.bootLoader .brand { margin: 0; }
+.bootProgress { width: 220px; height: 3px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
+.bootProgress span { display: block; width: 40%; height: 100%; border-radius: inherit; background: var(--primary); animation: aoSweep 1.4s var(--ease) infinite; }
+.bootCommand { display: flex; align-items: center; gap: var(--s1); color: var(--muted); font: 13px var(--font-mono); }
+.bootCommand > span { color: var(--primary); }
+.bootCommand i { width: var(--s2); height: 15px; background: var(--primary); animation: aoBlink 1s steps(1) infinite; }
+
+.skeletonList { display: grid; gap: var(--s2); }
+.skeletonRow { display: flex; align-items: center; gap: 14px; padding: var(--s3) 14px; border: 1px solid var(--border); border-radius: var(--radius); }
+.skeletonBlock { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--surface-2), color-mix(in srgb, var(--surface-2) 75%, var(--text)), var(--surface-2)); background-size: 800px 100%; animation: aoShimmer 1.4s linear infinite; }
+.skeletonIcon { width: 36px; height: 36px; border-radius: var(--radius-sm); flex: none; }
+.skeletonCopy { display: grid; gap: var(--s2); flex: 1; }
+.skeletonCopy span:first-child { width: 48%; }
+.skeletonCopy span:last-child { width: 30%; height: 10px; }
+.skeletonBadge { width: 72px; height: 22px; border-radius: var(--radius-pill); }
+
+@keyframes aoSpin { to { transform: rotate(360deg); } }
+@keyframes aoSweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@keyframes aoBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes aoShimmer { from { background-position: -400px 0; } to { background-position: 400px 0; } }
+@keyframes aoFadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes aoScaleIn { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+.spin { animation: aoSpin 1s linear infinite; }
+
+.empty { display: grid; justify-items: center; gap: 6px; padding: 40px var(--s4); border: 1px dashed var(--border); border-radius: var(--radius); color: var(--muted); text-align: center; }
+.empty strong { color: var(--text); }
+.empty > svg { color: var(--muted); opacity: .7; }
+
+.modalBackdrop { position: fixed; inset: 0; background: #0009; display: grid; place-items: center; z-index: var(--z-modal); padding: var(--s4); backdrop-filter: blur(2px); animation: aoFadeUp var(--fast) var(--ease); }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); width: min(560px, 100%); max-height: 92vh; display: flex; flex-direction: column; box-shadow: var(--shadow); animation: aoScaleIn var(--base) var(--ease); }
+.modal.wide { width: min(860px, 100%); }
+.modalHeader { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.modalHeader h2 { margin: 0; font-size: 17px; }
+.modalBody { padding: var(--s4) 18px; overflow: auto; }
+.modalFooter { display: flex; gap: var(--s2); justify-content: flex-end; align-items: center; padding: var(--s3) 18px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.modalFooter.inline { padding: var(--s2) 0 0; border: 0; }
+
+.toasts { position: fixed; inset-block-end: 18px; inset-inline-end: 18px; display: grid; gap: var(--s2); z-index: var(--z-toast); }
+.toast { display: flex; gap: var(--s2); align-items: center; background: var(--surface); border: 1px solid var(--border); border-inline-start: 4px solid var(--ok); border-radius: var(--radius-sm); padding: 10px var(--s3); box-shadow: var(--shadow); max-width: 420px; animation: aoFadeUp var(--base) var(--ease); }
+.toast.error { border-inline-start-color: var(--bad); }
+.toast.success svg { color: var(--ok); } .toast.error svg { color: var(--bad); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .aoRing, .bootProgress span, .bootCommand i, .skeletonBlock, .spin { animation-duration: 3s !important; animation-iteration-count: infinite !important; }
+}
