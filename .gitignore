@@ -1,0 +1,10 @@
+.env
+.idea/
+.vscode/
+.DS_Store
+target/
+*.log
+node_modules/
+dist/
+postgres-data/
+minio-data/
