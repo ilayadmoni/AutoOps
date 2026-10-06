@@ -1,1 +1,0 @@
-package com.autoops.execution.executor;public interface StepExecutor<T>{Class<T> supports();StepResult execute(T step,ExecutionContext context);record ExecutionContext(String host,int port,String username,String password){}record StepResult(boolean success,String stdout,String stderr,int exitCode){}}
