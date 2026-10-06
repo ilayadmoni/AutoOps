@@ -1,0 +1,1 @@
+ALTER TABLE command_definitions ADD COLUMN IF NOT EXISTS embedding_text TEXT;ALTER TABLE command_definitions ADD COLUMN IF NOT EXISTS embedding_provider VARCHAR(100);ALTER TABLE command_definitions ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(150);CREATE INDEX IF NOT EXISTS idx_command_embedding_hnsw ON command_definitions USING hnsw (embedding vector_cosine_ops);
