@@ -1,0 +1,1 @@
+package com.autoops.execution.repository;import com.autoops.execution.entity.PreflightRun;import org.springframework.data.jpa.repository.JpaRepository;public interface PreflightRunRepository extends JpaRepository<PreflightRun,Long>{}
