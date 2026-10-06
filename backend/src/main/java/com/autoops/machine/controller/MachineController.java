@@ -1,0 +1,3 @@
+package com.autoops.machine.controller;
+import com.autoops.machine.dto.MachineDtos; import com.autoops.machine.service.MachineService; import jakarta.validation.Valid; import org.springframework.web.bind.annotation.*; import java.util.List;
+@RestController @RequestMapping("/api/machines") public class MachineController { private final MachineService service; public MachineController(MachineService s){service=s;} @GetMapping public List<MachineDtos.Response> list(){return service.list(1L);} @PostMapping public MachineDtos.Response create(@Valid @RequestBody MachineDtos.Create body){return service.create(1L,body);} }
