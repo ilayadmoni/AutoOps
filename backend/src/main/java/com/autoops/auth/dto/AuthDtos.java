@@ -1,0 +1,1 @@
+package com.autoops.auth.dto;import jakarta.validation.constraints.NotBlank;public final class AuthDtos{private AuthDtos(){}public record LoginRequest(@NotBlank String username,@NotBlank String password){}public record AuthResponse(String accessToken,long expiresIn){}public record MeResponse(Long id,String username,String role){} }
