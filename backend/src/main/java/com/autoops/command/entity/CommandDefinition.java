@@ -43,11 +43,12 @@ public class CommandDefinition {
     private String source = "USER";
     @Column(name = "rejection_reason", columnDefinition = "text")
     private String rejectionReason;
-    @Column(name = "embedding_text")
+    /** Embedding columns are written only by EmbeddingService (native update), never by entity saves. */
+    @Column(name = "embedding_text", insertable = false, updatable = false)
     private String embeddingText;
-    @Column(name = "embedding_provider")
+    @Column(name = "embedding_provider", insertable = false, updatable = false)
     private String embeddingProvider;
-    @Column(name = "embedding_model")
+    @Column(name = "embedding_model", insertable = false, updatable = false)
     private String embeddingModel;
     @Column(name = "created_by", nullable = false)
     private Long createdBy;
@@ -103,11 +104,8 @@ public class CommandDefinition {
     public String getRejectionReason() { return rejectionReason; }
     public void setRejectionReason(String v) { rejectionReason = v; }
     public String getEmbeddingText() { return embeddingText; }
-    public void setEmbeddingText(String v) { embeddingText = v; }
     public String getEmbeddingProvider() { return embeddingProvider; }
-    public void setEmbeddingProvider(String v) { embeddingProvider = v; }
     public String getEmbeddingModel() { return embeddingModel; }
-    public void setEmbeddingModel(String v) { embeddingModel = v; }
     public Long getCreatedBy() { return createdBy; }
     public void setCreatedBy(Long v) { createdBy = v; }
     public Long getApprovedBy() { return approvedBy; }
