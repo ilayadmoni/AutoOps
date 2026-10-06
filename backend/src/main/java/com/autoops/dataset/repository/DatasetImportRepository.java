@@ -1,0 +1,1 @@
+package com.autoops.dataset.repository;import com.autoops.dataset.entity.DatasetImport;import org.springframework.data.jpa.repository.JpaRepository;public interface DatasetImportRepository extends JpaRepository<DatasetImport,Long>{}
