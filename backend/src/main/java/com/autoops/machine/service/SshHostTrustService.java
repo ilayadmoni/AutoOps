@@ -18,7 +18,7 @@ public class SshHostTrustService {
     var machine=machines.findById(machineId).orElseThrow();
     String actual=fingerprint(hostKey);
     if(!MessageDigest.isEqual(actual.getBytes(StandardCharsets.UTF_8),expectedFingerprint.getBytes(StandardCharsets.UTF_8)))throw new IllegalArgumentException("SSH fingerprint mismatch");
-    machine.setSshHostKey(hostKey);machine.setSshFingerprint(actual);machine.markFingerprintVerified();machines.save(machine);
+    machine.trust("unknown",hostKey,actual);machines.save(machine);
   }
   @Transactional(readOnly=true)
   public void verify(Long machineId,String presentedHostKey){
