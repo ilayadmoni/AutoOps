@@ -20,16 +20,21 @@ services:
     restart: unless-stopped
 
   minio:
-    # Any S3-compatible server works; override MINIO_IMAGE to use another distribution or a mirror.
-    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
-    command: server /data --console-address ':9001'
+    # MinIO community edition is published as source only; this builds a pinned release (see deploy/minio/Dockerfile).
+    # To use an existing S3-compatible service instead, point MINIO_ENDPOINT at it and remove this service.
+    build:
+      context: ..
+      dockerfile: deploy/minio/Dockerfile
+      args:
+        MINIO_RELEASE: ${MINIO_RELEASE:-RELEASE.2025-10-15T17-29-55Z}
+    image: autoops-minio:${MINIO_RELEASE:-RELEASE.2025-10-15T17-29-55Z}
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-autoops}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
     volumes:
       - minio-data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "curl", "-fs", "http://127.0.0.1:9000/minio/health/live"]
       interval: 5s
       timeout: 5s
       retries: 20
