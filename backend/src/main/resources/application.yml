@@ -70,3 +70,10 @@ autoops:
     require-rhel: ${EXECUTION_REQUIRE_RHEL:true}
   files:
     orphan-retention-days: ${FILES_ORPHAN_RETENTION_DAYS:7}
+  embedding:
+    provider: ${EMBEDDING_PROVIDER:LOCAL}
+    model: ${EMBEDDING_MODEL:}
+    base-url: ${EMBEDDING_BASE_URL:}
+    api-key: ${EMBEDDING_API_KEY:}
+  datasets:
+    max-size: ${DATASET_MAX_SIZE:20MB}
