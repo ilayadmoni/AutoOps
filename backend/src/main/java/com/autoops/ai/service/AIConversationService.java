@@ -1,16 +1,1 @@
-package com.autoops.ai.service;
-import com.autoops.ai.provider.AIProvider;
-import org.springframework.stereotype.Service;
-import java.util.List;
-@Service
-public class AIConversationService {
-  private final AIProvider provider;
-  public AIConversationService(AIProvider provider){this.provider=provider;}
-  public Reply ask(String message,String draftSummary){
-    String system="You are the AutoOps assistant. Give concise infrastructure automation guidance. The application validates all proposed changes.";
-    String context=draftSummary==null?"":"\nDraft context:\n"+draftSummary;
-    var response=provider.chat(List.of(new AIProvider.Message("system",system+context),new AIProvider.Message("user",message)),List.of());
-    return new Reply(response.content());
-  }
-  public record Reply(String message){}
-}
+package com.autoops.ai.service;import com.autoops.ai.provider.AIProvider;import com.autoops.ai.tool.*;import com.fasterxml.jackson.databind.ObjectMapper;import org.springframework.stereotype.Service;import java.util.*;@Service public class AIConversationService{private final AIProvider provider;private final AIToolRegistry registry;private final AIToolExecutor executor;private final ObjectMapper json;public AIConversationService(AIProvider p,AIToolRegistry r,AIToolExecutor e,ObjectMapper j){provider=p;registry=r;executor=e;json=j;}public Reply ask(String message,String draftSummary,Long userId){String system="You are AutoOps AI. Java is authoritative for authorization, validation, risk and execution. Use tools only to read, validate or propose. Never claim an operation executed unless the application reports it.";String context=draftSummary==null?"":"\nCurrent workflow draft:\n"+draftSummary;List<AIProvider.Message> msgs=new ArrayList<>();msgs.add(new AIProvider.Message("system",system+context));msgs.add(new AIProvider.Message("user",message));for(int round=0;round<3;round++){var response=provider.chat(msgs,schemas());if(response.toolCalls()==null||response.toolCalls().isEmpty())return new Reply(response.content(),List.of());List<ToolResult> results=new ArrayList<>();for(Map<String,Object> call:response.toolCalls()){Map<String,Object> fn=call.get("function") instanceof Map<?,?>m?(Map<String,Object>)m:Map.of();String name=Objects.toString(fn.get("name"),"");Map<String,Object> args=parse(Objects.toString(fn.get("arguments"),"{}"));Object result=executor.execute(name,args,userId);results.add(new ToolResult(name,result));}msgs.add(new AIProvider.Message("assistant",response.content()));msgs.add(new AIProvider.Message("user","Tool results: "+write(results)+". Continue and return the user-facing answer."));}return new Reply("AI tool loop reached its safety limit.",List.of());}private List<Map<String,Object>>schemas(){return registry.all().stream().map(t->Map.<String,Object>of("type","function","function",Map.of("name",t.name(),"description","Controlled AutoOps "+t.risk().name().toLowerCase(Locale.ROOT)+" tool","parameters",t.schema()))).toList();}@SuppressWarnings("unchecked")private Map<String,Object>parse(String s){try{return json.readValue(s,Map.class);}catch(Exception e){throw new IllegalArgumentException("Invalid AI tool arguments");}}private String write(Object o){try{return json.writeValueAsString(o);}catch(Exception e){return "unavailable";}}public record ToolResult(String tool,Object result){}public record Reply(String message,List<Object> operations){}}

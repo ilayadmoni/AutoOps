@@ -1,12 +1,1 @@
-package com.autoops.ai.controller;
-import com.autoops.ai.service.AIConversationService;
-import org.springframework.web.bind.annotation.*;
-@RestController
-@RequestMapping("/api/ai")
-public class AIAssistantController {
-  private final AIConversationService service;
-  public AIAssistantController(AIConversationService service){this.service=service;}
-  public record Request(String message,String draftSummary){}
-  @PostMapping("/chat")
-  public AIConversationService.Reply chat(@RequestBody Request request){return service.ask(request.message(),request.draftSummary());}
-}
+package com.autoops.ai.controller;import com.autoops.ai.service.AIConversationService;import com.autoops.common.security.CurrentUser;import org.springframework.web.bind.annotation.*;@RestController @RequestMapping("/api/ai")public class AIAssistantController{private final AIConversationService service;private final CurrentUser current;public AIAssistantController(AIConversationService s,CurrentUser c){service=s;current=c;}public record Request(String message,String draftSummary){}@PostMapping("/chat")public AIConversationService.Reply chat(@RequestBody Request r){return service.ask(r.message(),r.draftSummary(),current.id());}}
