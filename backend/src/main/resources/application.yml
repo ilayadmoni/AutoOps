@@ -11,28 +11,50 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: ${FILES_MAX_SIZE:100MB}
+      max-request-size: ${FILES_MAX_SIZE:100MB}
+      file-size-threshold: 1MB
+  mvc:
+    async:
+      request-timeout: -1
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
 server:
   port: ${SERVER_PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: never
 autoops:
   jwt:
-    secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
+    # No default: the application refuses to start without a secret of at least 32 bytes.
+    secret: ${JWT_SECRET}
     access-expiration: ${JWT_ACCESS_EXPIRATION:900000}
     refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  auth:
+    cookie-secure: ${COOKIE_SECURE:true}
+    cookie-same-site: Strict
+  bootstrap:
+    admin-username: ${AUTOOPS_ADMIN_USERNAME:}
+    admin-password: ${AUTOOPS_ADMIN_PASSWORD:}
   credentials:
-    key: ${CREDENTIAL_ENCRYPTION_KEY:change-me-in-production}
+    # No default: the application refuses to start without a real key.
+    key: ${CREDENTIAL_ENCRYPTION_KEY}
   ai:
     base-url: ${AI_BASE_URL:https://openrouter.ai/api/v1}
     api-key: ${AI_API_KEY:}
     model: ${AI_MODEL:}
-    ssl-verify: ${AI_SSL_VERIFY:false}
-
+    ssl-verify: ${AI_SSL_VERIFY:true}
   minio:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     access-key: ${MINIO_ACCESS_KEY:autoops}
-    secret-key: ${MINIO_SECRET_KEY:autoops-secret}
+    secret-key: ${MINIO_SECRET_KEY:}
     bucket: ${MINIO_BUCKET:autoops}
