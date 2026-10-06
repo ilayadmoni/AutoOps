@@ -1,0 +1,1 @@
+package com.autoops.execution.repository;import com.autoops.execution.entity.Execution;import org.springframework.data.jpa.repository.JpaRepository;import java.util.List;public interface ExecutionRepository extends JpaRepository<Execution,Long>{List<Execution> findByStartedByOrderByIdDesc(Long userId);}

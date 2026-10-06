@@ -1,0 +1,1 @@
+package com.autoops.execution.repository;import com.autoops.execution.entity.ApprovalRequest;import org.springframework.data.jpa.repository.JpaRepository;public interface ApprovalRequestRepository extends JpaRepository<ApprovalRequest,Long>{}

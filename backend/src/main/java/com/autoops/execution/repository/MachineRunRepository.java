@@ -1,0 +1,1 @@
+package com.autoops.execution.repository;import com.autoops.execution.entity.MachineRun;import org.springframework.data.jpa.repository.JpaRepository;public interface MachineRunRepository extends JpaRepository<MachineRun,Long>{}

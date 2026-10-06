@@ -1,0 +1,1 @@
+package com.autoops.execution.repository;import com.autoops.execution.entity.StepRun;import org.springframework.data.jpa.repository.JpaRepository;public interface StepRunRepository extends JpaRepository<StepRun,Long>{}
