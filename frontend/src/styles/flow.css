@@ -1,0 +1,76 @@
+/* Node canvas (React Flow). Nodes read as instruments: icon, title, branch handles. */
+/* The page owns the viewport height and the canvas takes whatever the header leaves. */
+.builderPage { display: flex; flex-direction: column; height: calc(100vh - 88px); min-height: 520px; }
+/* grid-template-rows must be explicit: an auto row grows to the canvas's content height and
+   percentage heights inside would then resolve against that, not against the visible shell. */
+.builderShell { display: grid; grid-template-columns: 208px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 0; flex: 1; min-height: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface); }
+.palette { display: grid; align-content: start; gap: var(--s2); padding: var(--s3); border-inline-end: 1px solid var(--border); background: var(--sidebar); overflow-y: auto; }
+.paletteLabel { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: var(--s1); }
+.paletteItem { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); cursor: grab; text-align: start; color: var(--text); transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease); }
+.paletteItem:hover { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: var(--surface-2); }
+.paletteItem:active { cursor: grabbing; }
+.paletteIcon { width: 30px; height: 30px; border-radius: var(--radius-sm); display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--primary); }
+.paletteItem small { display: block; color: var(--muted); font-size: 11px; }
+
+/* height:100% pins the grid item to its row; without it React Flow's own 100% height
+   resolves against the viewport and pushes Controls and the MiniMap below the fold. */
+.canvasWrap { position: relative; min-width: 0; min-height: 0; height: 100%; overflow: hidden; background: var(--bg); }
+.canvasWrap .react-flow { height: 100%; }
+.canvasBar { position: absolute; inset-inline: var(--s3); top: var(--s3); z-index: 5; display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; pointer-events: none; }
+.canvasBar > * { pointer-events: auto; }
+.canvasTitle { flex: 1; min-width: 160px; }
+.titleInput { font-size: 18px; font-weight: 700; width: 100%; background: transparent; border-color: transparent; padding-inline: 6px; }
+.titleInput:hover { border-color: var(--border); }
+input.subtle { background: transparent; border-color: transparent; width: 100%; padding-inline: 6px; color: var(--muted); }
+input.subtle:hover { border-color: var(--border); }
+
+/* React Flow surface overrides. */
+.react-flow__panel { margin: var(--s3); }
+.react-flow__attribution { display: none; }
+.react-flow__background { background: var(--bg); }
+.react-flow__handle { width: 10px; height: 10px; border: 2px solid var(--bg); background: var(--muted); transition: background var(--fast) var(--ease), transform var(--fast) var(--ease); }
+.react-flow__handle:hover { transform: scale(1.25); }
+.react-flow__handle-left { inset-inline-start: -6px; }
+.react-flow__handle.sourceSuccess { background: var(--ok); }
+.react-flow__handle.sourceFailure { background: var(--bad); }
+.react-flow__edge-path { stroke: var(--border); stroke-width: 2; }
+.react-flow__edge.success .react-flow__edge-path { stroke: color-mix(in srgb, var(--ok) 70%, var(--border)); }
+.react-flow__edge.failure .react-flow__edge-path { stroke: color-mix(in srgb, var(--bad) 70%, var(--border)); stroke-dasharray: 5 4; }
+.react-flow__edge.selected .react-flow__edge-path, .react-flow__edge:hover .react-flow__edge-path { stroke: var(--primary); stroke-width: 2.5; }
+.react-flow__edge-text { fill: var(--muted); font-size: 10px; }
+.react-flow__controls { box-shadow: var(--shadow-sm); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.react-flow__controls-button { background: var(--surface); border-bottom: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; }
+.react-flow__controls-button:hover { background: var(--surface-2); }
+.react-flow__controls-button svg { fill: currentColor; max-width: 12px; max-height: 12px; }
+.react-flow__minimap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.react-flow__node { font-family: var(--font-sans); }
+
+/* The node itself. */
+.flowNode { width: 230px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
+.flowNode:hover { border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); }
+.selected .flowNode { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.flowNode.invalid { border-color: var(--bad); }
+.flowNode.invalid:hover { border-color: var(--bad); }
+.flowNodeMain { display: flex; align-items: center; gap: 10px; padding: 10px var(--s3); min-width: 0; }
+.flowNodeIcon { width: var(--s7); height: var(--s7); border-radius: var(--radius-sm); display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--primary); }
+.flowNode.type-file_transfer .flowNodeIcon { background: var(--info-soft); color: var(--info); }
+.flowNode.type-wait_until .flowNodeIcon { background: var(--warn-soft); color: var(--warn); }
+.flowNodeText { display: grid; gap: 1px; min-width: 0; }
+.flowNodeText strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flowNodeText small { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flowNodeFoot { display: flex; align-items: center; gap: 6px; padding: 6px var(--s3); border-top: 1px solid var(--border); flex-wrap: wrap; }
+.flowNodeIndex { font: 10px var(--font-mono); color: var(--muted); background: var(--surface-2); border-radius: var(--radius-sm); padding: 1px 5px; }
+.branchHint { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--muted); }
+.branchHint i { width: 6px; height: 6px; border-radius: var(--radius-pill); flex: none; }
+.branchHint.ok i { background: var(--ok); }
+.branchHint.bad i { background: var(--bad); }
+
+/* Inspector drawer. Overlays the canvas (as n8n does) so the graph keeps the full width. */
+.inspector { position: absolute; inset-block: 0; inset-inline-end: 0; width: min(340px, 100%); z-index: 6; border-inline-start: 1px solid var(--border); background: var(--sidebar); display: flex; flex-direction: column; min-height: 0; box-shadow: var(--shadow-pop); animation: aoSlideIn var(--base) var(--ease); }
+@keyframes aoSlideIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+[dir='rtl'] .inspector { animation-name: aoSlideInRtl; }
+@keyframes aoSlideInRtl { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+.inspectorHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3); border-bottom: 1px solid var(--border); }
+.inspectorHead strong { flex: 1; min-width: 0; font-size: 13px; }
+.inspectorBody { padding: var(--s3); overflow-y: auto; display: grid; gap: var(--s3); align-content: start; min-height: 0; }
+.inspectorEmpty { padding: var(--s6) var(--s4); text-align: center; color: var(--muted); display: grid; gap: var(--s2); justify-items: center; }

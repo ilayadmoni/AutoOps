@@ -1,3 +1,0 @@
-# Credentials
-
-Credential management UI.

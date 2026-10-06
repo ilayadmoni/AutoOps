@@ -1,1 +1,0 @@
-Propose a structured Linux command definition only when no approved command matches. Include name, description, category, action, resource type, command template and parameter schema. Never classify risk yourself as authoritative; Java decides risk.

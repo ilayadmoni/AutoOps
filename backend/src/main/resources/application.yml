@@ -11,28 +11,69 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: ${FILES_MAX_SIZE:100MB}
+      max-request-size: ${FILES_MAX_SIZE:100MB}
+      file-size-threshold: 1MB
+  mvc:
+    async:
+      request-timeout: -1
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
 server:
   port: ${SERVER_PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: never
 autoops:
   jwt:
-    secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
+    # No default: the application refuses to start without a secret of at least 32 bytes.
+    secret: ${JWT_SECRET}
     access-expiration: ${JWT_ACCESS_EXPIRATION:900000}
     refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  auth:
+    cookie-secure: ${COOKIE_SECURE:true}
+    cookie-same-site: Strict
+  bootstrap:
+    admin-username: ${AUTOOPS_ADMIN_USERNAME:}
+    admin-password: ${AUTOOPS_ADMIN_PASSWORD:}
   credentials:
-    key: ${CREDENTIAL_ENCRYPTION_KEY:change-me-in-production}
+    # No default: the application refuses to start without a real key.
+    key: ${CREDENTIAL_ENCRYPTION_KEY}
   ai:
     base-url: ${AI_BASE_URL:https://openrouter.ai/api/v1}
     api-key: ${AI_API_KEY:}
     model: ${AI_MODEL:}
-    ssl-verify: ${AI_SSL_VERIFY:false}
-
+    ssl-verify: ${AI_SSL_VERIFY:true}
   minio:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     access-key: ${MINIO_ACCESS_KEY:autoops}
-    secret-key: ${MINIO_SECRET_KEY:autoops-secret}
+    secret-key: ${MINIO_SECRET_KEY:}
     bucket: ${MINIO_BUCKET:autoops}
+  execution:
+    # Per-execution machine concurrency upper bound (requests may choose 1..this, never above 3).
+    max-concurrency: ${EXECUTION_MAX_CONCURRENCY:3}
+    # Total machine jobs running across all executions.
+    worker-threads: ${EXECUTION_WORKER_THREADS:24}
+    max-active-executions: ${EXECUTION_MAX_ACTIVE:64}
+    approval-timeout-minutes: ${EXECUTION_APPROVAL_TIMEOUT_MINUTES:1440}
+    max-output-bytes: ${EXECUTION_MAX_OUTPUT_BYTES:65536}
+    # V1 targets RHEL-family machines; disable only for lab environments.
+    require-rhel: ${EXECUTION_REQUIRE_RHEL:true}
+  files:
+    orphan-retention-days: ${FILES_ORPHAN_RETENTION_DAYS:7}
+  embedding:
+    provider: ${EMBEDDING_PROVIDER:LOCAL}
+    model: ${EMBEDDING_MODEL:}
+    base-url: ${EMBEDDING_BASE_URL:}
+    api-key: ${EMBEDDING_API_KEY:}
+  datasets:
+    max-size: ${DATASET_MAX_SIZE:20MB}

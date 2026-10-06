@@ -1,0 +1,69 @@
+/* Buttons, inputs and form field scaffolding. */
+button, input, select, textarea { font: inherit; color: var(--text); }
+input, select, textarea {
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); padding: var(--s2) 11px; min-width: 0;
+  transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+input:hover:not(:disabled), select:hover:not(:disabled), textarea:hover:not(:disabled) { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-allowed; }
+input::placeholder, textarea::placeholder { color: var(--muted); }
+textarea { min-height: 72px; resize: vertical; width: 100%; }
+input[type='checkbox'] { width: 16px; height: 16px; accent-color: var(--primary); padding: 0; cursor: pointer; }
+select { cursor: pointer; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface);
+  padding: var(--s2) 13px; cursor: pointer; white-space: nowrap; font-weight: 500;
+  min-height: 36px;
+  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease), filter var(--fast) var(--ease);
+}
+.btn:hover:not(:disabled) { background: var(--surface-2); border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); text-decoration: none; }
+.btn:active:not(:disabled) { filter: brightness(.96); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { background: var(--primary); color: var(--primary-ink); border-color: transparent; font-weight: 700; }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.06); background: var(--primary); border-color: transparent; }
+.btn.danger { background: var(--bad); color: #fff; border-color: transparent; font-weight: 600; }
+.btn.danger:hover:not(:disabled) { filter: brightness(1.06); background: var(--bad); }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.ghost:hover:not(:disabled) { background: var(--surface-2); border-color: transparent; }
+.btn.danger.ghost { background: transparent; color: var(--bad); border-color: transparent; }
+.btn.small { padding: 5px 9px; font-size: 13px; min-height: 30px; }
+.btn.start { justify-content: flex-start; text-align: start; }
+.btn.block { width: 100%; }
+
+.icon {
+  background: transparent; border: 0; padding: var(--s1); border-radius: var(--radius-sm); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; color: inherit;
+  min-width: 32px; min-height: 32px;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.icon:hover:not(:disabled) { background: var(--surface-2); }
+.icon:disabled { opacity: .35; cursor: default; }
+.icon.danger { color: var(--bad); }
+
+/* Segmented control: one visible selection among few options. */
+.segmented { display: inline-flex; gap: var(--s1); flex-wrap: wrap; padding: var(--s1); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
+.segmented > button {
+  border: 0; background: transparent; color: var(--muted); cursor: pointer; font-weight: 600;
+  padding: 6px 12px; border-radius: var(--radius-sm); min-height: 30px;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.segmented > button:hover { color: var(--text); }
+.segmented > button[aria-pressed='true'] { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+.check { display: inline-flex; gap: var(--s2); align-items: center; cursor: pointer; }
+.check.danger { color: var(--bad); font-weight: 600; }
+.checkList .check { justify-content: flex-start; }
+.checkList { display: grid; gap: 6px; max-height: 220px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--surface-2); }
+
+.field { display: grid; gap: 5px; }
+.field input:not([type='checkbox']):not([type='radio']), .field select, .field textarea { width: 100%; }
+.fieldLabel { font-size: 12px; font-weight: 600; color: var(--muted); }
+.fieldError { color: var(--bad); font-size: 12px; }
+.fieldHint { color: var(--muted); font-size: 12px; }
+.field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--bad); }
+.field.invalid input:focus, .field.invalid select:focus { box-shadow: 0 0 0 3px var(--bad-soft); }
+
+progress { width: 100%; accent-color: var(--primary); }

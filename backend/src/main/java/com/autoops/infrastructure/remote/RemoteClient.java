@@ -1,1 +1,9 @@
-package com.autoops.infrastructure.remote;import java.io.InputStream;public interface RemoteClient{Result test(String host,int port,String username,String password);Result execute(String host,int port,String username,String password,String command,int timeoutSeconds);Result upload(String host,int port,String username,String password,InputStream data,String destination,long size);record Result(boolean success,int exitCode,String stdout,String stderr){}}
+package com.autoops.infrastructure.remote;
+
+public interface RemoteClient {
+    /** Performs only the SSH key exchange and returns the server's host key. No authentication is attempted. */
+    SshHostKey discoverHostKey(String host, int port);
+
+    /** Opens a session that only succeeds if the server presents exactly the trusted host key. */
+    RemoteSession open(RemoteTarget target);
+}

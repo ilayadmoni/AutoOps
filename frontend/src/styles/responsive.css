@@ -1,0 +1,37 @@
+/* Breakpoints: 900px collapses split panes, 760px switches the shell to a drawer. */
+@media (max-width: 900px) {
+  .assistant { grid-template-columns: 1fr; height: auto; }
+  .convRail { display: none; }
+  .chatScroll { overflow: visible; }
+  .grid3 { grid-template-columns: 1fr; }
+  .loginShell { grid-template-columns: 1fr; }
+  .loginVisual { display: none; }
+  .builderShell { grid-template-columns: 1fr; grid-template-rows: auto minmax(360px, 1fr); }
+  .inspector { width: 100%; }
+  .palette { grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); overflow-x: auto; border-inline-end: 0; border-bottom: 1px solid var(--border); }
+  .paletteLabel { display: none; }
+
+}
+@media (max-width: 760px) {
+  /* Auto grid rows stretch to fill min-height:100vh, which would inflate the topbar.
+     Pinning the rows keeps the bar at its content height and gives main the remainder. */
+  .shell { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .topbar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    border-bottom: 1px solid var(--border); background: var(--sidebar);
+    position: sticky; top: 0; z-index: var(--z-nav);
+  }
+  .topbar .brand { margin: 0; }
+  aside { display: none; }
+  .shell.navOpen aside {
+    display: flex; position: fixed; inset-block: 0; inset-inline-start: 0;
+    width: 260px; z-index: var(--z-drawer); box-shadow: var(--shadow);
+  }
+  main { padding: 18px 14px 50px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .list > .row { flex-wrap: wrap; }
+  .table { display: block; overflow-x: auto; }
+  .loginPanel { min-height: 100vh; padding: var(--s6) var(--s5) 40px; }
+  /* 16px minimum keeps iOS from zooming the viewport on focus. */
+  input, select, textarea { font-size: 16px; }
+}
