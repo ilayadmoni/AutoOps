@@ -1,0 +1,97 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, Play } from 'lucide-react';
+import { ApiError, get, post } from '../../shared/api/client';
+import type { Command, CommandPreview, ExecutionDetail, RunOptions } from '../../shared/api/types';
+import { useI18n } from '../../i18n/I18nProvider';
+import { Code, ErrorAlert, Field, Modal, RiskBadge, Spinner } from '../../shared/ui';
+import { useToast } from '../../shared/ui/Toast';
+import { ParameterInputs, cleanParams } from './ParameterInputs';
+import { RunOptionsForm, defaultRunOptions } from '../executions/RunOptionsForm';
+
+export interface RunCommandInitial {
+  commandId?: number;
+  machineIds?: number[];
+  parameters?: Record<string, string>;
+  runWithSudo?: boolean;
+}
+
+export default function RunCommandModal({ initial, onClose }: { initial: RunCommandInitial; onClose: () => void }) {
+  const { t } = useI18n();
+  const nav = useNavigate();
+  const toast = useToast();
+  const commands = useQuery({ queryKey: ['commands', 'approved'], queryFn: () => get<Command[]>('/commands?status=APPROVED') });
+  const [commandId, setCommandId] = useState<number | undefined>(initial.commandId);
+  const [params, setParams] = useState<Record<string, string>>(initial.parameters ?? {});
+  const [sudo, setSudo] = useState(!!initial.runWithSudo);
+  const [options, setOptions] = useState<RunOptions>(defaultRunOptions(initial.machineIds ?? []));
+  const command = useMemo(() => commands.data?.find((c) => c.id === commandId), [commands.data, commandId]);
+
+  const [preview, setPreview] = useState<CommandPreview | null>(null);
+  const [previewError, setPreviewError] = useState<ApiError | null>(null);
+  useEffect(() => {
+    if (!commandId) return;
+    const h = setTimeout(() => {
+      post<CommandPreview>(`/commands/${commandId}/preview`, { parameters: cleanParams(params), runWithSudo: sudo })
+        .then((p) => { setPreview(p); setPreviewError(null); })
+        .catch((e) => { setPreview(null); setPreviewError(e instanceof ApiError ? e : null); });
+    }, 300);
+    return () => clearTimeout(h);
+  }, [commandId, params, sudo]);
+
+  const start = useMutation({
+    mutationFn: () => post<ExecutionDetail>('/executions/commands', {
+      commandDefinitionId: commandId, parameters: cleanParams(params), runWithSudo: sudo, ...options,
+      credentialId: options.credentialId || null,
+    }),
+    onSuccess: (d) => {
+      toast.success(t('run.started'));
+      onClose();
+      nav('/executions/' + d.summary.id);
+    },
+  });
+  const fieldErrors = { ...(previewError?.fieldErrors ?? {}), ...((start.error as ApiError | null)?.fieldErrors ?? {}) };
+  const risk = preview?.effectiveRiskLevel ?? command?.riskLevel;
+
+  return (
+    <Modal wide title={t('run.commandTitle')} onClose={onClose} footer={
+      <>
+        <button className="btn" onClick={onClose}>{t('common.cancel')}</button>
+        <button className="btn primary" disabled={!commandId || !options.machineIds.length || start.isPending || !!previewError} onClick={() => start.mutate()}>
+          {start.isPending ? <Spinner /> : <Play size={14} />} {t('run.start')}
+        </button>
+      </>
+    }>
+      <div className="stack">
+        <ErrorAlert error={start.error} />
+        <Field label={t('run.command')}>
+          <select value={commandId ?? ''} onChange={(e) => { setCommandId(e.target.value ? Number(e.target.value) : undefined); setParams({}); }}>
+            <option value="">{t('run.selectCommand')}</option>
+            {(commands.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name} — {c.category}</option>)}
+          </select>
+        </Field>
+        {command && (
+          <>
+            <div className="row gap wrap"><Code>{command.commandTemplate}</Code><RiskBadge risk={command.riskLevel} /></div>
+            {command.description && <p className="muted">{command.description}</p>}
+            <ParameterInputs specs={command.parameters} values={params} onChange={setParams} errors={fieldErrors} />
+            <label className="check"><input type="checkbox" checked={sudo} onChange={(e) => setSudo(e.target.checked)} /> {t('run.sudo')}</label>
+            <div className="previewBox">
+              <span className="muted small">{t('run.preview')}</span>
+              {preview ? <Code>{preview.resolvedCommand}</Code> : <span className="muted small">{previewError ? previewError.message : '…'}</span>}
+              {sudo && preview && <small className="muted">{t('run.sudoNote')}</small>}
+            </div>
+          </>
+        )}
+        <RunOptionsForm value={options} onChange={setOptions} errors={fieldErrors} />
+        {risk && (
+          <div className={'alert ' + (risk === 'HIGH' ? 'danger' : 'info')}>
+            {risk === 'HIGH' && <AlertTriangle size={16} />} <RiskBadge risk={risk} />
+            <span>{risk === 'HIGH' ? t('run.highRiskNote') : options.mode === 'MANUAL' ? t('run.manualNote') : t('run.automaticNote')}</span>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}

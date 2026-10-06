@@ -1,1 +1,0 @@
-import{api}from'../../../shared/api/client';export type Machine={id:number,name:string,hostname:string,sshPort:number,operatingSystem?:string,osVersion?:string};export const listMachines=()=>api<Machine[]>('/machines');export const createMachine=(x:Omit<Machine,'id'>)=>api<Machine>('/machines',{method:'POST',body:JSON.stringify(x)});
