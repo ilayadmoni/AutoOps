@@ -58,3 +58,15 @@ autoops:
     access-key: ${MINIO_ACCESS_KEY:autoops}
     secret-key: ${MINIO_SECRET_KEY:}
     bucket: ${MINIO_BUCKET:autoops}
+  execution:
+    # Per-execution machine concurrency upper bound (requests may choose 1..this, never above 3).
+    max-concurrency: ${EXECUTION_MAX_CONCURRENCY:3}
+    # Total machine jobs running across all executions.
+    worker-threads: ${EXECUTION_WORKER_THREADS:24}
+    max-active-executions: ${EXECUTION_MAX_ACTIVE:64}
+    approval-timeout-minutes: ${EXECUTION_APPROVAL_TIMEOUT_MINUTES:1440}
+    max-output-bytes: ${EXECUTION_MAX_OUTPUT_BYTES:65536}
+    # V1 targets RHEL-family machines; disable only for lab environments.
+    require-rhel: ${EXECUTION_REQUIRE_RHEL:true}
+  files:
+    orphan-retention-days: ${FILES_ORPHAN_RETENTION_DAYS:7}
