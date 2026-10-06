@@ -1,0 +1,3 @@
+package com.autoops.command.repository;
+import com.autoops.command.entity.CommandDefinition; import org.springframework.data.jpa.repository.JpaRepository; import java.util.List;
+public interface CommandDefinitionRepository extends JpaRepository<CommandDefinition,Long>{List<CommandDefinition> findByStatusOrderByNameAsc(String status);}
