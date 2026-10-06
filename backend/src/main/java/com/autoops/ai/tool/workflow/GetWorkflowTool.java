@@ -1,1 +1,32 @@
-package com.autoops.ai.tool.workflow;import com.autoops.ai.tool.AITool;import com.autoops.workflow.repository.*;import org.springframework.stereotype.Component;import java.util.*;@Component public class GetWorkflowTool implements AITool{private final WorkflowRepository workflows;private final WorkflowStepRepository steps;public GetWorkflowTool(WorkflowRepository w,WorkflowStepRepository s){workflows=w;steps=s;}public String name(){return "get_workflow";}public ToolRisk risk(){return ToolRisk.READ;}public Map<String,Object> schema(){return Map.of("type","object","properties",Map.of("workflowId",Map.of("type","integer")),"required",List.of("workflowId"));}public Object execute(Map<String,Object>a,Long user){Long id=((Number)a.get("workflowId")).longValue();var w=workflows.findById(id).orElseThrow();if(!workflows.findByCreatedByAndDeletedAtIsNull(user).stream().anyMatch(x->x.getId().equals(id)))throw new SecurityException("Workflow not owned by current user");return Map.of("id",w.getId(),"name",w.getName(),"description",Objects.toString(w.getDescription(),""),"status",w.getStatus(),"steps",steps.findByWorkflowIdOrderByPosition(id).stream().map(s->Map.of("id",s.getId(),"type",s.getClass().getSimpleName(),"successNextStepId",Objects.toString(s.getSuccessNextStepId(),""),"failureNextStepId",Objects.toString(s.getFailureNextStepId(),""))).toList());}}
+package com.autoops.ai.tool.workflow;
+
+import com.autoops.ai.tool.AITool;
+import com.autoops.ai.tool.ToolArgs;
+import com.autoops.workflow.service.WorkflowService;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+
+@Component
+public class GetWorkflowTool implements AITool {
+    private final WorkflowService workflows;
+
+    public GetWorkflowTool(WorkflowService workflows) {
+        this.workflows = workflows;
+    }
+
+    public String name() { return "get_workflow"; }
+
+    public ToolRisk risk() { return ToolRisk.READ; }
+
+    public String description() { return "Get one of the user's workflows with its typed steps and success/failure edges."; }
+
+    public Map<String, Object> schema() {
+        return Map.of("type", "object", "properties", Map.of("workflowId", Map.of("type", "integer")), "required", List.of("workflowId"));
+    }
+
+    public Object execute(Map<String, Object> args, Long user) {
+        return workflows.get(user, ToolArgs.requireLong(args, "workflowId"));
+    }
+}

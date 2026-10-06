@@ -1,1 +1,49 @@
-package com.autoops.workflow.entity;import jakarta.persistence.*;import java.time.Instant;@Entity @Table(name="workflows")public class Workflow{@Id @GeneratedValue(strategy=GenerationType.IDENTITY)private Long id;@Column(nullable=false)private String name;private String description;@Column(nullable=false)private String status="DRAFT";@Column(name="created_by",nullable=false)private Long createdBy;@Version private Long version;@Column(name="created_at",nullable=false)private Instant createdAt=Instant.now();@Column(name="updated_at",nullable=false)private Instant updatedAt=Instant.now();@Column(name="deleted_at")private Instant deletedAt;public Long getId(){return id;}public String getName(){return name;}public void setName(String v){name=v;}public String getDescription(){return description;}public void setDescription(String v){description=v;}public String getStatus(){return status;}public void setStatus(String v){status=v;}public void setCreatedBy(Long v){createdBy=v;}}
+package com.autoops.workflow.entity;
+
+import jakarta.persistence.*;
+
+import java.time.Instant;
+
+@Entity
+@Table(name = "workflows")
+public class Workflow {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(nullable = false)
+    private String name;
+    private String description;
+    @Column(nullable = false)
+    private String status = "ACTIVE";
+    @Column(name = "created_by", nullable = false)
+    private Long createdBy;
+    @Version
+    private Long version;
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt = Instant.now();
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt = Instant.now();
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @PreUpdate
+    void touch() {
+        updatedAt = Instant.now();
+    }
+
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String v) { name = v; }
+    public String getDescription() { return description; }
+    public void setDescription(String v) { description = v; }
+    public String getStatus() { return status; }
+    public void setStatus(String v) { status = v; }
+    public Long getCreatedBy() { return createdBy; }
+    public void setCreatedBy(Long v) { createdBy = v; }
+    public Long getVersion() { return version; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Instant v) { updatedAt = v; }
+    public Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(Instant v) { deletedAt = v; }
+}
