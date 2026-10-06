@@ -1,1 +1,1 @@
-package com.autoops.execution.repository;import com.autoops.execution.entity.ApprovalRequest;import org.springframework.data.jpa.repository.JpaRepository;public interface ApprovalRequestRepository extends JpaRepository<ApprovalRequest,Long>{}
+package com.autoops.execution.repository;import com.autoops.execution.entity.ApprovalRequest;import org.springframework.data.jpa.repository.JpaRepository;import java.util.*;public interface ApprovalRequestRepository extends JpaRepository<ApprovalRequest,Long>{List<ApprovalRequest> findByStatusOrderByIdAsc(String status);}
