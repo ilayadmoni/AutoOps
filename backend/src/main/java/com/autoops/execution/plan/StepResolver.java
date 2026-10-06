@@ -9,7 +9,6 @@ import com.autoops.files.service.StoredFileService;
 import com.autoops.infrastructure.remote.ShellCommands;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -131,9 +130,5 @@ public class StepResolver {
             return fallback;
         }
         return Math.max(min, Math.min(max, value));
-    }
-
-    public static Map<String, String> emptyIfNull(Map<String, String> m) {
-        return m == null ? Map.of() : m;
     }
 }

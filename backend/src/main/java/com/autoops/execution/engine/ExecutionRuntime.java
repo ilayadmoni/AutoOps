@@ -30,10 +30,6 @@ public class ExecutionRuntime {
         states.remove(executionId);
     }
 
-    public boolean isActive(Long executionId) {
-        return states.containsKey(executionId);
-    }
-
     public boolean isCancelled(Long executionId) {
         RunState s = states.get(executionId);
         return s != null && s.cancelled;

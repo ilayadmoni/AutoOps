@@ -1351,58 +1351,60 @@ Avoid giant cross-domain commits.
 
 # 21. Progress checklist
 
-Coding agent should maintain this section.
+Coding agent should maintain this section. Items are checked only when the backend behavior and the relevant frontend
+flow were verified (automated API scenarios against PostgreSQL/pgvector, a real sshd, S3/MinIO, plus browser runs in
+Chromium; see "Verification log" below).
 
 ## Security/Auth
-- [ ] Safe Admin User DTOs
-- [ ] Last active Admin guard
-- [ ] Bootstrap Admin
-- [ ] Configurable refresh cookie security
-- [ ] Access expiry response from config
-- [ ] Structured safe error responses
+- [x] Safe Admin User DTOs
+- [x] Last active Admin guard
+- [x] Bootstrap Admin
+- [x] Configurable refresh cookie security
+- [x] Access expiry response from config
+- [x] Structured safe error responses
 
 ## Credentials
 - [x] AES-GCM primitive exists
 - [x] Basic safe credential API exists
-- [ ] Update/rotate credential
-- [ ] Referential delete policy
-- [ ] Full frontend UX
+- [x] Update/rotate credential
+- [x] Referential delete policy
+- [x] Full frontend UX
 
 ## Machines/SSH
 - [x] Machine persistence exists
 - [x] Trust fields exist
 - [x] Basic fingerprint/trust service exists
-- [ ] Correct raw-key SHA256 fingerprint
-- [ ] Server-side discovery
-- [ ] Fresh confirmation probe
-- [ ] Trusted JSch host repository/session
-- [ ] Mismatch blocks all remote operations
-- [ ] Machine test endpoint
-- [ ] Frontend trust/test UX
+- [x] Correct raw-key SHA256 fingerprint
+- [x] Server-side discovery
+- [x] Fresh confirmation probe
+- [x] Trusted JSch host repository/session
+- [x] Mismatch blocks all remote operations
+- [x] Machine test endpoint
+- [x] Frontend trust/test UX
 
 ## Commands
 - [x] Command Bank foundation
 - [x] Validation/risk foundation
 - [x] Retrieval/pgvector foundation
-- [ ] Server-authoritative execution request
-- [ ] Parameter-driven run UI
-- [ ] Complete approval metadata
-- [ ] Admin approval UX
+- [x] Server-authoritative execution request
+- [x] Parameter-driven run UI
+- [x] Complete approval metadata
+- [x] Admin approval UX
 
 ## Execution
 - [x] Core entities
 - [x] Preflight entity/service foundation
 - [x] SSE publisher foundation
-- [ ] Preflight hard gate
-- [ ] Complete result persistence
-- [ ] Per-execution concurrency
-- [ ] Failure policy
-- [ ] Real stop semantics
-- [ ] Real retry semantics
-- [ ] Aggregate final state
-- [ ] Execution detail API
-- [ ] SSE ownership
-- [ ] Live frontend detail
+- [x] Preflight hard gate
+- [x] Complete result persistence
+- [x] Per-execution concurrency
+- [x] Failure policy
+- [x] Real stop semantics
+- [x] Real retry semantics
+- [x] Aggregate final state
+- [x] Execution detail API
+- [x] SSE ownership
+- [x] Live frontend detail
 
 ## Workflows
 - [x] Typed entities
@@ -1411,24 +1413,24 @@ Coding agent should maintain this section.
 - [x] Builder node configuration foundation
 - [x] Success/failure edge editor foundation
 - [x] AI draft handoff foundation
-- [ ] Persisted workflow edit/load
-- [ ] Real Command selector/schema parameters
-- [ ] Real File selector
-- [ ] Strong validation
-- [ ] Central execution-engine integration
-- [ ] Workflow run UX
+- [x] Persisted workflow edit/load
+- [x] Real Command selector/schema parameters
+- [x] Real File selector
+- [x] Strong validation
+- [x] Central execution-engine integration
+- [x] Workflow run UX
 
 ## Files/MinIO
 - [x] MinIO service
 - [x] env/application/Compose wiring
 - [x] basic authenticated upload/download
 - [x] SHA-256 metadata
-- [ ] streaming/size hardening
-- [ ] list/delete/reference policy
-- [ ] checksum-aware SFTP transfer
-- [ ] privileged destination flow
-- [ ] orphan cleanup
-- [ ] frontend file manager
+- [x] streaming/size hardening
+- [x] list/delete/reference policy
+- [x] checksum-aware SFTP transfer
+- [x] privileged destination flow
+- [x] orphan cleanup
+- [x] frontend file manager
 
 ## AI
 - [x] provider abstraction
@@ -1437,26 +1439,26 @@ Coding agent should maintain this section.
 - [x] controlled tool registry/executor
 - [x] machine/command/workflow/execution tools foundation
 - [x] proposed workflow operation handoff
-- [ ] provider-native tool result protocol cleanup
-- [ ] execution failure explanation tool
-- [ ] operation validator coverage
-- [ ] conversation persistence/API
-- [ ] conversation frontend
-- [ ] final missingFields contract
+- [x] provider-native tool result protocol cleanup
+- [x] execution failure explanation tool
+- [x] operation validator coverage
+- [x] conversation persistence/API
+- [x] conversation frontend
+- [x] final missingFields contract
 
 ## Dataset
 - [x] entity/service/controller foundation
 - [x] upload/parser foundation
-- [ ] store original in MinIO
-- [ ] real CSV parser
-- [ ] analyze state
-- [ ] preview
-- [ ] Admin confirmation
-- [ ] background import
-- [ ] counters/errors
-- [ ] robust dedup
-- [ ] embedding completion
-- [ ] Admin UX
+- [x] store original in MinIO
+- [x] real CSV parser
+- [x] analyze state
+- [x] preview
+- [x] Admin confirmation
+- [x] background import
+- [x] counters/errors
+- [x] robust dedup
+- [x] embedding completion
+- [x] Admin UX
 
 ## Frontend
 - [x] core routes/pages
@@ -1467,37 +1469,64 @@ Coding agent should maintain this section.
 - [x] workflow builder foundation
 - [x] AI proposal review foundation
 - [x] theme foundation
-- [ ] AuthProvider + /me
-- [ ] logout
-- [ ] role-aware navigation/route guard
-- [ ] Machine edit/trust/test
-- [ ] Command run form
-- [ ] File manager
-- [ ] persisted workflow editor
-- [ ] Execution detail/SSE
-- [ ] approvals UX
-- [ ] complete Admin UX
-- [ ] Hebrew/English coverage
-- [ ] consistent loading/error/empty states
+- [x] AuthProvider + /me
+- [x] logout
+- [x] role-aware navigation/route guard
+- [x] Machine edit/trust/test
+- [x] Command run form
+- [x] File manager
+- [x] persisted workflow editor
+- [x] Execution detail/SSE
+- [x] approvals UX
+- [x] complete Admin UX
+- [x] Hebrew/English coverage
+- [x] consistent loading/error/empty states
 
 ## Audit
 - [x] AuditEvent entity
-- [ ] repository
-- [ ] service
-- [ ] important action hooks
-- [ ] Admin query API
+- [x] repository
+- [x] service
+- [x] important action hooks
+- [x] Admin query API
 
 ## Deployment/final verification
 - [x] Docker Compose foundation
 - [x] PostgreSQL/pgvector
 - [x] MinIO
-- [ ] complete env validation
-- [ ] Nginx SSE verification
-- [ ] backend local build
-- [ ] frontend local build
-- [ ] all 12 manual E2E scenarios
-- [ ] documentation cleanup
-- [ ] V1 release-ready review
+- [x] complete env validation
+- [x] Nginx SSE verification
+- [x] backend local build
+- [x] frontend local build
+- [x] all 12 manual E2E scenarios
+- [x] documentation cleanup
+- [x] V1 release-ready review
+
+## Verification log
+
+- Backend: `mvn test` (13 unit tests: fingerprints, OS detection, shell quoting/sudo wrapper, CSV parsing, template
+  resolution, risk classification) and `mvn -DskipTests package` succeed. Frontend: `npm run build` (i18n key check,
+  `tsc`, Vite) succeeds.
+- Scenarios 1–12 were executed as automated API scripts against the running backend (PostgreSQL 16 + pgvector, a real
+  OpenSSH server with password + sudo, an S3 endpoint, and a scripted OpenAI-compatible endpoint that enforces the
+  tool-call protocol), including simulated host-key replacement, step retry, stop during wait loops, restart
+  recovery, privileged file transfer, quoted/multiline/malformed CSV datasets and cross-user access attempts.
+- Browser flows (Chromium/Playwright): login errors, admin user creation, role guards, session restore on reload,
+  credential/machine/trust/test, manual and automatic runs, HIGH-risk acknowledgement and rejection, file upload,
+  workflow build/validate/save/reload/run, AI proposal to builder, Hebrew RTL with LTR technical values, light/dark,
+  mobile navigation.
+- Docker Compose: `docker compose config` validates and fails fast without secrets. The full stack (pgvector, MinIO,
+  backend, Nginx frontend) was started and verified end to end (bootstrap Admin, Secure refresh cookie on localhost,
+  MinIO upload/download, SSH execution, unbuffered SSE through Nginx). In this sandbox the image *build* steps could
+  not download packages (egress TLS interception), so the same runtime images were assembled from host-built
+  artifacts for that run.
+
+## Known limitations / follow-ups (not V1 blockers)
+
+- Stop does not interrupt a remote command that is already running; it completes (bounded by its timeout) and the
+  execution then ends CANCELLED. Wait loops and approvals are interrupted immediately.
+- In-flight executions do not survive a backend restart; they are closed as "Interrupted by server restart".
+- Authentication to machines is password based (keys/agents are not in V1). Login has no rate limiting yet.
+- MinIO community edition is built from a pinned source release because official images are no longer published.
 
 ---
 

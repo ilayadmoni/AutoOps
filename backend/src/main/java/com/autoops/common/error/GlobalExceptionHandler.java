@@ -115,6 +115,11 @@ public class GlobalExceptionHandler {
         // SSE client disconnected; nothing to send.
     }
 
+    @ExceptionHandler(com.autoops.files.service.ObjectStorageService.StorageException.class)
+    ResponseEntity<ErrorResponse> storage(com.autoops.files.service.ObjectStorageService.StorageException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ErrorResponse.of("STORAGE_UNAVAILABLE", e.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ErrorResponse> unexpected(Exception e) {
         log.error("Unhandled server error", e);
