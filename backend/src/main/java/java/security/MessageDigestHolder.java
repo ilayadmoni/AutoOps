@@ -1,0 +1,1 @@
+package java.security; public final class MessageDigestHolder{private MessageDigestHolder(){}public static byte[] sha256(byte[] b){try{return MessageDigest.getInstance("SHA-256").digest(b);}catch(Exception e){throw new IllegalStateException(e);}}}

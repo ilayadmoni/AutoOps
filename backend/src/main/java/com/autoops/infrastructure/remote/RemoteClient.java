@@ -1,0 +1,1 @@
+package com.autoops.infrastructure.remote;public interface RemoteClient{Result test(String host,int port,String username,String password);Result execute(String host,int port,String username,String password,String command,int timeoutSeconds);record Result(boolean success,int exitCode,String stdout,String stderr){}}
