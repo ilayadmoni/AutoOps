@@ -1,0 +1,1 @@
+package com.autoops.files.repository;import com.autoops.files.entity.StoredFile;import org.springframework.data.jpa.repository.JpaRepository;public interface StoredFileRepository extends JpaRepository<StoredFile,Long>{}
