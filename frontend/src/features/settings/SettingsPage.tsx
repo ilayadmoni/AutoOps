@@ -1,7 +1,7 @@
 import { useI18n, type Lang } from '../../i18n/I18nProvider';
 import { useTheme, type ThemeChoice } from './ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { PageHeader, Segmented } from '../../shared/ui';
+import { Card, PageHeader, Segmented } from '../../shared/ui';
 
 export default function SettingsPage() {
   const { t, lang, setLang } = useI18n();
@@ -11,25 +11,25 @@ export default function SettingsPage() {
     <section>
       <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
       <div className="cards">
-        <article className="card">
+        <Card>
           <h3>{t('settings.theme')}</h3>
           <Segmented
             label={t('settings.theme')} value={theme} onChange={setTheme}
             options={(['system', 'light', 'dark'] as ThemeChoice[]).map((x) => ({ value: x, label: t('settings.theme.' + x) }))}
           />
-        </article>
-        <article className="card">
+        </Card>
+        <Card>
           <h3>{t('settings.language')}</h3>
           <Segmented
             label={t('settings.language')} value={lang} onChange={setLang}
             options={(['en', 'he'] as Lang[]).map((x) => ({ value: x, label: x === 'en' ? 'English' : 'עברית' }))}
           />
           <p className="muted small">{t('settings.languageHint')}</p>
-        </article>
-        <article className="card">
+        </Card>
+        <Card>
           <h3>{t('settings.account')}</h3>
           <div className="kv"><span>{t('login.username')}</span><span dir="ltr">{user?.username}</span><span>{t('users.role')}</span><span>{t('role.' + user?.role)}</span></div>
-        </article>
+        </Card>
       </div>
     </section>
   );

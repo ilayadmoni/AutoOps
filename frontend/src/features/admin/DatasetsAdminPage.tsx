@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FileUp } from 'lucide-react';
 import { get, post, upload } from '../../shared/api/client';
 import type { DatasetView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Code, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, RiskBadge, Select,
+  Button, Code, EmptyState, ErrorAlert, Field, FilePicker, Loading, Modal, PageHeader, RiskBadge, Select,
   StatusBadge, TextInput, Progress, errorMessage,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
@@ -17,7 +17,6 @@ export default function DatasetsAdminPage() {
   const { t, lang } = useI18n();
   const qc = useQueryClient();
   const toast = useToast();
-  const input = useRef<HTMLInputElement>(null);
   const [openId, setOpenId] = useState<number | null>(null);
   const q = useQuery({
     queryKey: ['admin', 'datasets'], queryFn: () => get<DatasetView[]>('/admin/datasets'),
@@ -30,10 +29,9 @@ export default function DatasetsAdminPage() {
   return (
     <section>
       <PageHeader title={t('datasets.title')} subtitle={t('datasets.subtitle')} actions={
-        <>
-          <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) up.mutate(f); }} />
-          <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={() => input.current?.click()}>{t('datasets.upload')}</Button>
-        </>
+        <FilePicker accept=".csv,text/csv" onPick={(file) => { if (file) up.mutate(file); }}>
+          {(open) => <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={open}>{t('datasets.upload')}</Button>}
+        </FilePicker>
       } />
       <p className="muted small">{t('datasets.format')} <Code>name, description, category, command, os, parameters</Code></p>
       <ErrorAlert error={up.error} />

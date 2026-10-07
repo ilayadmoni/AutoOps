@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, FileUp, Trash2 } from 'lucide-react';
 import { del, get, getAccessToken, upload } from '../../shared/api/client';
 import type { StoredFile } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Code, ConfirmDialog, EmptyState, ErrorAlert, IconButton, Loading, PageHeader, errorMessage,
+  Button, Code, ConfirmDialog, EmptyState, ErrorAlert, FilePicker, IconButton, Loading, PageHeader, errorMessage,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatBytes, formatDate } from '../../shared/format';
@@ -36,7 +36,6 @@ export default function FilesPage() {
   const q = useQuery(filesQuery);
   const qc = useQueryClient();
   const toast = useToast();
-  const input = useRef<HTMLInputElement>(null);
   const up = useUpload();
   const [deleting, setDeleting] = useState<StoredFile | null>(null);
   const remove = useMutation({
@@ -48,10 +47,9 @@ export default function FilesPage() {
   return (
     <section>
       <PageHeader title={t('files.title')} subtitle={t('files.subtitle')} actions={
-        <>
-          <input ref={input} type="file" hidden onChange={(e) => { onPick(e.target.files?.[0]); e.target.value = ''; }} />
-          <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={() => input.current?.click()}>{t('files.upload')}</Button>
-        </>
+        <FilePicker onPick={onPick}>
+          {(open) => <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={open}>{t('files.upload')}</Button>}
+        </FilePicker>
       } />
       <ErrorAlert error={up.error} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (

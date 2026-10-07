@@ -1,8 +1,7 @@
-import { useRef } from 'react';
 import { FileUp } from 'lucide-react';
 import type { Command, StoredFile, WorkflowNode } from '../../../shared/api/types';
 import {
-  Button, Checkbox, Code, Field, NumberInput, RiskBadge, Select, StatusBadge, TextInput,
+  Button, Checkbox, Code, Field, FilePicker, NumberInput, RiskBadge, Select, StatusBadge, TextInput,
 } from '../../../shared/ui';
 import { useToast } from '../../../shared/ui/Toast';
 import { ParameterInputs } from '../../commands/ParameterInputs';
@@ -66,7 +65,6 @@ export function CommandConfig({ node, onChange, commands, errors, paramErrors }:
 
 export function FileConfig({ node, onChange, files, errors }: ConfigProps & { files: StoredFile[] }) {
   const { t } = useI18n();
-  const input = useRef<HTMLInputElement>(null);
   const up = useUpload();
   const toast = useToast();
   return (
@@ -79,23 +77,15 @@ export function FileConfig({ node, onChange, files, errors }: ConfigProps & { fi
           options={files.map((f) => ({ value: f.id, label: `${f.filename} (${f.checksum.slice(0, 8)})` }))}
         />
       </Field>
-      <input
-        ref={input}
-        type="file"
-        hidden
-        onChange={(x) => {
-          const f = x.target.files?.[0];
-          x.target.value = '';
-          if (!f) return;
-          up.mutate(f, {
-            onSuccess: (s) => { onChange({ storedFileId: s.id }); toast.success(t('files.uploaded', { name: s.filename })); },
-            onError: (err) => toast.error(err.message),
-          });
-        }}
-      />
-      <Button small busy={up.isPending} icon={<FileUp size={14} />} onClick={() => input.current?.click()}>
-        {t('files.upload')}
-      </Button>
+      <FilePicker onPick={(f) => {
+        if (!f) return;
+        up.mutate(f, {
+          onSuccess: (saved) => { onChange({ storedFileId: saved.id }); toast.success(t('files.uploaded', { name: saved.filename })); },
+          onError: (err) => toast.error(err.message),
+        });
+      }}>
+        {(open) => <Button small busy={up.isPending} icon={<FileUp size={14} />} onClick={open}>{t('files.upload')}</Button>}
+      </FilePicker>
       <Field label={t('workflows.destination')} error={errors.destinationPath} hint={t('workflows.destinationHint')}>
         <TextInput dir="ltr" value={node.destinationPath ?? ''} onChange={(x) => onChange({ destinationPath: x.target.value })} />
       </Field>

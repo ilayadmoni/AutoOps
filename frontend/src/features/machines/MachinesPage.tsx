@@ -5,7 +5,7 @@ import { ApiError, del, get, post, put } from '../../shared/api/client';
 import type { Credential, Discovery, Machine, MachineTest } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Checkbox, Code, ConfirmDialog, EmptyState, ErrorAlert, Field, IconButton, Loading, Modal,
+  Button, Card, Checkbox, Code, ConfirmDialog, EmptyState, ErrorAlert, Field, IconButton, Loading, Modal,
   NumberInput, PageHeader, Select, StatusBadge, TextInput, errorMessage,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
@@ -37,7 +37,7 @@ export default function MachinesPage() {
       ) : (
         <div className="cards">
           {q.data.map((m) => (
-            <article className={'card machine ' + m.trustStatus.toLowerCase()} key={m.id}>
+            <Card className={'machine ' + m.trustStatus.toLowerCase()} key={m.id}>
               <div className="row spread">
                 <h3>{m.name}</h3>
                 <TrustBadge status={m.trustStatus} />
@@ -55,7 +55,7 @@ export default function MachinesPage() {
                 <IconButton label={t('common.edit')} onClick={() => setEditing(m)}><Pencil size={14} /></IconButton>
                 <IconButton danger label={t('common.delete')} onClick={() => setDeleting(m)}><Trash2 size={14} /></IconButton>
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       )}

@@ -6,7 +6,7 @@ import { del, get, post } from '../../shared/api/client';
 import type { WorkflowSummary, WorkflowView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, ConfirmDialog, EmptyState, ErrorAlert, IconButton, Loading, PageHeader, errorMessage,
+  Button, Card, ConfirmDialog, EmptyState, ErrorAlert, IconButton, Loading, PageHeader, errorMessage,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
@@ -39,7 +39,7 @@ export default function WorkflowsPage() {
       ) : (
         <div className="cards">
           {q.data.map((w) => (
-            <article className="card" key={w.id}>
+            <Card key={w.id}>
               <h3>{w.name}</h3>
               {w.description && <p className="muted">{w.description}</p>}
               <small className="muted">{t('workflows.steps', { n: w.stepCount })} · {t('workflows.updated')} {formatDate(w.updatedAt, lang)}</small>
@@ -50,7 +50,7 @@ export default function WorkflowsPage() {
                 <IconButton label={t('workflows.duplicate')} onClick={() => duplicate.mutate(w.id)}><Copy size={14} /></IconButton>
                 <IconButton danger label={t('common.delete')} onClick={() => setDeleting(w)}><Trash2 size={14} /></IconButton>
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       )}
