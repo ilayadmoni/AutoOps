@@ -19,6 +19,7 @@ export { default as Tooltip } from './Tooltip';
 export { default as TextInput, SearchInput, Textarea } from './Input';
 export { default as Select } from './Select';
 export { default as NumberInput } from './NumberInput';
+export { default as Progress } from './Progress';
 export { default as Checkbox, Radio, Switch } from './Toggle';
 
 export { BootLoader, Loading, SkeletonList, Spinner } from './Loaders';

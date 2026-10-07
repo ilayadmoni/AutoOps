@@ -48,26 +48,23 @@ input[type='number'] { font-variant-numeric: tabular-nums; appearance: textfield
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button { appearance: none; margin: 0; }
 
-/* Select. Native list behaviour (keyboard, mobile sheet) kept; only the closed control is restyled. */
+/* Select: themed popup for consistent light/dark, RTL and cross-platform rendering. */
 .selectWrap { position: relative; display: inline-grid; min-width: 0; }
 .selectWrap.block { display: grid; width: 100%; }
-.selectWrap > select {
-  appearance: none; -webkit-appearance: none;
-  cursor: pointer; width: 100%;
-  padding-inline-end: var(--s7);
-  text-overflow: ellipsis;
-}
-.selectWrap > svg {
-  position: absolute; inset-inline-end: 10px; top: 50%; transform: translateY(-50%);
-  width: 16px; height: 16px; color: var(--muted); pointer-events: none;
-  transition: color var(--fast) var(--ease);
-}
-.selectWrap:hover > svg { color: var(--text); }
-.selectWrap > select:focus ~ svg { color: var(--primary); }
-.selectWrap > select:disabled ~ svg { opacity: .5; }
-/* The dropdown list is OS-painted; these two lines are what keep it legible in the dark theme. */
-select option { background: var(--surface); color: var(--text); }
-select optgroup { background: var(--surface); color: var(--muted); font-style: normal; }
+.selectNative { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+.selectTrigger { width: 100%; height: var(--control-h); display: flex; align-items: center; justify-content: space-between; gap: var(--s2); padding-inline: var(--control-pad) 10px; color: var(--text); background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--inset-top); cursor: pointer; text-align: start; transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
+.selectTrigger:hover:not(:disabled) { border-color: var(--border-strong); }
+.selectTrigger:focus-visible, .selectWrap.open > .selectTrigger { outline: none; border-color: var(--primary); box-shadow: var(--inset-top), 0 0 0 var(--ring-w) var(--primary-soft); }
+.selectTrigger:disabled { background: var(--input-disabled); color: var(--muted); cursor: not-allowed; box-shadow: none; }
+.selectTrigger .placeholder { color: var(--muted); }
+.selectTrigger > svg { width: 16px; height: 16px; flex: none; color: var(--muted); transition: transform var(--fast) var(--ease); }
+.selectWrap.open > .selectTrigger > svg { transform: rotate(180deg); color: var(--primary); }
+.selectMenu { position: absolute; z-index: var(--z-popover); inset-block-start: calc(100% + 5px); inset-inline: 0; display: grid; gap: 2px; max-height: 260px; overflow-y: auto; padding: 5px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); }
+.selectOption { min-height: var(--control-h-sm); width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--s2); padding: 6px 9px; border: 0; border-radius: var(--radius-xs); background: transparent; color: var(--text); cursor: pointer; text-align: start; }
+.selectOption:hover:not(:disabled), .selectOption:focus-visible { outline: none; background: var(--surface-2); }
+.selectOption[aria-selected='true'] { background: var(--primary-soft); font-weight: 600; }
+.selectOption[aria-selected='true'] > svg { color: var(--primary); flex: none; }
+.selectOption:disabled { color: var(--muted); cursor: not-allowed; opacity: .55; }
 
 /* Input with a leading icon or a trailing adornment. */
 .inputWrap { position: relative; display: grid; align-items: center; min-width: 0; }

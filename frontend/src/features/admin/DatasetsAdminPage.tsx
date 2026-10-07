@@ -6,7 +6,7 @@ import type { DatasetView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
   Button, Code, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, RiskBadge, Select,
-  StatusBadge, TextInput, errorMessage,
+  StatusBadge, TextInput, Progress, errorMessage,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatBytes, formatDate } from '../../shared/format';
@@ -86,7 +86,7 @@ function DatasetDetail({ id, onClose, onError }: { id: number; onClose: () => vo
               <div key={k}><span className="muted">{t('datasets.' + k)}</span><strong>{d[k]}</strong></div>
             ))}
           </div>
-          {d.status === 'IMPORTING' && <progress max={d.candidateRecords || 1} value={d.processedRecords} />}
+          {d.status === 'IMPORTING' && <Progress max={d.candidateRecords || 1} value={d.processedRecords} />}
           {d.status === 'READY_FOR_REVIEW' && (
             <Field label={t('datasets.approveUpTo')} hint={t('datasets.approveHint')}>
               <Select

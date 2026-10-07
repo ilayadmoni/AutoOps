@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { TextInput } from '../../shared/ui';
+import { IconButton, TextInput } from '../../shared/ui';
 
 export default function PasswordInput({ value, onChange, showLabel, hideLabel }: {
   value: string;
@@ -19,14 +19,13 @@ export default function PasswordInput({ value, onChange, showLabel, hideLabel }:
         dir="ltr"
         required
       />
-      <button
-        type="button"
+      <IconButton
+        label={shown ? hideLabel : showLabel}
         onClick={() => setShown((current) => !current)}
-        aria-label={shown ? hideLabel : showLabel}
         aria-pressed={shown}
       >
         {shown ? <EyeOff /> : <Eye />}
-      </button>
+      </IconButton>
     </div>
   );
 }
