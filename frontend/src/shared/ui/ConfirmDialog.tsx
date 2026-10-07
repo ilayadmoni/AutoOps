@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import Modal from './Modal';
 import Button from './Button';
+import Checkbox from './Toggle';
 import { useI18n } from '../../i18n/I18nProvider';
 
 /**
@@ -42,10 +43,7 @@ export default function ConfirmDialog({
       <div className="stack">
         <div>{message}</div>
         {acknowledge && (
-          <label className="check danger">
-            <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} />
-            {acknowledge}
-          </label>
+          <Checkbox danger checked={ack} onChange={(e) => setAck(e.target.checked)} label={acknowledge} />
         )}
       </div>
     </Modal>

@@ -14,7 +14,7 @@ const STATUS_TONE: Record<string, string> = {
 
 export function StatusBadge({ status }: { status?: string | null }) {
   const { t } = useI18n();
-  if (!status) return <span className="badge muted">—</span>;
+  if (!status) return <span className="badge muted">{t('common.notSet')}</span>;
   return <span className={'badge ' + (STATUS_TONE[status] ?? 'muted')}>{t('status.' + status, undefined, status)}</span>;
 }
 

@@ -5,7 +5,7 @@ import { Play } from 'lucide-react';
 import { ApiError, post } from '../../shared/api/client';
 import type { ExecutionDetail, RunOptions } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { ErrorAlert, Modal, Spinner } from '../../shared/ui';
+import { Button, ErrorAlert, Modal } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { RunOptionsForm, defaultRunOptions } from '../executions/RunOptionsForm';
 
@@ -21,8 +21,13 @@ export default function RunWorkflowModal({ workflowId, name, onClose }: { workfl
   return (
     <Modal wide title={t('workflows.runTitle', { name })} onClose={onClose} footer={
       <>
-        <button className="btn" onClick={onClose}>{t('common.cancel')}</button>
-        <button className="btn primary" disabled={!options.machineIds.length || run.isPending} onClick={() => run.mutate()}>{run.isPending ? <Spinner /> : <Play size={14} />} {t('run.start')}</button>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="primary" icon={<Play size={14} />} busy={run.isPending}
+          disabled={!options.machineIds.length} onClick={() => run.mutate()}
+        >
+          {t('run.start')}
+        </Button>
       </>
     }>
       <div className="stack">

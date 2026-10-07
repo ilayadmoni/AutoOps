@@ -6,6 +6,8 @@ import { useI18n } from '../../i18n/I18nProvider';
  * Message composer. Enter sends, Shift+Enter inserts a newline — the convention operators
  * already expect from chat tools. The textarea grows with its content up to a CSS max-height.
  */
+const LIMIT = 4000;
+
 export default function Composer({ value, onChange, onSubmit, disabled, busy }: {
   value: string;
   onChange: (value: string) => void;
@@ -31,6 +33,8 @@ export default function Composer({ value, onChange, onSubmit, disabled, busy }: 
   };
 
   const canSend = !!value.trim() && !busy && !disabled;
+  // The budget only appears once it is close enough to matter.
+  const remaining = LIMIT - value.length;
   return (
     <div className="composerWrap">
       <form
@@ -44,7 +48,7 @@ export default function Composer({ value, onChange, onSubmit, disabled, busy }: 
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={t('ai.placeholder')}
-          maxLength={4000}
+          maxLength={LIMIT}
           disabled={disabled}
           aria-label={t('ai.placeholder')}
         />
@@ -52,6 +56,7 @@ export default function Composer({ value, onChange, onSubmit, disabled, busy }: 
           <span className="composerHint">
             <kbd>Enter</kbd> {t('ai.hintSend')} · <kbd>Shift</kbd>+<kbd>Enter</kbd> {t('ai.hintNewline')}
           </span>
+          {remaining < 400 && <span className="composerCount">{remaining}</span>}
           <button className="composerSend" type="submit" disabled={!canSend} aria-label={t('ai.send')}>
             <ArrowUp size={18} />
           </button>

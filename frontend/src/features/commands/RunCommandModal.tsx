@@ -5,7 +5,7 @@ import { AlertTriangle, Play } from 'lucide-react';
 import { ApiError, get, post } from '../../shared/api/client';
 import type { Command, CommandPreview, ExecutionDetail, RunOptions } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Code, ErrorAlert, Field, Modal, RiskBadge, Spinner } from '../../shared/ui';
+import { Button, Checkbox, Code, ErrorAlert, Field, Modal, RiskBadge, Select } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { ParameterInputs, cleanParams } from './ParameterInputs';
 import { RunOptionsForm, defaultRunOptions } from '../executions/RunOptionsForm';
@@ -57,26 +57,32 @@ export default function RunCommandModal({ initial, onClose }: { initial: RunComm
   return (
     <Modal wide title={t('run.commandTitle')} onClose={onClose} footer={
       <>
-        <button className="btn" onClick={onClose}>{t('common.cancel')}</button>
-        <button className="btn primary" disabled={!commandId || !options.machineIds.length || start.isPending || !!previewError} onClick={() => start.mutate()}>
-          {start.isPending ? <Spinner /> : <Play size={14} />} {t('run.start')}
-        </button>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="primary" icon={<Play size={14} />} busy={start.isPending}
+          disabled={!commandId || !options.machineIds.length || !!previewError}
+          onClick={() => start.mutate()}
+        >
+          {t('run.start')}
+        </Button>
       </>
     }>
       <div className="stack">
         <ErrorAlert error={start.error} />
         <Field label={t('run.command')}>
-          <select value={commandId ?? ''} onChange={(e) => { setCommandId(e.target.value ? Number(e.target.value) : undefined); setParams({}); }}>
-            <option value="">{t('run.selectCommand')}</option>
-            {(commands.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name} — {c.category}</option>)}
-          </select>
+          <Select
+            block placeholder={t('run.selectCommand')}
+            value={commandId ?? ''}
+            onChange={(e) => { setCommandId(e.target.value ? Number(e.target.value) : undefined); setParams({}); }}
+            options={(commands.data ?? []).map((c) => ({ value: c.id, label: `${c.name} (${c.category})` }))}
+          />
         </Field>
         {command && (
           <>
             <div className="row gap wrap"><Code>{command.commandTemplate}</Code><RiskBadge risk={command.riskLevel} /></div>
             {command.description && <p className="muted">{command.description}</p>}
             <ParameterInputs specs={command.parameters} values={params} onChange={setParams} errors={fieldErrors} />
-            <label className="check"><input type="checkbox" checked={sudo} onChange={(e) => setSudo(e.target.checked)} /> {t('run.sudo')}</label>
+            <Checkbox checked={sudo} onChange={(e) => setSudo(e.target.checked)} label={t('run.sudo')} />
             <div className="previewBox">
               <span className="muted small">{t('run.preview')}</span>
               {preview ? <Code>{preview.resolvedCommand}</Code> : <span className="muted small">{previewError ? previewError.message : '…'}</span>}

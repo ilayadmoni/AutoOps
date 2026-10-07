@@ -5,7 +5,10 @@ import { ApiError, del, get, patch, post } from '../../shared/api/client';
 import type { Role, UserView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { ConfirmDialog, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, Spinner, StatusBadge, errorMessage } from '../../shared/ui';
+import {
+  Button, ConfirmDialog, EmptyState, ErrorAlert, Field, IconButton, Loading, Modal, PageHeader,
+  Select, StatusBadge, TextInput, errorMessage,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
 
@@ -34,7 +37,7 @@ export default function UsersAdminPage() {
   return (
     <section>
       <PageHeader title={t('users.title')} subtitle={t('users.subtitle')}
-        actions={<button className="btn primary" onClick={() => setCreating(true)}><Plus size={16} /> {t('users.create')}</button>} />
+        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setCreating(true)}>{t('users.create')}</Button>} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} /> : !q.data?.length ? <EmptyState title={t('users.empty')} /> : (
         <table className="table">
           <thead><tr><th>{t('login.username')}</th><th>{t('users.role')}</th><th>{t('common.status')}</th><th>{t('users.created')}</th><th /></tr></thead>
@@ -43,19 +46,23 @@ export default function UsersAdminPage() {
               <tr key={u.id}>
                 <td dir="ltr">{u.username}{u.id === me?.id && <span className="badge info">{t('users.you')}</span>}</td>
                 <td>
-                  <select value={u.role} onChange={(e) => role.mutate({ id: u.id, role: e.target.value as Role })}>
-                    <option value="USER">{t('role.USER')}</option>
-                    <option value="ADMIN">{t('role.ADMIN')}</option>
-                  </select>
+                  <Select
+                    aria-label={t('users.role')} value={u.role}
+                    onChange={(e) => role.mutate({ id: u.id, role: e.target.value as Role })}
+                    options={[
+                      { value: 'USER', label: t('role.USER') },
+                      { value: 'ADMIN', label: t('role.ADMIN') },
+                    ]}
+                  />
                 </td>
                 <td><StatusBadge status={u.status} /></td>
                 <td>{formatDate(u.createdAt, lang)}</td>
                 <td className="row gap">
-                  <button className="btn small" onClick={() => status.mutate({ id: u.id, status: u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE' })}>
+                  <Button small onClick={() => status.mutate({ id: u.id, status: u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE' })}>
                     {u.status === 'ACTIVE' ? t('users.disable') : t('users.enable')}
-                  </button>
-                  <button className="btn small ghost" onClick={() => setResetting(u)}><KeyRound size={14} /></button>
-                  <button className="btn small ghost danger" disabled={u.id === me?.id} onClick={() => setDeleting(u)}><Trash2 size={14} /></button>
+                  </Button>
+                  <IconButton label={t('users.reset')} onClick={() => setResetting(u)}><KeyRound size={14} /></IconButton>
+                  <IconButton danger label={t('common.delete')} disabled={u.id === me?.id} onClick={() => setDeleting(u)}><Trash2 size={14} /></IconButton>
                 </td>
               </tr>
             ))}
@@ -80,14 +87,21 @@ function CreateUser({ onClose, onDone }: { onClose: () => void; onDone: () => vo
     <Modal title={t('users.create')} onClose={onClose}>
       <form className="stack" onSubmit={submit}>
         <ErrorAlert error={save.error} />
-        <Field label={t('login.username')} error={fe.username} hint={t('users.usernameHint')}><input dir="ltr" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required /></Field>
-        <Field label={t('users.tempPassword')} error={fe.password} hint={t('users.passwordHint')}><input dir="ltr" type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={10} /></Field>
+        <Field label={t('login.username')} error={fe.username} hint={t('users.usernameHint')} required><TextInput dir="ltr" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required /></Field>
+        <Field label={t('users.tempPassword')} error={fe.password} hint={t('users.passwordHint')} required><TextInput dir="ltr" type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={10} /></Field>
         <Field label={t('users.role')}>
-          <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}><option value="USER">{t('role.USER')}</option><option value="ADMIN">{t('role.ADMIN')}</option></select>
+          <Select
+            block value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value as Role })}
+            options={[
+              { value: 'USER', label: t('role.USER') },
+              { value: 'ADMIN', label: t('role.ADMIN') },
+            ]}
+          />
         </Field>
         <div className="modalFooter inline">
-          <button type="button" className="btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn primary" disabled={save.isPending}>{save.isPending && <Spinner />} {t('users.create')}</button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" variant="primary" busy={save.isPending}>{t('users.create')}</Button>
         </div>
       </form>
     </Modal>
@@ -104,10 +118,10 @@ function ResetPassword({ user, onClose }: { user: UserView; onClose: () => void 
     <Modal title={t('users.resetTitle', { name: user.username })} onClose={onClose}>
       <form className="stack" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
         <ErrorAlert error={save.error} />
-        <Field label={t('users.tempPassword')} error={fe.password} hint={t('users.resetHint')}><input dir="ltr" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} /></Field>
+        <Field label={t('users.tempPassword')} error={fe.password} hint={t('users.resetHint')} required><TextInput dir="ltr" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} /></Field>
         <div className="modalFooter inline">
-          <button type="button" className="btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn primary" disabled={save.isPending}>{save.isPending && <Spinner />} {t('users.reset')}</button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" variant="primary" busy={save.isPending}>{t('users.reset')}</Button>
         </div>
       </form>
     </Modal>

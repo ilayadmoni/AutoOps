@@ -1,5 +1,5 @@
 import { cloneElement, isValidElement, useId, type ReactNode } from 'react';
-import { AlertTriangle, Inbox } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Inbox } from 'lucide-react';
 import { ApiError } from '../api/client';
 import Button from './Button';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -46,9 +46,12 @@ export function ErrorAlert({ error, onRetry }: { error: unknown; onRetry?: () =>
 /**
  * The label is linked to its control by id (not by wrapping), so neither option text, hints nor
  * errors become part of the control's accessible name. Hints and errors attach via aria-describedby.
+ *
+ * A field shows a hint or an error, never both: once something is wrong, the correction is the
+ * only thing worth the line.
  */
-export function Field({ label, error, hint, children }: {
-  label: ReactNode; error?: string; hint?: ReactNode; children: ReactNode;
+export function Field({ label, error, hint, required, children }: {
+  label: ReactNode; error?: string; hint?: ReactNode; required?: boolean; children: ReactNode;
 }) {
   const id = useId();
   const describedBy = error || hint ? id + '-desc' : undefined;
@@ -61,10 +64,13 @@ export function Field({ label, error, hint, children }: {
     : children;
   return (
     <div className={'field' + (error ? ' invalid' : '')}>
-      <label className="fieldLabel" htmlFor={id}>{label}</label>
+      <label className="fieldLabel" htmlFor={id}>
+        {label}
+        {required && <span className="req" aria-hidden="true">*</span>}
+      </label>
       {control}
       {error
-        ? <span id={describedBy} className="fieldError" role="alert">{error}</span>
+        ? <span id={describedBy} className="fieldError" role="alert"><AlertCircle size={13} />{error}</span>
         : hint ? <span id={describedBy} className="fieldHint">{hint}</span> : null}
     </div>
   );

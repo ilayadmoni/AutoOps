@@ -5,7 +5,9 @@ import { Copy, Pencil, Play, Plus, Trash2 } from 'lucide-react';
 import { del, get, post } from '../../shared/api/client';
 import type { WorkflowSummary, WorkflowView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { ConfirmDialog, EmptyState, ErrorAlert, Loading, PageHeader, errorMessage } from '../../shared/ui';
+import {
+  Button, ConfirmDialog, EmptyState, ErrorAlert, IconButton, Loading, PageHeader, errorMessage,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
 import RunWorkflowModal from './RunWorkflowModal';
@@ -42,10 +44,11 @@ export default function WorkflowsPage() {
               {w.description && <p className="muted">{w.description}</p>}
               <small className="muted">{t('workflows.steps', { n: w.stepCount })} · {t('workflows.updated')} {formatDate(w.updatedAt, lang)}</small>
               <div className="row gap wrap">
-                <button className="btn small primary" onClick={() => setRunning(w)}><Play size={14} /> {t('workflows.run')}</button>
+                <Button small variant="primary" icon={<Play size={14} />} onClick={() => setRunning(w)}>{t('workflows.run')}</Button>
                 <Link className="btn small" to={`/workflows/${w.id}/edit`}><Pencil size={14} /> {t('common.edit')}</Link>
-                <button className="btn small ghost" onClick={() => duplicate.mutate(w.id)}><Copy size={14} /></button>
-                <button className="btn small ghost danger" onClick={() => setDeleting(w)}><Trash2 size={14} /></button>
+                <span className="grow" />
+                <IconButton label={t('workflows.duplicate')} onClick={() => duplicate.mutate(w.id)}><Copy size={14} /></IconButton>
+                <IconButton danger label={t('common.delete')} onClick={() => setDeleting(w)}><Trash2 size={14} /></IconButton>
               </div>
             </article>
           ))}

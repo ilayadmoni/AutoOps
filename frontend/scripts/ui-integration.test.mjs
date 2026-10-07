@@ -42,7 +42,9 @@ test('implements the bilingual split login with a password reveal', async () => 
   assert.match(login, /loginShell/);
   assert.match(login, /LoginLanguageToggle/);
   assert.match(login, /PasswordInput/);
-  assert.match(login, /aria-busy=\{busy\}/);
+  // The submit control is the shared Button now; `busy` is what sets aria-busy and blocks
+  // double submits, so the prop is the thing worth asserting.
+  assert.match(login, /busy=\{busy\}/);
 });
 
 test('uses option C controls in the sidebar footer', async () => {

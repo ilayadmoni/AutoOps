@@ -9,6 +9,9 @@ import { autoLayout, COL, loadPositions, savePositions, type Positions } from '.
 
 const nodeTypes = { step: StepNode, preflight: PreflightNode };
 
+/** Matches `.inspector` in flow.css. The canvas pans by half of it so the edited step stays visible. */
+const INSPECTOR_WIDTH = 348;
+
 /**
  * Re-frames the canvas when the step count changes. `fitView` on <ReactFlow> only runs for the
  * first render, which would leave every step added afterwards drifting off-screen.
@@ -17,7 +20,9 @@ function FitOnChange({ count, offsetRight }: { count: number; offsetRight: numbe
   const flow = useReactFlow();
   useEffect(() => {
     const id = window.setTimeout(() => {
-      flow.fitView({ padding: 0.2, minZoom: 0.55, maxZoom: 1, duration: 200 });
+      // Extra padding while the drawer is open: the pan below shifts the graph left, and without
+      // the slack the first step slides under the canvas edge instead of under the drawer.
+      flow.fitView({ padding: offsetRight ? 0.3 : 0.2, minZoom: 0.55, maxZoom: 1, duration: 200 });
       // fitView centres on the full canvas, but the inspector covers its right edge. Pan back by
       // half the drawer so the step being edited never ends up underneath it.
       if (offsetRight) {
@@ -136,7 +141,7 @@ export default function WorkflowCanvas({ nodes, errors, selected, workflowId, on
       proOptions={{ hideAttribution: true }}
       deleteKeyCode={null}
     >
-      <FitOnChange count={nodes.length} offsetRight={selected ? 340 : 0} />
+      <FitOnChange count={nodes.length} offsetRight={selected ? INSPECTOR_WIDTH : 0} />
       <Background variant={BackgroundVariant.Dots} gap={18} size={1} color="var(--border)" />
       <Controls showInteractive={false} />
       <MiniMap pannable zoomable maskColor="transparent" nodeColor="#5d665f" style={{ width: 150, height: 96 }} />

@@ -5,7 +5,7 @@ import { AlertTriangle, Check, X } from 'lucide-react';
 import { ApiError, post } from '../../shared/api/client';
 import type { ApprovalView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { ErrorAlert, RiskBadge, Spinner } from '../../shared/ui';
+import { Button, Checkbox, ErrorAlert, RiskBadge, TextInput } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
 
@@ -37,14 +37,20 @@ export function ApprovalCard({ approval, showLink }: { approval: ApprovalView; s
       </div>
       {decide.error && <ErrorAlert error={decide.error as ApiError} />}
       {high && (
-        <label className="check danger"><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> <AlertTriangle size={14} /> {t('approvals.ack')}</label>
+        <Checkbox
+          danger checked={ack} onChange={(e) => setAck(e.target.checked)}
+          label={<><AlertTriangle size={14} /> {t('approvals.ack')}</>}
+        />
       )}
       <div className="row gap wrap">
-        <input className="grow" placeholder={t('approvals.comment')} value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} />
-        <button className="btn danger ghost" disabled={decide.isPending} onClick={() => decide.mutate(false)}><X size={14} /> {t('approvals.reject')}</button>
-        <button className={'btn ' + (high ? 'danger' : 'primary')} disabled={decide.isPending || (high && !ack)} onClick={() => decide.mutate(true)}>
-          {decide.isPending ? <Spinner /> : <Check size={14} />} {approval.scope === 'EXECUTION' ? t('approvals.run') : t('approvals.approve')}
-        </button>
+        <TextInput className="grow" aria-label={t('approvals.comment')} placeholder={t('approvals.comment')} value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} />
+        <Button variant="danger" className="ghost" icon={<X size={14} />} disabled={decide.isPending} onClick={() => decide.mutate(false)}>{t('approvals.reject')}</Button>
+        <Button
+          variant={high ? 'danger' : 'primary'} icon={<Check size={14} />}
+          busy={decide.isPending} disabled={high && !ack} onClick={() => decide.mutate(true)}
+        >
+          {approval.scope === 'EXECUTION' ? t('approvals.run') : t('approvals.approve')}
+        </Button>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { get } from '../../shared/api/client';
 import type { ApprovalView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { EmptyState, ErrorAlert, Loading, PageHeader } from '../../shared/ui';
+import { Checkbox, EmptyState, ErrorAlert, Loading, PageHeader } from '../../shared/ui';
 import { ApprovalCard } from '../executions/ApprovalCard';
 
 export default function ApprovalsPage() {
@@ -15,7 +15,7 @@ export default function ApprovalsPage() {
   return (
     <section>
       <PageHeader title={t('approvals.title')} subtitle={t('approvals.subtitle')}
-        actions={isAdmin && <label className="check"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> {t('executions.allUsers')}</label>} />
+        actions={isAdmin && <Checkbox checked={all} onChange={(e) => setAll(e.target.checked)} label={t('executions.allUsers')} />} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('approvals.empty')} />
       ) : (

@@ -3,7 +3,7 @@ import type { en } from './en';
 /** Hebrew dictionary. Typed against en so a missing translation fails the build. */
 export const he: Record<keyof typeof en, string> = {
   'common.loading': 'טוען…', 'common.starting': 'מפעיל את AutoOps…', 'common.retry': 'נסה שוב', 'common.cancel': 'ביטול',
-  'common.confirm': 'אישור', 'common.close': 'סגירה', 'common.save': 'שמירה', 'common.edit': 'עריכה', 'common.delete': 'מחיקה',
+  'common.confirm': 'אישור', 'common.close': 'סגירה', 'common.save': 'שמירה', 'common.edit': 'עריכה', 'common.notSet': 'לא הוגדר', 'common.copy': 'העתקה', 'common.copied': 'הועתק', 'common.delete': 'מחיקה',
   'common.name': 'שם', 'common.description': 'תיאור', 'common.status': 'סטטוס', 'common.none': 'ללא',
   'common.next': 'הבא', 'common.previous': 'הקודם',
 
@@ -45,7 +45,7 @@ export const he: Record<keyof typeof en, string> = {
   'machines.osVersion': 'גרסה', 'machines.preferredCredential': 'פרטי גישה מועדפים',
   'machines.endpointResetsTrust': 'שינוי המארח או הפורט מבטל את המפתח המאושר; יהיה צורך לאשר אותו מחדש.',
 
-  'trust.title': 'מפתח SSH של השרת — {name}', 'trust.explain': 'AutoOps מאחזר את מפתח השרת בעצמו. השוו את טביעת האצבע לזו שבשרת לפני האישור.',
+  'trust.title': 'מפתח SSH של השרת: {name}', 'trust.explain': 'AutoOps מאחזר את מפתח השרת בעצמו. השוו את טביעת האצבע לזו שבשרת לפני האישור.',
   'trust.current': 'מצב נוכחי', 'trust.trustedFingerprint': 'טביעת אצבע מאושרת', 'trust.presentedFingerprint': 'טביעת האצבע שהוצגה באי ההתאמה',
   'trust.discover': 'איתור טביעת אצבע', 'trust.matches': 'השרת עדיין מציג את המפתח המאושר.',
   'trust.changedWarning': 'המפתח הזה שונה מהמפתח המאושר. המשיכו רק אם ידוע לכם מדוע המפתח השתנה.',
@@ -53,7 +53,7 @@ export const he: Record<keyof typeof en, string> = {
   'trust.verifiedCheckbox': 'אימתתי את טביעת האצבע בערוץ נפרד', 'trust.confirm': 'אשר מפתח זה', 'trust.replace': 'החלף את המפתח המאושר',
   'trust.confirmed': 'מפתח השרת אושר', 'trust.revoke': 'ביטול אמון', 'trust.revoked': 'האמון בוטל',
 
-  'test.title': 'בדיקת חיבור — {name}', 'test.run': 'הרץ בדיקה', 'test.selectCredential': 'בחרו פרטי גישה',
+  'test.title': 'בדיקת חיבור: {name}', 'test.run': 'הרץ בדיקה', 'test.selectCredential': 'בחרו פרטי גישה',
   'test.ssh': 'חיבור SSH', 'test.hostVerification': 'אימות שרת', 'test.authentication': 'הזדהות', 'test.os': 'מערכת הפעלה', 'test.sudo': 'Sudo',
 
   'commands.title': 'מאגר פקודות', 'commands.subtitle': 'פעולות Linux מאושרות עם פרמטרים. רק פקודות מאושרות ניתנות להרצה.',
@@ -62,11 +62,11 @@ export const he: Record<keyof typeof en, string> = {
   'commands.empty': 'לא נמצאו פקודות', 'commands.emptyHint': 'נסו חיפוש אחר או הציעו פקודה חדשה.', 'commands.run': 'הרצה',
   'commands.rejectedBecause': 'נדחתה', 'commands.pendingNote': 'ממתינה לסקירת מנהל מערכת.',
   'commands.parameters': 'פרמטרים', 'commands.createdApproved': 'הפקודה נוספה ואושרה', 'commands.createdPending': 'הפקודה נשלחה לסקירה',
-  'commands.createHint': 'השתמשו ב־{{name}} עבור פרמטרים. אל תכללו sudo — הרשאות מוגברות נבחרות בכל הרצה. רמת הסיכון נקבעת על ידי AutoOps.',
+  'commands.createHint': 'השתמשו ב־{{name}} עבור פרמטרים. אל תכללו sudo; הרשאות מוגברות נבחרות בכל הרצה. רמת הסיכון נקבעת על ידי AutoOps.',
   'commands.category': 'קטגוריה', 'commands.template': 'תבנית פקודה', 'commands.templateHint': 'הערכים נבדקים ומצוטטים על ידי השרת.',
   'commands.submit': 'שליחה',
 
-  'params.none': 'לפקודה זו אין פרמטרים.', 'params.label': 'תווית', 'params.typeLabel': 'סוג', 'params.required': 'חובה', 'params.allowed': 'ערכים מותרים',
+  'params.choose': 'בחר ערך', 'params.none': 'לפקודה זו אין פרמטרים.', 'params.label': 'תווית', 'params.typeLabel': 'סוג', 'params.required': 'חובה', 'params.allowed': 'ערכים מותרים',
   'params.type.STRING': 'טקסט', 'params.type.INTEGER': 'מספר', 'params.type.PATH': 'נתיב', 'params.type.SERVICE': 'שירות',
   'params.type.PACKAGE': 'חבילה', 'params.type.HOSTNAME': 'מארח', 'params.type.ENUM': 'בחירה',
 
@@ -107,11 +107,11 @@ export const he: Record<keyof typeof en, string> = {
 
   'files.title': 'קבצים', 'files.subtitle': 'קבצים השמורים ב־AutoOps עבור צעדי העברת קבצים. סכום הביקורת נבדק בשרת לאחר ההעברה.',
   'files.upload': 'העלאה', 'files.uploaded': '{name} הועלה', 'files.empty': 'אין עדיין קבצים', 'files.emptyHint': 'העלו קובץ כדי להשתמש בו בתהליך עבודה.',
-  'files.name': 'קובץ', 'files.size': 'גודל', 'files.usedBy': 'בשימוש ב', 'files.uploadedAt': 'הועלה', 'files.inUse': 'בשימוש בתהליך עבודה',
+  'files.name': 'קובץ', 'files.size': 'גודל', 'files.usedBy': 'בשימוש ב', 'files.uploadedAt': 'הועלה', 'files.inUse': 'בשימוש בתהליך עבודה', 'files.download': 'הורדה', 'files.unused': 'לא בשימוש',
   'files.deleted': 'הקובץ נמחק', 'files.deleteTitle': 'מחיקת קובץ', 'files.deleteMessage': 'למחוק את "{name}"?',
 
   'workflows.title': 'תהליכי עבודה', 'workflows.subtitle': 'רצפים לשימוש חוזר של פקודות, העברות קבצים ובדיקות.', 'workflows.create': 'תהליך חדש',
-  'workflows.empty': 'אין עדיין תהליכי עבודה', 'workflows.emptyHint': 'בנו תהליך צעד אחר צעד, או בקשו טיוטה מעוזר ה־AI.', 'workflows.steps': '{n} צעדים',
+  'workflows.empty': 'אין עדיין תהליכי עבודה', 'workflows.emptyHint': 'בנו תהליך צעד אחר צעד, או בקשו טיוטה מעוזר ה־AI.', 'workflows.duplicate': 'שכפול', 'workflows.steps': '{n} צעדים',
   'workflows.updated': 'עודכן', 'workflows.run': 'הרצה', 'workflows.deleted': 'תהליך העבודה נמחק', 'workflows.deleteTitle': 'מחיקת תהליך עבודה',
   'workflows.deleteMessage': 'למחוק את "{name}"? הרצות קודמות נשמרות.', 'workflows.runTitle': 'הרצת "{name}"',
   'workflows.runHint': 'כל שרת עובר קודם בדיקה מקדימה. צעדים המסומנים לאישור נעצרים בכל שרת.',
@@ -123,7 +123,7 @@ export const he: Record<keyof typeof en, string> = {
   'workflows.paletteHint': 'צעדים חדשים רצים אחרי הצעד האחרון בהצלחה. ערכו את מסלולי ההצלחה/כישלון בכל צעד.',
   'workflows.system': 'מערכת', 'workflows.preflight': 'בדיקה מקדימה לשרת', 'workflows.preflightHint': 'מפתח השרת, הזדהות, מערכת הפעלה, sudo, קבצים ופרמטרים נבדקים לפני כל צעד.',
   'workflows.noSteps': 'הוסיפו צעד כדי להתחיל.', 'workflows.end': 'סיום (הצלחה)', 'workflows.stop': 'עצירה (כישלון)', 'workflows.entry': 'התחלה',
-  'workflows.errors': '{n} בעיות', 'workflows.key': 'מפתח', 'workflows.onSuccess': 'בהצלחה עבור אל', 'workflows.onFailure': 'בכישלון עבור אל',
+  'workflows.errors': '{n} לתיקון', 'workflows.key': 'מפתח', 'workflows.keyHint': 'נקבע ביצירת השלב. שלבים אחרים מסתעפים אליו לפי מפתח זה.', 'workflows.onSuccess': 'בהצלחה עבור אל', 'workflows.onFailure': 'בכישלון עבור אל',
   'workflows.requireApproval': 'דרוש אישור לפני צעד זה', 'workflows.timeout': 'זמן קצוב (שניות)', 'workflows.file': 'קובץ',
   'workflows.selectFile': 'בחרו קובץ שהועלה…', 'workflows.destination': 'נתיב יעד', 'workflows.destinationHint': 'נתיב מלא; סיימו ב־/ כדי לשמור את שם הקובץ.',
   'workflows.overwrite': 'דרוס אם קיים', 'workflows.privileged': 'יעד מוגן (sudo)', 'workflows.checkType': 'תנאי',
@@ -137,9 +137,9 @@ export const he: Record<keyof typeof en, string> = {
   'ai.quick.find': 'איזו פקודה מציגה את השימוש בדיסק?', 'ai.quick.workflow': 'בנה תהליך עבודה שמפעיל מחדש את nginx וממתין עד שהוא פעיל',
   'ai.quick.explain': 'הסבר את ההרצה האחרונה שלי שנכשלה', 'ai.quick.machines': 'הצג את השרתים שלי ואת מצב האמון שלהם',
   'ai.notConfigured': 'עוזר ה־AI אינו מוגדר בשרת זה. כל היכולות זמינות ידנית מהתפריט.',
-  'ai.you': 'אתם', 'ai.thinking': 'חושב…', 'ai.placeholder': 'בקשו מ־AutoOps למצוא, לבנות או להסביר…', 'ai.send': 'שליחה',
+  'ai.you': 'אתם', 'ai.copyReply': 'העתקת התשובה', 'ai.noHistory': 'אין עדיין שיחות.', 'ai.thinking': 'חושב…', 'ai.placeholder': 'בקשו מ־AutoOps למצוא, לבנות או להסביר…', 'ai.send': 'שליחה',
   'ai.missing': 'נדרש עוד לפני שמירה או הרצה:', 'ai.proposedWorkflow': 'תהליך עבודה מוצע', 'ai.reviewInBuilder': 'סקירה בבונה התהליכים',
-  'ai.proposedRun': 'הרצה מוצעת', 'ai.onMachines': 'על {n} שרתים', 'ai.reviewRun': 'סקירה והרצה', 'ai.proposalNote': 'הצעה — דבר לא נשמר ולא הורץ.',
+  'ai.proposedRun': 'הרצה מוצעת', 'ai.onMachines': 'שרתים: {n}', 'ai.reviewRun': 'סקירה והרצה', 'ai.proposalNote': 'הצעה. דבר לא נשמר ולא הורץ.',
 
   'admin.title': 'ניהול', 'admin.subtitle': 'מצב המערכת ותחזוקה.', 'admin.open': 'פתיחה', 'admin.maintenance': 'תחזוקה',
   'admin.stat.activeUsers': 'משתמשים פעילים', 'admin.stat.pendingCommands': 'פקודות הממתינות לסקירה', 'admin.stat.datasetsAwaitingReview': 'מאגרים הממתינים לסקירה',
@@ -153,7 +153,7 @@ export const he: Record<keyof typeof en, string> = {
   'users.empty': 'אין משתמשים', 'users.role': 'תפקיד', 'users.created': 'נוצר', 'users.you': 'את/ה', 'users.disable': 'השבתה', 'users.enable': 'הפעלה',
   'users.updated': 'המשתמש עודכן', 'users.deleted': 'המשתמש נמחק', 'users.createdToast': 'המשתמש נוצר', 'users.deleteTitle': 'מחיקת משתמש',
   'users.deleteMessage': 'למחוק את {name}? ההתחברויות שלו יבוטלו.', 'users.usernameHint': '3–64 אותיות לטיניות, ספרות, נקודה, מקף או קו תחתון.',
-  'users.tempPassword': 'סיסמה', 'users.passwordHint': 'לפחות 10 תווים.', 'users.resetTitle': 'איפוס סיסמה — {name}',
+  'users.tempPassword': 'סיסמה', 'users.passwordHint': 'לפחות 10 תווים.', 'users.resetTitle': 'איפוס סיסמה: {name}',
   'users.resetHint': 'ההתחברויות של המשתמש יבוטלו.', 'users.reset': 'איפוס סיסמה', 'users.passwordReset': 'הסיסמה אופסה',
 
   'cmdApprovals.title': 'סקירת פקודות', 'cmdApprovals.subtitle': 'אשרו או דחו פקודות מוצעות ומיובאות. רמת הסיכון מחושבת על ידי AutoOps.',

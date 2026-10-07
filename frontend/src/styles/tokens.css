@@ -6,19 +6,35 @@
   --ok: #4ade80; --ok-soft: #4ade801f; --warn: #fbbf24; --warn-soft: #fbbf2420; --bad: #f87171; --bad-soft: #f8717120;
   --info: #60a5fa; --info-soft: #60a5fa20; --code-bg: #0f1210;
 
+  /* Border roles. `border` is the resting hairline; `border-strong` is the neutral hover edge.
+     Hover must never borrow the accent: the accent means focus or selection, nothing else. */
+  --border-strong: #3a423c;
+  /* Input wells sit below their container so a field stays visible inside a card. */
+  --input-bg: #0f1210; --input-disabled: #151916;
+
   /* Elevation: one shadow per surface role, so depth reads consistently. */
   --shadow: 0 10px 40px #0008;
   --shadow-sm: 0 1px 2px #00000066;
   --shadow-pop: 0 12px 32px #000000a6;
+  /* Inner top highlight. Gives controls a physical edge without a visible border change. */
+  --inset-top: inset 0 1px 0 #ffffff08;
 
-  /* Radius scale. */
-  --radius-sm: 6px; --radius: 10px; --radius-lg: 14px; --radius-pill: 999px;
+  /* Radius scale. One rule, applied everywhere: controls 8, containers 10, overlays 14, pills round. */
+  --radius-sm: 8px; --radius: 10px; --radius-lg: 14px; --radius-pill: 999px;
+  --radius-xs: 5px;
+
+  /* Control metrics. Every interactive control resolves to one of three heights, which is what
+     keeps a button, a select and an input on the same baseline inside one toolbar. */
+  --control-h: 36px; --control-h-sm: 30px; --control-h-lg: 44px;
+  --control-pad: 11px;
+  --ring-w: 3px;
 
   /* Space scale, 4px base. */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s7: 32px; --s8: 48px;
 
   /* Motion. Durations stay inside the 150-300ms band for micro-interactions. */
   --ease: cubic-bezier(.4, 0, .2, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
   --fast: 150ms; --base: 200ms; --slow: 300ms;
 
   /* Z-index scale: nav 20, drawer 30, modal 50, toast 60, tooltip 70. */
@@ -36,18 +52,21 @@
   --text: #172019; --muted: #5f6b63; --primary: #1f9d2f; --primary-ink: #ffffff; --primary-soft: #1f9d2f18;
   --ok: #15803d; --ok-soft: #15803d14; --warn: #b45309; --warn-soft: #b4530914; --bad: #b91c1c; --bad-soft: #b91c1c12;
   --info: #1d4ed8; --info-soft: #1d4ed812; --code-bg: #f1f4f2;
+  --border-strong: #b6c1ba;
+  --input-bg: #ffffff; --input-disabled: #f0f3f1;
   --shadow: 0 10px 40px #0002; --shadow-sm: 0 1px 2px #0000000f; --shadow-pop: 0 12px 32px #0000001f;
+  --inset-top: inset 0 1px 0 #ffffff;
 }
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
-h1 { font-size: 24px; margin: 0 0 var(--s1); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; letter-spacing: -.01em; }
-h2 { font-size: 18px; margin: var(--s6) 0 var(--s3); letter-spacing: -.01em; }
-h3 { font-size: 15px; margin: 0 0 6px; }
+h1 { font-size: 24px; margin: 0 0 var(--s1); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; letter-spacing: -.02em; }
+h2 { font-size: 18px; margin: var(--s6) 0 var(--s3); letter-spacing: -.015em; }
+h3 { font-size: 15px; margin: 0 0 6px; letter-spacing: -.01em; }
 p { margin: 0 0 var(--s2); }
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
-:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--radius-xs); }
 
 .muted { color: var(--muted); }
 .small, small { font-size: 12px; }
@@ -55,6 +74,7 @@ a:hover { text-decoration: underline; }
 .mono, code, pre { font-family: var(--font-mono); }
 .req { color: var(--bad); margin-inline-start: 2px; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.tabular { font-variant-numeric: tabular-nums; }
 
 .row { display: flex; align-items: center; gap: var(--s2); }
 .row.gap { gap: var(--s2); } .row.wrap { flex-wrap: wrap; } .row.spread { justify-content: space-between; }

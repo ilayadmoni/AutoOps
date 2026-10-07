@@ -20,6 +20,7 @@ export default function ConversationRail({ items, activeId, onOpen, onNew, onDel
       </Button>
       <div className="convRailHead"><h2>{t('ai.history')}</h2></div>
       <div className="convList">
+        {items.length === 0 && <p className="convEmpty">{t('ai.noHistory')}</p>}
         {items.map((c) => (
           <div key={c.id} className={'convItem' + (c.id === activeId ? ' active' : '')}>
             <button className="convOpen" onClick={() => onOpen(c.id)} aria-current={c.id === activeId}>

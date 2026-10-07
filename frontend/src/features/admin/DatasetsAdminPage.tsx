@@ -4,7 +4,10 @@ import { FileUp } from 'lucide-react';
 import { get, post, upload } from '../../shared/api/client';
 import type { DatasetView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Code, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, RiskBadge, Spinner, StatusBadge, errorMessage } from '../../shared/ui';
+import {
+  Button, Code, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, RiskBadge, Select,
+  StatusBadge, TextInput, errorMessage,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatBytes, formatDate } from '../../shared/format';
 
@@ -29,7 +32,7 @@ export default function DatasetsAdminPage() {
       <PageHeader title={t('datasets.title')} subtitle={t('datasets.subtitle')} actions={
         <>
           <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) up.mutate(f); }} />
-          <button className="btn primary" disabled={up.isPending} onClick={() => input.current?.click()}>{up.isPending ? <Spinner /> : <FileUp size={16} />} {t('datasets.upload')}</button>
+          <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={() => input.current?.click()}>{t('datasets.upload')}</Button>
         </>
       } />
       <p className="muted small">{t('datasets.format')} <Code>name, description, category, command, os, parameters</Code></p>
@@ -42,7 +45,7 @@ export default function DatasetsAdminPage() {
               <tr key={d.id}>
                 <td>{d.id}</td><td dir="ltr">{d.filename}</td><td><StatusBadge status={d.status} /></td><td>{d.totalRecords}</td>
                 <td>{d.candidateRecords}</td><td>{d.addedRecords}</td><td>{formatDate(d.createdAt, lang)}</td>
-                <td><button className="btn small" onClick={() => setOpenId(d.id)}>{d.status === 'READY_FOR_REVIEW' ? t('datasets.review') : t('admin.open')}</button></td>
+                <td><Button small onClick={() => setOpenId(d.id)}>{d.status === 'READY_FOR_REVIEW' ? t('datasets.review') : t('admin.open')}</Button></td>
               </tr>
             ))}
           </tbody>
@@ -69,14 +72,14 @@ function DatasetDetail({ id, onClose, onError }: { id: number; onClose: () => vo
   return (
     <Modal wide title={d ? d.filename : t('common.loading')} onClose={onClose} footer={d?.status === 'READY_FOR_REVIEW' && (
       <>
-        <input className="grow" placeholder={t('cmdApprovals.reason')} value={reason} onChange={(e) => setReason(e.target.value)} />
-        <button className="btn danger ghost" disabled={reject.isPending} onClick={() => reject.mutate()}>{t('approvals.reject')}</button>
-        <button className="btn primary" disabled={confirm.isPending || !d.candidateRecords} onClick={() => confirm.mutate()}>{confirm.isPending && <Spinner />} {t('datasets.confirm', { n: d.candidateRecords })}</button>
+        <TextInput className="grow" aria-label={t('cmdApprovals.reason')} placeholder={t('cmdApprovals.reason')} value={reason} onChange={(e) => setReason(e.target.value)} />
+        <Button variant="danger" className="ghost" busy={reject.isPending} onClick={() => reject.mutate()}>{t('approvals.reject')}</Button>
+        <Button variant="primary" busy={confirm.isPending} disabled={!d.candidateRecords} onClick={() => confirm.mutate()}>{t('datasets.confirm', { n: d.candidateRecords })}</Button>
       </>
     )}>
       {!d ? <Loading /> : (
         <div className="stack">
-          <div className="row gap wrap"><StatusBadge status={d.status} /><span className="muted small">{formatBytes(d.sizeBytes)} · SHA-256 <Code>{d.checksum?.slice(0, 16)}…</Code></span></div>
+          <div className="row gap wrap"><StatusBadge status={d.status} /><span className="muted small">{formatBytes(d.sizeBytes)} · SHA-256 <Code>{d.checksum?.slice(0, 16)}</Code></span></div>
           {d.errorMessage && <div className={'alert ' + (d.status === 'FAILED' ? 'danger' : 'warn')}>{d.errorMessage}</div>}
           <div className="summaryGrid">
             {(['totalRecords', 'candidateRecords', 'invalidRecords', 'nonRhelRecords', 'duplicateRecords', 'processedRecords', 'addedRecords', 'failedRecords'] as const).map((k) => (
@@ -86,11 +89,14 @@ function DatasetDetail({ id, onClose, onError }: { id: number; onClose: () => vo
           {d.status === 'IMPORTING' && <progress max={d.candidateRecords || 1} value={d.processedRecords} />}
           {d.status === 'READY_FOR_REVIEW' && (
             <Field label={t('datasets.approveUpTo')} hint={t('datasets.approveHint')}>
-              <select value={approveUpTo} onChange={(e) => setApproveUpTo(e.target.value)}>
-                <option value="NONE">{t('datasets.approveNone')}</option>
-                <option value="LOW">{t('risk.LOW')}</option>
-                <option value="MEDIUM">{t('datasets.approveMedium')}</option>
-              </select>
+              <Select
+                block value={approveUpTo} onChange={(e) => setApproveUpTo(e.target.value)}
+                options={[
+                  { value: 'NONE', label: t('datasets.approveNone') },
+                  { value: 'LOW', label: t('risk.LOW') },
+                  { value: 'MEDIUM', label: t('datasets.approveMedium') },
+                ]}
+              />
             </Field>
           )}
           {d.analysis && (

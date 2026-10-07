@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Play, Plus, Search, Sparkles } from 'lucide-react';
+import { Play, Plus, Sparkles } from 'lucide-react';
 import { ApiError, get, post } from '../../shared/api/client';
 import type { Command, ParamType, ParameterSpec, SearchResult } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Code, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, RiskBadge, Spinner, StatusBadge } from '../../shared/ui';
+import {
+  Button, Checkbox, Code, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader,
+  RiskBadge, SearchInput, Select, StatusBadge, TextInput, Textarea,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import RunCommandModal from './RunCommandModal';
 
@@ -44,18 +47,23 @@ export default function CommandsPage() {
   return (
     <section>
       <PageHeader title={t('commands.title')} subtitle={t('commands.subtitle')}
-        actions={<button className="btn primary" onClick={() => setCreating(true)}><Plus size={16} /> {t('commands.create')}</button>} />
+        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setCreating(true)}>{t('commands.create')}</Button>} />
       <div className="toolbar">
-        <div className="searchBox"><Search size={16} /><input placeholder={t('commands.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} /></div>
-        <select value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="">{t('commands.allCategories')}</option>
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={risk} onChange={(e) => setRisk(e.target.value)}>
-          <option value="">{t('commands.allRisks')}</option>
-          {['LOW', 'MEDIUM', 'HIGH'].map((r) => <option key={r} value={r}>{t('risk.' + r)}</option>)}
-        </select>
-        <label className="check"><input type="checkbox" checked={semantic} onChange={(e) => setSemantic(e.target.checked)} /> <Sparkles size={14} /> {t('commands.semantic')}</label>
+        <SearchInput className="grow" aria-label={t('commands.searchPlaceholder')} placeholder={t('commands.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} />
+        <Select
+          aria-label={t('commands.allCategories')} placeholder={t('commands.allCategories')}
+          value={category} onChange={(e) => setCategory(e.target.value)}
+          options={categories.map((c) => ({ value: c, label: c }))}
+        />
+        <Select
+          aria-label={t('commands.allRisks')} placeholder={t('commands.allRisks')}
+          value={risk} onChange={(e) => setRisk(e.target.value)}
+          options={['LOW', 'MEDIUM', 'HIGH'].map((r) => ({ value: r, label: t('risk.' + r) }))}
+        />
+        <Checkbox
+          checked={semantic} onChange={(e) => setSemantic(e.target.checked)}
+          label={<><Sparkles size={14} /> {t('commands.semantic')}</>}
+        />
       </div>
       {semantic && search.data && <p className="muted small">{t('commands.confidence')}: <StatusBadge status={search.data.confidence} /></p>}
       {all.isLoading || search.isFetching ? <Loading /> : all.error ? <ErrorAlert error={all.error} onRetry={() => all.refetch()} /> : !list.length ? (
@@ -71,7 +79,7 @@ export default function CommandsPage() {
               <Code>{c.commandTemplate}</Code>
               <RiskBadge risk={c.riskLevel} />
               <StatusBadge status={c.status} />
-              <button className="btn small primary" disabled={c.status !== 'APPROVED'} onClick={(e) => { e.stopPropagation(); setRunning(c); }}><Play size={14} /> {t('commands.run')}</button>
+              <Button small variant="primary" icon={<Play size={14} />} disabled={c.status !== 'APPROVED'} onClick={(e) => { e.stopPropagation(); setRunning(c); }}>{t('commands.run')}</Button>
             </article>
           ))}
         </div>
@@ -79,7 +87,7 @@ export default function CommandsPage() {
       {creating && <CreateCommand onClose={() => setCreating(false)} />}
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)} footer={
-          <button className="btn primary" disabled={detail.status !== 'APPROVED'} onClick={() => { setRunning(detail); setDetail(null); }}><Play size={14} /> {t('commands.run')}</button>
+          <Button variant="primary" icon={<Play size={14} />} disabled={detail.status !== 'APPROVED'} onClick={() => { setRunning(detail); setDetail(null); }}>{t('commands.run')}</Button>
         }>
           <div className="stack">
             <div className="row gap wrap"><RiskBadge risk={detail.riskLevel} /><StatusBadge status={detail.status} /><span className="badge muted">{t('source.' + detail.source, undefined, detail.source)}</span></div>
@@ -130,13 +138,13 @@ function CreateCommand({ onClose }: { onClose: () => void }) {
       <form className="stack" onSubmit={submit}>
         <p className="muted small">{t('commands.createHint')}</p>
         <ErrorAlert error={save.error} />
-        <div className="grid2">
-          <Field label={t('common.name')} error={fe.name}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={200} /></Field>
-          <Field label={t('commands.category')}><input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} maxLength={80} /></Field>
+        <div className="fieldRow">
+          <Field label={t('common.name')} error={fe.name} required><TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={200} /></Field>
+          <Field label={t('commands.category')}><TextInput value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} maxLength={80} /></Field>
         </div>
-        <Field label={t('common.description')}><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={2000} /></Field>
-        <Field label={t('commands.template')} error={fe.commandTemplate} hint={t('commands.templateHint')}>
-          <input dir="ltr" className="mono" value={form.commandTemplate} onChange={(e) => setForm({ ...form, commandTemplate: e.target.value })} required placeholder="systemctl status {{service}}" />
+        <Field label={t('common.description')}><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={2000} /></Field>
+        <Field label={t('commands.template')} error={fe.commandTemplate} hint={t('commands.templateHint')} required>
+          <TextInput dir="ltr" className="mono" value={form.commandTemplate} onChange={(e) => setForm({ ...form, commandTemplate: e.target.value })} required placeholder="systemctl status {{service}}" />
         </Field>
         {params.length > 0 && (
           <table className="table">
@@ -145,10 +153,16 @@ function CreateCommand({ onClose }: { onClose: () => void }) {
               {params.map((p, i) => (
                 <tr key={p.name}>
                   <td><Code>{p.name}</Code></td>
-                  <td><input value={p.label ?? ''} onChange={(e) => setParam(i, { label: e.target.value })} /></td>
-                  <td><select value={p.type} onChange={(e) => setParam(i, { type: e.target.value as ParamType })}>{PARAM_TYPES.map((x) => <option key={x} value={x}>{t('params.type.' + x)}</option>)}</select></td>
-                  <td><input type="checkbox" checked={p.required !== false} onChange={(e) => setParam(i, { required: e.target.checked })} /></td>
-                  <td>{p.type === 'ENUM' && <input dir="ltr" placeholder="a,b,c" value={(p.allowedValues ?? []).join(',')} onChange={(e) => setParam(i, { allowedValues: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} />}</td>
+                  <td><TextInput aria-label={t('params.label')} value={p.label ?? ''} onChange={(e) => setParam(i, { label: e.target.value })} /></td>
+                  <td>
+                    <Select
+                      block aria-label={t('params.typeLabel')} value={p.type}
+                      onChange={(e) => setParam(i, { type: e.target.value as ParamType })}
+                      options={PARAM_TYPES.map((x) => ({ value: x, label: t('params.type.' + x) }))}
+                    />
+                  </td>
+                  <td><Checkbox aria-label={t('params.required')} checked={p.required !== false} onChange={(e) => setParam(i, { required: e.target.checked })} /></td>
+                  <td>{p.type === 'ENUM' && <TextInput dir="ltr" aria-label={t('params.allowed')} placeholder="a,b,c" value={(p.allowedValues ?? []).join(',')} onChange={(e) => setParam(i, { allowedValues: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} />}</td>
                 </tr>
               ))}
             </tbody>
@@ -156,8 +170,8 @@ function CreateCommand({ onClose }: { onClose: () => void }) {
         )}
         {fe.parameters && <span className="fieldError">{fe.parameters}</span>}
         <div className="modalFooter inline">
-          <button type="button" className="btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn primary" disabled={save.isPending}>{save.isPending && <Spinner />} {t('commands.submit')}</button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" variant="primary" busy={save.isPending}>{t('commands.submit')}</Button>
         </div>
       </form>
     </Modal>

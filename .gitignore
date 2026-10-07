@@ -7,3 +7,15 @@ backend/target/
 .vscode/
 .DS_Store
 backend/bin/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Agent tooling
+.agents/
+.claude/
+skills-lock.json

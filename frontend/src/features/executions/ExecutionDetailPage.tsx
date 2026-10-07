@@ -6,7 +6,9 @@ import { get, post, streamEvents } from '../../shared/api/client';
 import type { ExecutionDetail, MachineRunView, StepRunView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { Code, ConfirmDialog, ErrorAlert, Loading, Output, PageHeader, RiskBadge, StatusBadge, errorMessage } from '../../shared/ui';
+import {
+  Button, Code, ConfirmDialog, ErrorAlert, Loading, Output, PageHeader, RiskBadge, StatusBadge, errorMessage,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { duration, formatDate, isTerminal } from '../../shared/format';
 import { ApprovalCard } from './ApprovalCard';
@@ -81,7 +83,14 @@ export default function ExecutionDetailPage() {
         subtitle={<>{t('executions.type.' + s.type)} · {t('run.' + s.mode.toLowerCase())} · {t('run.concurrency')} {s.concurrency} · {t('run.' + (s.failurePolicy === 'CONTINUE' ? 'continue' : 'stopNew'))}</>}
         actions={<>
           {!terminal && <span className={'badge ' + (live ? 'ok' : 'muted')}><Radio size={12} /> {live ? t('execution.live') : t('execution.polling')}</span>}
-          {!terminal && owner && <button className="btn danger" disabled={s.cancelRequested || stop.isPending} onClick={() => setConfirmStop(true)}><Octagon size={14} /> {s.cancelRequested ? t('execution.stopping') : t('execution.stop')}</button>}
+          {!terminal && owner && (
+            <Button
+              variant="danger" icon={<Octagon size={14} />}
+              disabled={s.cancelRequested} busy={stop.isPending} onClick={() => setConfirmStop(true)}
+            >
+              {s.cancelRequested ? t('execution.stopping') : t('execution.stop')}
+            </Button>
+          )}
         </>}
       />
       <div className="summaryGrid">
@@ -167,9 +176,13 @@ function StepItem({ step, live, executionId }: { step: StepRunView; live?: strin
   return (
     <li className={'step ' + step.status.toLowerCase()}>
       <div className="row spread wrap">
-        <button className="btn ghost small" onClick={() => setOpen(!open)}>{open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <b>{step.stepName}</b>{step.attemptNumber > 1 && <span className="badge info">{t('execution.attempt', { n: step.attemptNumber })}</span>}
-        </button>
+        <Button
+          small className="ghost" aria-expanded={open} onClick={() => setOpen(!open)}
+          icon={open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        >
+          <b>{step.stepName}</b>
+          {step.attemptNumber > 1 && <span className="badge info">{t('execution.attempt', { n: step.attemptNumber })}</span>}
+        </Button>
         <div className="row gap wrap">
           <small className="muted">{t('steps.' + (step.stepType ?? 'COMMAND'))}</small>
           {step.riskLevel && <RiskBadge risk={step.riskLevel} />}
@@ -177,7 +190,7 @@ function StepItem({ step, live, executionId }: { step: StepRunView; live?: strin
           {step.exitCode != null && <span className="badge muted" dir="ltr">exit {step.exitCode}</span>}
           <StatusBadge status={step.status} />
           <small className="muted">{duration(step.startedAt, step.finishedAt)}</small>
-          {step.retryable && <button className="btn small" onClick={() => setConfirm(true)}><RotateCcw size={14} /> {t('execution.retry')}</button>}
+          {step.retryable && <Button small icon={<RotateCcw size={14} />} onClick={() => setConfirm(true)}>{t('execution.retry')}</Button>}
         </div>
       </div>
       {step.failureReason && <small className="fieldError">{step.failureReason}</small>}

@@ -4,7 +4,10 @@ import { KeyRound, Pencil, Plus, Trash2 } from 'lucide-react';
 import { del, get, post, put } from '../../shared/api/client';
 import type { Credential } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { ConfirmDialog, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, Spinner, errorMessage } from '../../shared/ui';
+import {
+  Button, ConfirmDialog, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader,
+  TextInput, errorMessage,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
 
@@ -32,7 +35,7 @@ export default function CredentialsPage() {
   return (
     <section>
       <PageHeader title={t('credentials.title')} subtitle={t('credentials.subtitle')}
-        actions={<button className="btn primary" onClick={() => setEditing('new')}><Plus size={16} /> {t('credentials.add')}</button>} />
+        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setEditing('new')}>{t('credentials.add')}</Button>} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('credentials.empty')} hint={t('credentials.emptyHint')} />
       ) : (
@@ -45,8 +48,8 @@ export default function CredentialsPage() {
                 <small className="muted"><span dir="ltr">{c.username}</span> · {t('credentials.updated')} {formatDate(c.updatedAt, lang)}</small>
               </div>
               <span className="badge muted">{c.authType}</span>
-              <button className="btn small" onClick={() => setEditing(c)}><Pencil size={14} /> {t('common.edit')}</button>
-              <button className="btn small danger ghost" onClick={() => setDeleting(c)}><Trash2 size={14} /> {t('common.delete')}</button>
+              <Button small icon={<Pencil size={14} />} onClick={() => setEditing(c)}>{t('common.edit')}</Button>
+              <Button small variant="danger" className="ghost" icon={<Trash2 size={14} />} onClick={() => setDeleting(c)}>{t('common.delete')}</Button>
             </article>
           ))}
         </div>
@@ -86,15 +89,17 @@ function CredentialForm({ credential, onClose }: { credential: Credential | null
     <Modal title={credential ? t('credentials.edit') : t('credentials.add')} onClose={onClose}>
       <form className="stack" onSubmit={submit}>
         <ErrorAlert error={save.error} />
-        <Field label={t('common.name')} error={fe.name}><input value={name} onChange={(e) => setName(e.target.value)} required maxLength={150} /></Field>
-        <Field label={t('credentials.username')} error={fe.username}><input dir="ltr" value={username} onChange={(e) => setUsername(e.target.value)} required maxLength={150} /></Field>
-        <Field label={credential ? t('credentials.newPassword') : t('credentials.password')} error={fe.password}
-          hint={credential ? t('credentials.rotateHint') : t('credentials.passwordHint')}>
-          <input dir="ltr" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required={!credential} maxLength={512} />
+        <Field label={t('common.name')} error={fe.name} required><TextInput value={name} onChange={(e) => setName(e.target.value)} required maxLength={150} /></Field>
+        <Field label={t('credentials.username')} error={fe.username} required><TextInput dir="ltr" value={username} onChange={(e) => setUsername(e.target.value)} required maxLength={150} /></Field>
+        <Field
+          label={credential ? t('credentials.newPassword') : t('credentials.password')} error={fe.password}
+          hint={credential ? t('credentials.rotateHint') : t('credentials.passwordHint')} required={!credential}
+        >
+          <TextInput dir="ltr" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required={!credential} maxLength={512} />
         </Field>
         <div className="modalFooter inline">
-          <button type="button" className="btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn primary" disabled={save.isPending}>{save.isPending && <Spinner />} {t('common.save')}</button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" variant="primary" busy={save.isPending}>{t('common.save')}</Button>
         </div>
       </form>
     </Modal>

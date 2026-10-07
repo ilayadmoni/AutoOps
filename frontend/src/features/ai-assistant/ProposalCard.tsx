@@ -44,8 +44,11 @@ export default function ProposalCard({ op, onWorkflow, onRun }: {
         <div className="proposalBody">
           <strong><WorkflowIcon size={14} /> {t('ai.proposedWorkflow')}: {p.name}</strong>
           <ol className="proposalSteps">
-            {nodes.map((n) => (
-              <li key={n.key}>{t('steps.' + n.type, undefined, n.type)} — {n.name}</li>
+            {nodes.map((n, i) => (
+              <li key={n.key}>
+                <b>{String(i + 1).padStart(2, '0')}</b>
+                <span>{n.name} <small className="muted">{t('steps.' + n.type, undefined, n.type)}</small></span>
+              </li>
             ))}
           </ol>
           <Missing fields={op.missingFields} />

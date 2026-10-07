@@ -4,7 +4,10 @@ import { Fingerprint, Pencil, Play, Plus, ShieldAlert, ShieldCheck, ShieldQuesti
 import { ApiError, del, get, post, put } from '../../shared/api/client';
 import type { Credential, Discovery, Machine, MachineTest } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Code, ConfirmDialog, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader, Spinner, StatusBadge, errorMessage } from '../../shared/ui';
+import {
+  Button, Checkbox, Code, ConfirmDialog, EmptyState, ErrorAlert, Field, IconButton, Loading, Modal,
+  NumberInput, PageHeader, Select, StatusBadge, TextInput, errorMessage,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
 import { machinesQuery } from '../executions/RunOptionsForm';
@@ -28,7 +31,7 @@ export default function MachinesPage() {
   return (
     <section>
       <PageHeader title={t('machines.title')} subtitle={t('machines.subtitle')}
-        actions={<button className="btn primary" onClick={() => setEditing('new')}><Plus size={16} /> {t('machines.add')}</button>} />
+        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setEditing('new')}>{t('machines.add')}</Button>} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('machines.empty')} hint={t('machines.emptyHint')} />
       ) : (
@@ -45,11 +48,12 @@ export default function MachinesPage() {
               {m.sshFingerprint && <small className="muted fp" dir="ltr">{m.hostKeyAlgorithm} {m.sshFingerprint}</small>}
               {m.lastTestStatus && <small className="muted">{t('machines.lastTest')}: <StatusBadge status={m.lastTestStatus} /> {formatDate(m.lastTestedAt, lang)}</small>}
               <div className="row gap wrap">
-                <button className="btn small" onClick={() => setTrusting(m)}><Fingerprint size={14} /> {m.trustStatus === 'TRUSTED' ? t('machines.reviewTrust') : t('machines.trust')}</button>
-                <button className="btn small" onClick={() => setTesting(m)} disabled={m.trustStatus !== 'TRUSTED'}><Wifi size={14} /> {t('machines.test')}</button>
-                <button className="btn small primary" onClick={() => setRunning(m)} disabled={m.trustStatus !== 'TRUSTED'} title={m.trustStatus !== 'TRUSTED' ? t('machines.trustFirst') : ''}><Play size={14} /> {t('machines.run')}</button>
-                <button className="btn small ghost" onClick={() => setEditing(m)}><Pencil size={14} /></button>
-                <button className="btn small ghost danger" onClick={() => setDeleting(m)}><Trash2 size={14} /></button>
+                <Button small icon={<Fingerprint size={14} />} onClick={() => setTrusting(m)}>{m.trustStatus === 'TRUSTED' ? t('machines.reviewTrust') : t('machines.trust')}</Button>
+                <Button small icon={<Wifi size={14} />} onClick={() => setTesting(m)} disabled={m.trustStatus !== 'TRUSTED'}>{t('machines.test')}</Button>
+                <Button small variant="primary" icon={<Play size={14} />} onClick={() => setRunning(m)} disabled={m.trustStatus !== 'TRUSTED'} title={m.trustStatus !== 'TRUSTED' ? t('machines.trustFirst') : ''}>{t('machines.run')}</Button>
+                <span className="grow" />
+                <IconButton label={t('common.edit')} onClick={() => setEditing(m)}><Pencil size={14} /></IconButton>
+                <IconButton danger label={t('common.delete')} onClick={() => setDeleting(m)}><Trash2 size={14} /></IconButton>
               </div>
             </article>
           ))}
@@ -92,25 +96,29 @@ function MachineForm({ machine, onClose }: { machine: Machine | null; onClose: (
     <Modal title={machine ? t('machines.edit') : t('machines.add')} onClose={onClose}>
       <form className="stack" onSubmit={submit}>
         <ErrorAlert error={save.error} />
-        <Field label={t('common.name')} error={fe.name}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={150} /></Field>
-        <div className="grid2">
-          <Field label={t('machines.hostname')} error={fe.hostname}><input dir="ltr" value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} required /></Field>
-          <Field label={t('machines.port')} error={fe.sshPort}><input dir="ltr" type="number" min={1} max={65535} value={form.sshPort} onChange={(e) => setForm({ ...form, sshPort: Number(e.target.value) })} /></Field>
+        <Field label={t('common.name')} error={fe.name} required><TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={150} /></Field>
+        <div className="fieldRow">
+          <Field label={t('machines.hostname')} error={fe.hostname} required><TextInput dir="ltr" value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} required /></Field>
+          <Field label={t('machines.port')} error={fe.sshPort}>
+            <NumberInput min={1} max={65535} value={form.sshPort} onValueChange={(sshPort) => setForm({ ...form, sshPort })} />
+          </Field>
         </div>
-        <div className="grid2">
-          <Field label={t('machines.os')} hint={t('machines.osHint')}><input value={form.operatingSystem} onChange={(e) => setForm({ ...form, operatingSystem: e.target.value })} /></Field>
-          <Field label={t('machines.osVersion')}><input dir="ltr" value={form.osVersion} onChange={(e) => setForm({ ...form, osVersion: e.target.value })} /></Field>
+        <div className="fieldRow">
+          <Field label={t('machines.os')} hint={t('machines.osHint')}><TextInput value={form.operatingSystem} onChange={(e) => setForm({ ...form, operatingSystem: e.target.value })} /></Field>
+          <Field label={t('machines.osVersion')}><TextInput dir="ltr" value={form.osVersion} onChange={(e) => setForm({ ...form, osVersion: e.target.value })} /></Field>
         </div>
         <Field label={t('machines.preferredCredential')} error={fe.preferredCredentialId}>
-          <select value={form.preferredCredentialId ?? ''} onChange={(e) => setForm({ ...form, preferredCredentialId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">{t('common.none')}</option>
-            {(creds.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name} ({c.username})</option>)}
-          </select>
+          <Select
+            block placeholder={t('common.none')}
+            value={form.preferredCredentialId ?? ''}
+            onChange={(e) => setForm({ ...form, preferredCredentialId: e.target.value ? Number(e.target.value) : null })}
+          options={(creds.data ?? []).map((c) => ({ value: c.id, label: `${c.name} (${c.username})` }))}
+          />
         </Field>
         {endpointChanged && <div className="alert warn">{t('machines.endpointResetsTrust')}</div>}
         <div className="modalFooter inline">
-          <button type="button" className="btn" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn primary" disabled={save.isPending}>{save.isPending && <Spinner />} {t('common.save')}</button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" variant="primary" busy={save.isPending}>{t('common.save')}</Button>
         </div>
       </form>
     </Modal>
@@ -137,13 +145,13 @@ function TrustDialog({ machine, onClose }: { machine: Machine; onClose: () => vo
   return (
     <Modal title={t('trust.title', { name: machine.name })} onClose={onClose} footer={
       <>
-        {machine.trustStatus !== 'UNTRUSTED' && <button className="btn danger ghost" onClick={() => revoke.mutate()} disabled={revoke.isPending}>{t('trust.revoke')}</button>}
+        {machine.trustStatus !== 'UNTRUSTED' && <Button variant="danger" className="ghost" onClick={() => revoke.mutate()} busy={revoke.isPending}>{t('trust.revoke')}</Button>}
         <span className="grow" />
-        <button className="btn" onClick={onClose}>{t('common.close')}</button>
+        <Button onClick={onClose}>{t('common.close')}</Button>
         {d && !d.matchesTrusted && (
-          <button className={'btn ' + (changed ? 'danger' : 'primary')} disabled={!verified || confirm.isPending} onClick={() => confirm.mutate(d.fingerprint)}>
-            {confirm.isPending && <Spinner />} {changed ? t('trust.replace') : t('trust.confirm')}
-          </button>
+          <Button variant={changed ? 'danger' : 'primary'} disabled={!verified} busy={confirm.isPending} onClick={() => confirm.mutate(d.fingerprint)}>
+            {changed ? t('trust.replace') : t('trust.confirm')}
+          </Button>
         )}
       </>
     }>
@@ -157,7 +165,7 @@ function TrustDialog({ machine, onClose }: { machine: Machine; onClose: () => vo
         </div>
         <ErrorAlert error={discover.error || confirm.error || revoke.error} />
         {!d ? (
-          <button className="btn primary" onClick={() => discover.mutate()} disabled={discover.isPending}>{discover.isPending ? <Spinner /> : <Fingerprint size={14} />} {t('trust.discover')}</button>
+          <Button variant="primary" icon={<Fingerprint size={14} />} busy={discover.isPending} onClick={() => discover.mutate()}>{t('trust.discover')}</Button>
         ) : d.matchesTrusted ? (
           <div className="alert ok"><ShieldCheck size={16} /> {t('trust.matches')}</div>
         ) : (
@@ -167,7 +175,7 @@ function TrustDialog({ machine, onClose }: { machine: Machine; onClose: () => vo
               <span>{t('trust.discovered')}</span>
               <Code>{d.algorithm} {d.fingerprint}</Code>
               <small>{t('trust.verifyHint')} <Code>ssh-keygen -lf /etc/ssh/ssh_host_*_key.pub</Code></small>
-              <label className="check"><input type="checkbox" checked={verified} onChange={(e) => setVerified(e.target.checked)} /> {t('trust.verifiedCheckbox')}</label>
+              <Checkbox checked={verified} onChange={(e) => setVerified(e.target.checked)} label={t('trust.verifiedCheckbox')} />
             </div>
           </div>
         )}
@@ -189,16 +197,18 @@ function TestDialog({ machine, onClose }: { machine: Machine; onClose: () => voi
   return (
     <Modal title={t('test.title', { name: machine.name })} onClose={onClose} footer={
       <>
-        <button className="btn" onClick={onClose}>{t('common.close')}</button>
-        <button className="btn primary" disabled={!credentialId || test.isPending} onClick={() => test.mutate()}>{test.isPending ? <Spinner /> : <Wifi size={14} />} {t('test.run')}</button>
+        <Button onClick={onClose}>{t('common.close')}</Button>
+        <Button variant="primary" icon={<Wifi size={14} />} disabled={!credentialId} busy={test.isPending} onClick={() => test.mutate()}>{t('test.run')}</Button>
       </>
     }>
       <div className="stack">
         <Field label={t('run.credential')}>
-          <select value={credentialId ?? ''} onChange={(e) => setCredentialId(e.target.value ? Number(e.target.value) : null)}>
-            <option value="">{t('test.selectCredential')}</option>
-            {(creds.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name} ({c.username})</option>)}
-          </select>
+          <Select
+            block placeholder={t('test.selectCredential')}
+            value={credentialId ?? ''}
+            onChange={(e) => setCredentialId(e.target.value ? Number(e.target.value) : null)}
+          options={(creds.data ?? []).map((c) => ({ value: c.id, label: `${c.name} (${c.username})` }))}
+          />
         </Field>
         <ErrorAlert error={test.error} />
         {r && (

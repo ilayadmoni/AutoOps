@@ -2,6 +2,7 @@
 @import './styles/tokens.css';
 @import './styles/layout.css';
 @import './styles/controls.css';
+@import './styles/forms.css';
 @import './styles/surfaces.css';
 @import './styles/feedback.css';
 @import './styles/domain.css';

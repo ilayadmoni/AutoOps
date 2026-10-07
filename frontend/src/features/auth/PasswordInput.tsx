@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { TextInput } from '../../shared/ui';
 
 export default function PasswordInput({ value, onChange, showLabel, hideLabel }: {
   value: string;
@@ -10,7 +11,7 @@ export default function PasswordInput({ value, onChange, showLabel, hideLabel }:
   const [shown, setShown] = useState(false);
   return (
     <div className="passwordInput">
-      <input
+      <TextInput
         type={shown ? 'text' : 'password'}
         autoComplete="current-password"
         value={value}

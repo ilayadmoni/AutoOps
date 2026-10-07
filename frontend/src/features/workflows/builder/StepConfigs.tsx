@@ -1,7 +1,9 @@
 import { useRef } from 'react';
 import { FileUp } from 'lucide-react';
 import type { Command, StoredFile, WorkflowNode } from '../../../shared/api/types';
-import { Button, Code, Field, RiskBadge, StatusBadge } from '../../../shared/ui';
+import {
+  Button, Checkbox, Code, Field, NumberInput, RiskBadge, Select, StatusBadge, TextInput,
+} from '../../../shared/ui';
 import { useToast } from '../../../shared/ui/Toast';
 import { ParameterInputs } from '../../commands/ParameterInputs';
 import { useUpload } from '../../files/FilesPage';
@@ -22,14 +24,15 @@ export function CommandSelect({ value, onChange, commands, lowOnly, error }: {
   return (
     <>
       <Field label={t('run.command')} error={error}>
-        <select value={value ?? ''} onChange={(x) => onChange(x.target.value ? Number(x.target.value) : null)}>
-          <option value="">{t('run.selectCommand')}</option>
-          {usable.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name} [{t('risk.' + c.riskLevel)}]{c.status !== 'APPROVED' ? ' — ' + t('status.' + c.status) : ''}
-            </option>
-          ))}
-        </select>
+        <Select
+          block placeholder={t('run.selectCommand')}
+          value={value ?? ''}
+          onChange={(x) => onChange(x.target.value ? Number(x.target.value) : null)}
+          options={usable.map((c) => ({
+            value: c.id,
+            label: `${c.name} [${t('risk.' + c.riskLevel)}]${c.status !== 'APPROVED' ? ' - ' + t('status.' + c.status) : ''}`,
+          }))}
+        />
       </Field>
       {selected && (
         <div className="row gap wrap">
@@ -56,9 +59,7 @@ export function CommandConfig({ node, onChange, commands, errors, paramErrors }:
         error={errors.commandDefinitionId}
       />
       {cmd && <ParameterInputs specs={cmd.parameters} values={node.parameters ?? {}} onChange={(p) => onChange({ parameters: p })} errors={paramErrors} />}
-      <label className="check">
-        <input type="checkbox" checked={!!node.runWithSudo} onChange={(x) => onChange({ runWithSudo: x.target.checked })} /> {t('run.sudo')}
-      </label>
+      <Checkbox checked={!!node.runWithSudo} onChange={(x) => onChange({ runWithSudo: x.target.checked })} label={t('run.sudo')} />
     </>
   );
 }
@@ -71,10 +72,12 @@ export function FileConfig({ node, onChange, files, errors }: ConfigProps & { fi
   return (
     <>
       <Field label={t('workflows.file')} error={errors.storedFileId}>
-        <select value={node.storedFileId ?? ''} onChange={(x) => onChange({ storedFileId: x.target.value ? Number(x.target.value) : null })}>
-          <option value="">{t('workflows.selectFile')}</option>
-          {files.map((f) => <option key={f.id} value={f.id}>{f.filename} ({f.checksum.slice(0, 8)})</option>)}
-        </select>
+        <Select
+          block placeholder={t('workflows.selectFile')}
+          value={node.storedFileId ?? ''}
+          onChange={(x) => onChange({ storedFileId: x.target.value ? Number(x.target.value) : null })}
+          options={files.map((f) => ({ value: f.id, label: `${f.filename} (${f.checksum.slice(0, 8)})` }))}
+        />
       </Field>
       <input
         ref={input}
@@ -94,15 +97,11 @@ export function FileConfig({ node, onChange, files, errors }: ConfigProps & { fi
         {t('files.upload')}
       </Button>
       <Field label={t('workflows.destination')} error={errors.destinationPath} hint={t('workflows.destinationHint')}>
-        <input dir="ltr" value={node.destinationPath ?? ''} onChange={(x) => onChange({ destinationPath: x.target.value })} />
+        <TextInput dir="ltr" value={node.destinationPath ?? ''} onChange={(x) => onChange({ destinationPath: x.target.value })} />
       </Field>
       <div className="row gap wrap">
-        <label className="check">
-          <input type="checkbox" checked={!!node.overwrite} onChange={(x) => onChange({ overwrite: x.target.checked })} /> {t('workflows.overwrite')}
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={!!node.useSudo} onChange={(x) => onChange({ useSudo: x.target.checked })} /> {t('workflows.privileged')}
-        </label>
+        <Checkbox checked={!!node.overwrite} onChange={(x) => onChange({ overwrite: x.target.checked })} label={t('workflows.overwrite')} />
+        <Checkbox checked={!!node.useSudo} onChange={(x) => onChange({ useSudo: x.target.checked })} label={t('workflows.privileged')} />
       </div>
     </>
   );
@@ -117,11 +116,11 @@ export function WaitConfig({ node, onChange, commands, errors, paramErrors }: Co
   return (
     <>
       <Field label={t('workflows.checkType')} error={errors.checkType}>
-        <select value={node.checkType ?? ''} onChange={(x) => onChange({ checkType: x.target.value as WorkflowNode['checkType'] })}>
-          {(['SERVICE_ACTIVE', 'FILE_EXISTS', 'OUTPUT_CONTAINS', 'EXIT_CODE'] as const).map((c) => (
-            <option key={c} value={c}>{t('checks.' + c)}</option>
-          ))}
-        </select>
+        <Select
+          block value={node.checkType ?? ''}
+          onChange={(x) => onChange({ checkType: x.target.value as WorkflowNode['checkType'] })}
+          options={(['SERVICE_ACTIVE', 'FILE_EXISTS', 'OUTPUT_CONTAINS', 'EXIT_CODE'] as const).map((c) => ({ value: c, label: t('checks.' + c) }))}
+        />
       </Field>
       {usesCommand ? (
         <>
@@ -135,17 +134,17 @@ export function WaitConfig({ node, onChange, commands, errors, paramErrors }: Co
           {cmd && <ParameterInputs specs={cmd.parameters} values={node.parameters ?? {}} onChange={(p) => onChange({ parameters: p })} errors={paramErrors} />}
           {node.checkType === 'OUTPUT_CONTAINS' ? (
             <Field label={t('workflows.expectedOutput')} error={errors.expectedOutput}>
-              <input dir="ltr" value={node.expectedOutput ?? ''} onChange={(x) => onChange({ expectedOutput: x.target.value })} />
+              <TextInput dir="ltr" value={node.expectedOutput ?? ''} onChange={(x) => onChange({ expectedOutput: x.target.value })} />
             </Field>
           ) : (
             <Field label={t('workflows.expectedExitCode')} error={errors.expectedExitCode}>
-              <input type="number" min={0} max={255} value={node.expectedExitCode ?? 0} onChange={(x) => onChange({ expectedExitCode: Number(x.target.value) })} />
+              <NumberInput min={0} max={255} value={node.expectedExitCode ?? 0} onValueChange={(expectedExitCode) => onChange({ expectedExitCode })} />
             </Field>
           )}
         </>
       ) : (
         <Field label={node.checkType === 'FILE_EXISTS' ? t('workflows.filePath') : t('workflows.serviceName')} error={errors.target}>
-          <input
+          <TextInput
             dir="ltr"
             value={node.target ?? ''}
             onChange={(x) => onChange({ target: x.target.value })}
@@ -155,11 +154,9 @@ export function WaitConfig({ node, onChange, commands, errors, paramErrors }: Co
       )}
       <div className="row gap wrap">
         <Field label={t('workflows.interval')} error={errors.intervalSeconds}>
-          <input type="number" min={1} max={300} value={node.intervalSeconds ?? 5} onChange={(x) => onChange({ intervalSeconds: Number(x.target.value) })} />
+          <NumberInput min={1} max={300} value={node.intervalSeconds ?? 5} onValueChange={(intervalSeconds) => onChange({ intervalSeconds })} />
         </Field>
-        <label className="check">
-          <input type="checkbox" checked={!!node.runWithSudo} onChange={(x) => onChange({ runWithSudo: x.target.checked })} /> {t('run.sudo')}
-        </label>
+        <Checkbox checked={!!node.runWithSudo} onChange={(x) => onChange({ runWithSudo: x.target.checked })} label={t('run.sudo')} />
       </div>
     </>
   );

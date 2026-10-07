@@ -1,7 +1,7 @@
 import { useI18n, type Lang } from '../../i18n/I18nProvider';
 import { useTheme, type ThemeChoice } from './ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { PageHeader } from '../../shared/ui';
+import { PageHeader, Segmented } from '../../shared/ui';
 
 export default function SettingsPage() {
   const { t, lang, setLang } = useI18n();
@@ -13,19 +13,17 @@ export default function SettingsPage() {
       <div className="cards">
         <article className="card">
           <h3>{t('settings.theme')}</h3>
-          <div className="segmented">
-            {(['system', 'light', 'dark'] as ThemeChoice[]).map((x) => (
-              <button key={x} className={'btn' + (theme === x ? ' primary' : '')} onClick={() => setTheme(x)}>{t('settings.theme.' + x)}</button>
-            ))}
-          </div>
+          <Segmented
+            label={t('settings.theme')} value={theme} onChange={setTheme}
+            options={(['system', 'light', 'dark'] as ThemeChoice[]).map((x) => ({ value: x, label: t('settings.theme.' + x) }))}
+          />
         </article>
         <article className="card">
           <h3>{t('settings.language')}</h3>
-          <div className="segmented">
-            {(['en', 'he'] as Lang[]).map((x) => (
-              <button key={x} className={'btn' + (lang === x ? ' primary' : '')} onClick={() => setLang(x)}>{x === 'en' ? 'English' : 'עברית'}</button>
-            ))}
-          </div>
+          <Segmented
+            label={t('settings.language')} value={lang} onChange={setLang}
+            options={(['en', 'he'] as Lang[]).map((x) => ({ value: x, label: x === 'en' ? 'English' : 'עברית' }))}
+          />
           <p className="muted small">{t('settings.languageHint')}</p>
         </article>
         <article className="card">

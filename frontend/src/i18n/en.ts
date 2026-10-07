@@ -1,7 +1,7 @@
 /** English source dictionary. Every key must also exist in he.ts (enforced by the type checker). */
 export const en = {
   'common.loading': 'Loading…', 'common.starting': 'Starting AutoOps…', 'common.retry': 'Retry', 'common.cancel': 'Cancel',
-  'common.confirm': 'Confirm', 'common.close': 'Close', 'common.save': 'Save', 'common.edit': 'Edit', 'common.delete': 'Delete',
+  'common.confirm': 'Confirm', 'common.close': 'Close', 'common.save': 'Save', 'common.edit': 'Edit', 'common.notSet': 'Not set', 'common.copy': 'Copy', 'common.copied': 'Copied', 'common.delete': 'Delete',
   'common.name': 'Name', 'common.description': 'Description', 'common.status': 'Status', 'common.none': 'None',
   'common.next': 'Next', 'common.previous': 'Previous',
 
@@ -43,7 +43,7 @@ export const en = {
   'machines.osVersion': 'Version', 'machines.preferredCredential': 'Preferred credential',
   'machines.endpointResetsTrust': 'Changing the host or port removes the trusted host key; you will need to trust it again.',
 
-  'trust.title': 'SSH host key — {name}', 'trust.explain': 'AutoOps retrieves the server key itself. Compare the fingerprint with the one on the server before trusting it.',
+  'trust.title': 'SSH host key: {name}', 'trust.explain': 'AutoOps retrieves the server key itself. Compare the fingerprint with the one on the server before trusting it.',
   'trust.current': 'Current status', 'trust.trustedFingerprint': 'Trusted fingerprint', 'trust.presentedFingerprint': 'Fingerprint presented on mismatch',
   'trust.discover': 'Discover fingerprint', 'trust.matches': 'The server still presents the trusted key.',
   'trust.changedWarning': 'This key is DIFFERENT from the trusted key. Only continue if you know why the key changed.',
@@ -51,7 +51,7 @@ export const en = {
   'trust.verifiedCheckbox': 'I verified this fingerprint out-of-band', 'trust.confirm': 'Trust this key', 'trust.replace': 'Replace trusted key',
   'trust.confirmed': 'Host key trusted', 'trust.revoke': 'Revoke trust', 'trust.revoked': 'Trust revoked',
 
-  'test.title': 'Connection test — {name}', 'test.run': 'Run test', 'test.selectCredential': 'Select a credential',
+  'test.title': 'Connection test: {name}', 'test.run': 'Run test', 'test.selectCredential': 'Select a credential',
   'test.ssh': 'SSH connection', 'test.hostVerification': 'Host verification', 'test.authentication': 'Authentication', 'test.os': 'Operating system', 'test.sudo': 'Sudo',
 
   'commands.title': 'Command Bank', 'commands.subtitle': 'Approved, parameterized Linux actions. Only approved commands can run.',
@@ -60,11 +60,11 @@ export const en = {
   'commands.empty': 'No commands found', 'commands.emptyHint': 'Try a different search, or propose a new command.', 'commands.run': 'Run',
   'commands.rejectedBecause': 'Rejected', 'commands.pendingNote': 'Waiting for an administrator to review this command.',
   'commands.parameters': 'Parameters', 'commands.createdApproved': 'Command added and approved', 'commands.createdPending': 'Command submitted for review',
-  'commands.createHint': 'Use {{name}} placeholders for parameters. Do not include sudo — choose privileged execution per run. Risk is classified by AutoOps.',
+  'commands.createHint': 'Use {{name}} placeholders for parameters. Do not include sudo; privileged execution is chosen per run. Risk is classified by AutoOps.',
   'commands.category': 'Category', 'commands.template': 'Command template', 'commands.templateHint': 'Values are validated and quoted by the server.',
   'commands.submit': 'Submit',
 
-  'params.none': 'This command has no parameters.', 'params.label': 'Label', 'params.typeLabel': 'Type', 'params.required': 'Required', 'params.allowed': 'Allowed values',
+  'params.choose': 'Choose a value', 'params.none': 'This command has no parameters.', 'params.label': 'Label', 'params.typeLabel': 'Type', 'params.required': 'Required', 'params.allowed': 'Allowed values',
   'params.type.STRING': 'text', 'params.type.INTEGER': 'number', 'params.type.PATH': 'path', 'params.type.SERVICE': 'service',
   'params.type.PACKAGE': 'package', 'params.type.HOSTNAME': 'host', 'params.type.ENUM': 'choice',
 
@@ -105,11 +105,11 @@ export const en = {
 
   'files.title': 'Files', 'files.subtitle': 'Files stored in AutoOps for file-transfer steps. Checksums are verified on the machine after transfer.',
   'files.upload': 'Upload', 'files.uploaded': 'Uploaded {name}', 'files.empty': 'No files yet', 'files.emptyHint': 'Upload a file to use it in a workflow.',
-  'files.name': 'File', 'files.size': 'Size', 'files.usedBy': 'Used by', 'files.uploadedAt': 'Uploaded', 'files.inUse': 'Used by a workflow',
+  'files.name': 'File', 'files.size': 'Size', 'files.usedBy': 'Used by', 'files.uploadedAt': 'Uploaded', 'files.inUse': 'Used by a workflow', 'files.download': 'Download', 'files.unused': 'Not used',
   'files.deleted': 'File deleted', 'files.deleteTitle': 'Delete file', 'files.deleteMessage': 'Delete "{name}"?',
 
   'workflows.title': 'Workflows', 'workflows.subtitle': 'Reusable sequences of commands, file transfers and checks.', 'workflows.create': 'New workflow',
-  'workflows.empty': 'No workflows yet', 'workflows.emptyHint': 'Build one step by step, or ask the AI assistant for a draft.', 'workflows.steps': '{n} steps',
+  'workflows.empty': 'No workflows yet', 'workflows.emptyHint': 'Build one step by step, or ask the AI assistant for a draft.', 'workflows.duplicate': 'Duplicate', 'workflows.steps': '{n} steps',
   'workflows.updated': 'updated', 'workflows.run': 'Run', 'workflows.deleted': 'Workflow deleted', 'workflows.deleteTitle': 'Delete workflow',
   'workflows.deleteMessage': 'Delete "{name}"? Past executions are kept.', 'workflows.runTitle': 'Run "{name}"',
   'workflows.runHint': 'Every machine runs preflight first. Steps marked for approval pause on each machine.',
@@ -121,7 +121,7 @@ export const en = {
   'workflows.paletteHint': 'New steps run after the last step on success. Edit the success/failure branches on each step.',
   'workflows.system': 'System', 'workflows.preflight': 'Machine preflight', 'workflows.preflightHint': 'Host key, authentication, OS, sudo, files and parameters are checked before any step.',
   'workflows.noSteps': 'Add a step to begin.', 'workflows.end': 'End (success)', 'workflows.stop': 'Stop (failure)', 'workflows.entry': 'start',
-  'workflows.errors': '{n} problem(s)', 'workflows.key': 'Key', 'workflows.onSuccess': 'On success go to', 'workflows.onFailure': 'On failure go to',
+  'workflows.errors': '{n} to fix', 'workflows.key': 'Key', 'workflows.keyHint': 'Set when the step is created. Other steps branch to it by this key.', 'workflows.onSuccess': 'On success go to', 'workflows.onFailure': 'On failure go to',
   'workflows.requireApproval': 'Require approval before this step', 'workflows.timeout': 'Timeout (seconds)', 'workflows.file': 'File',
   'workflows.selectFile': 'Select an uploaded file…', 'workflows.destination': 'Destination path', 'workflows.destinationHint': 'Absolute path; end with / to keep the file name.',
   'workflows.overwrite': 'Overwrite if it exists', 'workflows.privileged': 'Privileged destination (sudo)', 'workflows.checkType': 'Condition',
@@ -135,9 +135,9 @@ export const en = {
   'ai.quick.find': 'Which command shows disk usage?', 'ai.quick.workflow': 'Build a workflow that restarts nginx and waits until it is active',
   'ai.quick.explain': 'Explain my most recent failed execution', 'ai.quick.machines': 'List my machines and their trust status',
   'ai.notConfigured': 'The AI assistant is not configured on this server. Every feature is available manually from the menu.',
-  'ai.you': 'You', 'ai.thinking': 'Thinking…', 'ai.placeholder': 'Ask AutoOps to find, build or explain…', 'ai.send': 'Send',
+  'ai.you': 'You', 'ai.copyReply': 'Copy reply', 'ai.noHistory': 'No conversations yet.', 'ai.thinking': 'Thinking…', 'ai.placeholder': 'Ask AutoOps to find, build or explain…', 'ai.send': 'Send',
   'ai.missing': 'Still needed before this can be saved or run:', 'ai.proposedWorkflow': 'Proposed workflow', 'ai.reviewInBuilder': 'Review in Workflow Builder',
-  'ai.proposedRun': 'Proposed run', 'ai.onMachines': 'on {n} machine(s)', 'ai.reviewRun': 'Review and run', 'ai.proposalNote': 'Proposal — nothing has been saved or executed.',
+  'ai.proposedRun': 'Proposed run', 'ai.onMachines': 'Machines: {n}', 'ai.reviewRun': 'Review and run', 'ai.proposalNote': 'Proposal. Nothing has been saved or executed.',
 
   'admin.title': 'Administration', 'admin.subtitle': 'System-wide status and maintenance.', 'admin.open': 'Open', 'admin.maintenance': 'Maintenance',
   'admin.stat.activeUsers': 'Active users', 'admin.stat.pendingCommands': 'Commands awaiting review', 'admin.stat.datasetsAwaitingReview': 'Datasets awaiting review',
@@ -151,7 +151,7 @@ export const en = {
   'users.empty': 'No users', 'users.role': 'Role', 'users.created': 'Created', 'users.you': 'you', 'users.disable': 'Disable', 'users.enable': 'Enable',
   'users.updated': 'User updated', 'users.deleted': 'User deleted', 'users.createdToast': 'User created', 'users.deleteTitle': 'Delete user',
   'users.deleteMessage': 'Delete {name}? Their sessions are revoked.', 'users.usernameHint': '3–64 letters, digits, dot, dash or underscore.',
-  'users.tempPassword': 'Password', 'users.passwordHint': 'At least 10 characters.', 'users.resetTitle': 'Reset password — {name}',
+  'users.tempPassword': 'Password', 'users.passwordHint': 'At least 10 characters.', 'users.resetTitle': 'Reset password: {name}',
   'users.resetHint': 'The user’s sessions are revoked.', 'users.reset': 'Reset password', 'users.passwordReset': 'Password reset',
 
   'cmdApprovals.title': 'Command reviews', 'cmdApprovals.subtitle': 'Approve or reject proposed and imported commands. Risk is computed by AutoOps.',

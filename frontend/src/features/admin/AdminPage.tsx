@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { RefreshCw, Trash2 } from 'lucide-react';
 import { get, post } from '../../shared/api/client';
 import { useI18n } from '../../i18n/I18nProvider';
-import { ErrorAlert, Loading, PageHeader, Spinner, errorMessage } from '../../shared/ui';
+import { Button, ErrorAlert, Loading, PageHeader, errorMessage } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 
 type Summary = Record<string, number>;
@@ -59,12 +59,12 @@ export default function AdminPage() {
               <span>{t('admin.stale')}</span><span>{emb.data.stale}</span>
             </div>
           )}
-          <button className="btn" disabled={reindex.isPending} onClick={() => reindex.mutate()}>{reindex.isPending ? <Spinner /> : <RefreshCw size={14} />} {t('admin.reindex')}</button>
+          <Button icon={<RefreshCw size={14} />} busy={reindex.isPending} onClick={() => reindex.mutate()}>{t('admin.reindex')}</Button>
         </article>
         <article className="card">
           <h3>{t('admin.files')}</h3>
           <p className="muted small">{t('admin.cleanupHint')}</p>
-          <button className="btn" disabled={cleanup.isPending} onClick={() => cleanup.mutate()}>{cleanup.isPending ? <Spinner /> : <Trash2 size={14} />} {t('admin.cleanup')}</button>
+          <Button icon={<Trash2 size={14} />} busy={cleanup.isPending} onClick={() => cleanup.mutate()}>{t('admin.cleanup')}</Button>
         </article>
       </div>
     </section>

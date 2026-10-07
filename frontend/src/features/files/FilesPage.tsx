@@ -4,7 +4,9 @@ import { Download, FileUp, Trash2 } from 'lucide-react';
 import { del, get, getAccessToken, upload } from '../../shared/api/client';
 import type { StoredFile } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Code, ConfirmDialog, EmptyState, ErrorAlert, Loading, PageHeader, Spinner, errorMessage } from '../../shared/ui';
+import {
+  Button, Code, ConfirmDialog, EmptyState, ErrorAlert, IconButton, Loading, PageHeader, errorMessage,
+} from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatBytes, formatDate } from '../../shared/format';
 
@@ -48,7 +50,7 @@ export default function FilesPage() {
       <PageHeader title={t('files.title')} subtitle={t('files.subtitle')} actions={
         <>
           <input ref={input} type="file" hidden onChange={(e) => { onPick(e.target.files?.[0]); e.target.value = ''; }} />
-          <button className="btn primary" disabled={up.isPending} onClick={() => input.current?.click()}>{up.isPending ? <Spinner /> : <FileUp size={16} />} {t('files.upload')}</button>
+          <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={() => input.current?.click()}>{t('files.upload')}</Button>
         </>
       } />
       <ErrorAlert error={up.error} />
@@ -62,12 +64,12 @@ export default function FilesPage() {
               <tr key={f.id}>
                 <td dir="ltr">{f.filename}</td>
                 <td>{formatBytes(f.size)}</td>
-                <td><Code>{f.checksum.slice(0, 16)}…</Code></td>
-                <td>{f.referencedBy.length ? f.referencedBy.join(', ') : <span className="muted">—</span>}</td>
+                <td><Code>{f.checksum.slice(0, 16)}</Code></td>
+                <td>{f.referencedBy.length ? f.referencedBy.join(', ') : <span className="muted">{t('files.unused')}</span>}</td>
                 <td>{formatDate(f.createdAt, lang)}</td>
                 <td className="row gap">
-                  <button className="btn small ghost" onClick={() => download(f).catch((e) => toast.error(errorMessage(e)))}><Download size={14} /></button>
-                  <button className="btn small ghost danger" disabled={f.referencedBy.length > 0} title={f.referencedBy.length ? t('files.inUse') : ''} onClick={() => setDeleting(f)}><Trash2 size={14} /></button>
+                  <IconButton label={t('files.download')} onClick={() => download(f).catch((e) => toast.error(errorMessage(e)))}><Download size={14} /></IconButton>
+                  <IconButton danger label={t('common.delete')} disabled={f.referencedBy.length > 0} title={f.referencedBy.length ? t('files.inUse') : t('common.delete')} onClick={() => setDeleting(f)}><Trash2 size={14} /></IconButton>
                 </td>
               </tr>
             ))}

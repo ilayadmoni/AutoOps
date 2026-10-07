@@ -5,7 +5,7 @@ import { ArrowLeft, Bot, CheckCircle2, Play, Save } from 'lucide-react';
 import { ApiError, get, post, put } from '../../shared/api/client';
 import type { Command, NodeType, ValidationResult, WorkflowDraft, WorkflowNode, WorkflowView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Button, ErrorAlert, Loading } from '../../shared/ui';
+import { Button, ErrorAlert, Loading, TextInput } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { cleanParams } from '../commands/ParameterInputs';
 import { filesQuery } from '../files/FilesPage';
@@ -157,9 +157,9 @@ export default function WorkflowBuilderPage() {
       </Link>
       <div className="pageTitle">
         <div className="grow stack tight">
-          <input className="titleInput" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} aria-label={t('common.name')} maxLength={200} />
+          <TextInput className="titleInput" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} aria-label={t('common.name')} maxLength={200} />
           {general.name && <span className="fieldError">{general.name}</span>}
-          <input className="subtle" placeholder={t('workflows.descriptionPlaceholder')} value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} maxLength={2000} />
+          <TextInput className="subtle" aria-label={t('common.description')} placeholder={t('workflows.descriptionPlaceholder')} value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} maxLength={2000} />
         </div>
         <div className="actionsRow">
           {dirty ? <span className="badge warn">{t('workflows.unsaved')}</span> : workflowId != null && <span className="badge ok">{t('workflows.savedBadge')}</span>}

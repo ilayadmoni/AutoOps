@@ -1,60 +1,81 @@
 /* App shell: fixed sidebar, scrolling main, mobile topbar. */
-.shell { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+.shell { display: grid; grid-template-columns: 252px 1fr; min-height: 100vh; }
 .topbar { display: none; }
 aside {
-  padding: var(--s5) 14px; border-inline-end: 1px solid var(--border); background: var(--sidebar);
-  display: flex; flex-direction: column; gap: var(--s3);
+  padding: var(--s5) var(--s3); border-inline-end: 1px solid var(--border); background: var(--sidebar);
+  display: flex; flex-direction: column; gap: var(--s2);
   position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start;
 }
-.brand { width: var(--brand-width); height: var(--brand-height); overflow: hidden; flex: none; margin: 0 var(--s1) var(--s2); }
+.brand { width: var(--brand-width); height: var(--brand-height); overflow: hidden; flex: none; margin: 0 var(--s1) var(--s4); }
 .brandLogo { display: block; width: var(--brand-width); height: auto; mix-blend-mode: lighten; }
 [data-theme='light'] .brandLogo { filter: invert(1) hue-rotate(180deg); mix-blend-mode: multiply; }
 
-nav { display: grid; gap: 2px; }
+nav { display: grid; gap: 1px; }
 nav a {
-  display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-radius: var(--radius-sm);
-  color: var(--text); opacity: .86; position: relative; transition: background var(--fast) var(--ease), color var(--fast) var(--ease), opacity var(--fast) var(--ease);
+  display: flex; gap: 10px; align-items: center; height: var(--control-h); padding-inline: 10px;
+  border-radius: var(--radius-sm); color: var(--muted); position: relative; font-weight: 500;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
 }
-nav a:hover { background: var(--surface-2); text-decoration: none; opacity: 1; }
-nav a.active { background: var(--primary-soft); color: var(--primary); opacity: 1; font-weight: 600; }
-/* Active marker is a shape as well as a colour, so state does not rely on hue alone. */
+nav a:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+nav a.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+/* The active marker is a shape as well as a colour, so state never rests on hue alone. */
 nav a.active::before {
-  content: ''; position: absolute; inset-inline-start: 0; inset-block: 6px;
+  content: ''; position: absolute; inset-inline-start: 0; inset-block: 8px;
   width: 3px; border-radius: var(--radius-pill); background: var(--primary);
 }
 nav svg { width: 18px; height: 18px; flex: none; }
-.navSection { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: var(--s3) 10px var(--s1); }
-.navBadge { margin-inline-start: auto; background: var(--warn); color: #000; border-radius: var(--radius-pill); font-size: 11px; padding: 0 7px; font-weight: 700; }
+.navSection {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .07em; font-weight: 650;
+  color: var(--muted); margin: var(--s4) 10px var(--s1);
+}
+nav > .navSection:first-child { margin-top: 0; }
+.navBadge {
+  margin-inline-start: auto; background: var(--warn); color: #000; border-radius: var(--radius-pill);
+  font-size: 11px; padding: 0 7px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
 
-.sidebarFooter { margin-top: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--s3); display: grid; gap: var(--s3); background: var(--sidebar); }
+.sidebarFooter {
+  margin-top: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s3);
+  display: grid; gap: var(--s3); background: var(--surface);
+}
 .sidebarIdentity { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.userAvatar { width: 34px; height: 34px; border-radius: var(--radius-pill); display: grid; place-items: center; flex: none; background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+.userAvatar {
+  width: 34px; height: 34px; border-radius: var(--radius-pill); display: grid; place-items: center; flex: none;
+  background: var(--primary-soft); color: var(--primary); font-weight: 700;
+}
 .userDetails { display: grid; min-width: 0; }
-.userDetails strong { overflow: hidden; text-overflow: ellipsis; }
+.userDetails strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .userDetails small { color: var(--muted); }
-.sidebarControls { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--border); padding-top: var(--s3); }
+.sidebarControls { display: flex; align-items: center; gap: var(--s1); border-top: 1px solid var(--border); padding-top: var(--s3); }
 .sidebarControl, .sidebarLogout {
-  height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  height: var(--control-h-sm); border-radius: var(--radius-sm); border: 1px solid transparent;
+  background: transparent; color: var(--muted);
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
   transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
 }
-.sidebarControl { padding: 0 10px; font-weight: 600; }
-.sidebarControl.iconOnly { width: 36px; padding: 0; background: transparent; color: var(--muted); }
+.sidebarControl { padding-inline: 10px; font-weight: 600; border-color: var(--border); background: var(--surface-2); color: var(--text); }
+.sidebarControl.iconOnly { width: var(--control-h-sm); padding: 0; background: transparent; border-color: transparent; color: var(--muted); }
 .sidebarControl svg, .sidebarLogout svg { width: 16px; height: 16px; }
 .languageControl svg { color: var(--primary); }
-.sidebarLogout { margin-inline-start: auto; padding: 0 6px; border-color: transparent; background: transparent; color: var(--muted); white-space: nowrap; }
+.sidebarLogout { margin-inline-start: auto; padding-inline: var(--s2); white-space: nowrap; }
 .sidebarControl:hover, .sidebarLogout:hover { color: var(--text); background: var(--surface-2); }
 
-main { padding: 28px var(--s7) 60px; max-width: 1240px; width: 100%; margin: 0 auto; }
-.pageTitle { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); margin-bottom: var(--s5); flex-wrap: wrap; }
-.actionsRow { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; }
-.back { display: inline-flex; gap: 6px; align-items: center; margin-bottom: 10px; font-size: 13px; }
-.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-.searchBox {
-  display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 9px; padding: 0 10px; flex: 1; min-width: 220px;
-  transition: border-color var(--fast) var(--ease);
+main { padding: var(--s7) var(--s7) 64px; max-width: 1280px; width: 100%; margin: 0 auto; }
+
+/* Page header. The title block and its actions sit on one baseline and wrap together. */
+.pageTitle {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4);
+  margin-bottom: var(--s6); flex-wrap: wrap;
 }
-.searchBox:focus-within { border-color: var(--primary); }
-.searchBox input { border: 0; background: transparent; flex: 1; padding-inline: 0; }
-.searchBox input:focus { outline: none; }
+.pageTitle > div { min-width: 0; }
+.pageTitle p { margin: 0; max-width: 72ch; }
+.actionsRow { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; }
+.back { display: inline-flex; gap: 6px; align-items: center; margin-bottom: var(--s2); font-size: 13px; color: var(--muted); }
+.back:hover { color: var(--text); }
+
+/* Toolbar. Every child resolves to --control-h, so filters line up without per-page tuning. */
+.toolbar { display: flex; gap: var(--s2); flex-wrap: wrap; align-items: center; margin-bottom: var(--s4); }
+.toolbar > .check { min-height: var(--control-h); }
+/* A checkable row that carries secondary data: name grows, metadata keeps its size. */
+.checkRow { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; min-width: 0; flex: 1; }
+.checkRow > .truncate { flex: 1; min-width: 60px; }

@@ -5,7 +5,7 @@ import { get } from '../../shared/api/client';
 import type { ExecutionSummary, Page } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { EmptyState, ErrorAlert, Loading, PageHeader, RiskBadge, StatusBadge } from '../../shared/ui';
+import { Button, Checkbox, EmptyState, ErrorAlert, Loading, PageHeader, RiskBadge, StatusBadge } from '../../shared/ui';
 import { duration, formatDate, isTerminal } from '../../shared/format';
 
 export default function ExecutionsPage() {
@@ -22,7 +22,7 @@ export default function ExecutionsPage() {
   return (
     <section>
       <PageHeader title={t('executions.title')} subtitle={t('executions.subtitle')}
-        actions={isAdmin && <label className="check"><input type="checkbox" checked={all} onChange={(e) => { setAll(e.target.checked); setPage(0); }} /> {t('executions.allUsers')}</label>} />
+        actions={isAdmin && <Checkbox checked={all} onChange={(e) => { setAll(e.target.checked); setPage(0); }} label={t('executions.allUsers')} />} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.items.length ? (
         <EmptyState title={t('executions.empty')} hint={t('executions.emptyHint')} />
       ) : (
@@ -38,7 +38,7 @@ export default function ExecutionsPage() {
                   <td><Link to={'/executions/' + e.id}>{e.title ?? e.type}</Link> <small className="muted">{t('executions.type.' + e.type)} · {t('run.' + e.mode.toLowerCase())}</small></td>
                   <td><StatusBadge status={e.status} />{e.pendingApprovals > 0 && <span className="badge warn">{t('executions.needsApproval')}</span>}</td>
                   <td><RiskBadge risk={e.riskLevel} /></td>
-                  <td>{e.succeededMachines}/{e.machineCount}{e.failedMachines > 0 && <span className="badge bad">{e.failedMachines} {t('executions.failed')}</span>}</td>
+                  <td className="tabular">{e.succeededMachines}/{e.machineCount}{e.failedMachines > 0 && <span className="badge bad">{e.failedMachines} {t('executions.failed')}</span>}</td>
                   <td>{formatDate(e.startedAt ?? e.createdAt, lang)}</td>
                   <td>{duration(e.startedAt, e.finishedAt)}</td>
                 </tr>
@@ -46,9 +46,9 @@ export default function ExecutionsPage() {
             </tbody>
           </table>
           <div className="pager">
-            <button className="btn small" disabled={page === 0} onClick={() => setPage(page - 1)}>{t('common.previous')}</button>
-            <span>{page + 1} / {pages}</span>
-            <button className="btn small" disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}>{t('common.next')}</button>
+            <Button small disabled={page === 0} onClick={() => setPage(page - 1)}>{t('common.previous')}</Button>
+            <span className="tabular">{page + 1} / {pages}</span>
+            <Button small disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}>{t('common.next')}</Button>
           </div>
         </>
       )}
