@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Bot, Server, Workflow, TerminalSquare, History, Settings, Shield, KeyRound, FileUp, Menu, CheckSquare, Users, Database, ScrollText } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import { useI18n } from '../i18n/I18nProvider';
-import Brand from '../shared/ui/Brand';
+import { Brand, IconButton } from '../shared/ui';
 import { get } from '../shared/api/client';
 import type { ApprovalView } from '../shared/api/types';
 import SidebarFooter from './SidebarFooter';
@@ -22,7 +22,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className={'shell' + (open ? ' navOpen' : '')}>
       <header className="topbar">
-        <button className="icon" aria-label="menu" onClick={() => setOpen(!open)}><Menu /></button>
+        <IconButton label="Menu" onClick={() => setOpen(!open)}><Menu /></IconButton>
         <Brand size={22} />
       </header>
       <aside>
@@ -36,16 +36,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           {link('/files', <FileUp />, t('nav.files'))}
           {link('/executions', <History />, t('nav.executions'))}
           {link('/approvals', <CheckSquare />, t('nav.approvals'), pending.data?.length)}
-          {isAdmin && (
-            <>
-              <div className="navSection">{t('nav.admin')}</div>
-              {link('/admin', <Shield />, t('nav.adminOverview'))}
-              {link('/admin/users', <Users />, t('nav.users'))}
-              {link('/admin/commands', <TerminalSquare />, t('nav.commandApprovals'))}
-              {link('/admin/datasets', <Database />, t('nav.datasets'))}
-              {link('/admin/audit', <ScrollText />, t('nav.audit'))}
-            </>
-          )}
+          {isAdmin && (<>
+            <div className="navSection">{t('nav.admin')}</div>
+            {link('/admin', <Shield />, t('nav.adminOverview'))}
+            {link('/admin/users', <Users />, t('nav.users'))}
+            {link('/admin/commands', <TerminalSquare />, t('nav.commandApprovals'))}
+            {link('/admin/datasets', <Database />, t('nav.datasets'))}
+            {link('/admin/audit', <ScrollText />, t('nav.audit'))}
+          </>)}
           {link('/settings', <Settings />, t('nav.settings'))}
         </nav>
         <SidebarFooter />

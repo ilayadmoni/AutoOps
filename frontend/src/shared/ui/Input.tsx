@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
 import { Search } from 'lucide-react';
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -35,6 +35,8 @@ export function SearchInput({ className, ...rest }: InputHTMLAttributes<HTMLInpu
 }
 
 /** Multi-line text. Vertical resize only, so a drag can never break the form's column width. */
-export function Textarea({ rows = 4, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea rows={rows} {...rest} />;
-}
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
+  function Textarea({ rows = 4, ...rest }, ref) {
+    return <textarea ref={ref} rows={rows} {...rest} />;
+  },
+);

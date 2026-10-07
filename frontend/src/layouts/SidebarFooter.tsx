@@ -1,5 +1,6 @@
 import { Globe2, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
+import { Button, IconButton } from '../shared/ui';
 import { useTheme } from '../features/settings/ThemeProvider';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -26,20 +27,19 @@ export default function SidebarFooter() {
         </span>
       </div>
       <div className="sidebarControls">
-        <button
-          type="button"
+        <Button
           className="sidebarControl languageControl"
           onClick={() => setLang(lang === 'en' ? 'he' : 'en')}
           aria-label={`${t('settings.language')}: ${nextLanguage}`}
         >
           <Globe2 /> <span className="mono">{langCode}</span>
-        </button>
-        <button type="button" className="sidebarControl iconOnly" onClick={toggleTheme} aria-label={t('settings.theme')}>
+        </Button>
+        <IconButton label={t('settings.theme')} className="sidebarControl iconOnly" onClick={toggleTheme}>
           {isDark ? <Moon /> : <Sun />}
-        </button>
-        <button type="button" className="sidebarLogout" onClick={logout}>
+        </IconButton>
+        <Button className="sidebarLogout" onClick={logout}>
           <LogOut /> <span>{t('nav.logout')}</span>
-        </button>
+        </Button>
       </div>
     </div>
   );

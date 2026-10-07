@@ -1,5 +1,6 @@
 import { Bot, Search, Server, TerminalSquare, Workflow } from 'lucide-react';
 import { useI18n } from '../../i18n/I18nProvider';
+import { Button } from '../../shared/ui';
 
 /** Empty-thread state: identity, scope, and four concrete starting prompts. */
 export default function ChatHero({ onPick }: { onPick: (prompt: string) => void }) {
@@ -17,10 +18,10 @@ export default function ChatHero({ onPick }: { onPick: (prompt: string) => void 
       <p>{t('ai.subtitle')}</p>
       <div className="suggestions">
         {suggestions.map((s) => (
-          <button key={s.label} type="button" className="suggestion" onClick={() => onPick(s.prompt)}>
+          <Button key={s.label} className="suggestion" onClick={() => onPick(s.prompt)}>
             {s.icon}
             <span>{s.label}</span>
-          </button>
+          </Button>
         ))}
       </div>
     </div>

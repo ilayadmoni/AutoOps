@@ -11,6 +11,7 @@ export { default as Brand } from './Brand';
 export { default as Card, CardHeader, Stat } from './Card';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as CopyButton } from './CopyButton';
+export { default as FilePicker } from './FilePicker';
 export { default as Modal } from './Modal';
 export { default as PageHeader } from './PageHeader';
 export { default as Segmented } from './Segmented';

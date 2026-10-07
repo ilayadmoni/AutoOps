@@ -1,11 +1,8 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { useI18n } from '../../i18n/I18nProvider';
+import { IconButton, Textarea } from '../../shared/ui';
 
-/**
- * Message composer. Enter sends, Shift+Enter inserts a newline — the convention operators
- * already expect from chat tools. The textarea grows with its content up to a CSS max-height.
- */
 const LIMIT = 4000;
 
 export default function Composer({ value, onChange, onSubmit, disabled, busy }: {
@@ -33,15 +30,11 @@ export default function Composer({ value, onChange, onSubmit, disabled, busy }: 
   };
 
   const canSend = !!value.trim() && !busy && !disabled;
-  // The budget only appears once it is close enough to matter.
   const remaining = LIMIT - value.length;
   return (
     <div className="composerWrap">
-      <form
-        className="composer"
-        onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
-      >
-        <textarea
+      <form className="composer" onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
+        <Textarea
           ref={area}
           rows={1}
           value={value}
@@ -57,9 +50,9 @@ export default function Composer({ value, onChange, onSubmit, disabled, busy }: 
             <kbd>Enter</kbd> {t('ai.hintSend')} · <kbd>Shift</kbd>+<kbd>Enter</kbd> {t('ai.hintNewline')}
           </span>
           {remaining < 400 && <span className="composerCount">{remaining}</span>}
-          <button className="composerSend" type="submit" disabled={!canSend} aria-label={t('ai.send')}>
+          <IconButton className="composerSend" type="submit" disabled={!canSend} label={t('ai.send')}>
             <ArrowUp size={18} />
-          </button>
+          </IconButton>
         </div>
       </form>
     </div>

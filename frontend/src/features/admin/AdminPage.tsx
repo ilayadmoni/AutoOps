@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { RefreshCw, Trash2 } from 'lucide-react';
 import { get, post } from '../../shared/api/client';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Button, ErrorAlert, Loading, PageHeader, errorMessage } from '../../shared/ui';
+import { Button, Card, ErrorAlert, Loading, PageHeader, errorMessage } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 
 type Summary = Record<string, number>;
@@ -27,11 +27,11 @@ export default function AdminPage() {
   });
   const s = summary.data;
   const card = (key: string, to?: string) => (
-    <article className="card stat" key={key}>
+    <Card className="stat" key={key}>
       <span className="muted">{t('admin.stat.' + key)}</span>
       <strong>{s?.[key] ?? '…'}</strong>
       {to && <Link to={to}>{t('admin.open')}</Link>}
-    </article>
+    </Card>
   );
   return (
     <section>
@@ -50,7 +50,7 @@ export default function AdminPage() {
       )}
       <h2>{t('admin.maintenance')}</h2>
       <div className="cards">
-        <article className="card">
+        <Card>
           <h3>{t('admin.embeddings')}</h3>
           {emb.data && (
             <div className="kv">
@@ -60,12 +60,12 @@ export default function AdminPage() {
             </div>
           )}
           <Button icon={<RefreshCw size={14} />} busy={reindex.isPending} onClick={() => reindex.mutate()}>{t('admin.reindex')}</Button>
-        </article>
-        <article className="card">
+        </Card>
+        <Card>
           <h3>{t('admin.files')}</h3>
           <p className="muted small">{t('admin.cleanupHint')}</p>
           <Button icon={<Trash2 size={14} />} busy={cleanup.isPending} onClick={() => cleanup.mutate()}>{t('admin.cleanup')}</Button>
-        </article>
+        </Card>
       </div>
     </section>
   );
