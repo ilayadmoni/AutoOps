@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, ArrowUpRight, Workflow as WorkflowIcon, X } from 'lucide-react';
-import { get } from '../../shared/api/client';
-import type { Command, WorkflowNode } from '../../shared/api/types';
-import { Button, IconButton, Tooltip } from '../../shared/ui';
-import { FlowCanvas } from '../../shared/ui/flow';
-import { useI18n } from '../../i18n/I18nProvider';
+import { get } from '../../services/client';
+import type { Command, WorkflowNode } from '../../types/api';
+import { Button, IconButton, Tooltip } from '../../components/ui';
+import { FlowCanvas } from '../../components/ui/flow';
+import { useI18n } from '../../app/providers/I18nProvider';
 import type { CanvasDraft } from './useWorkflowCanvas';
 
 /** Placeholder pipeline while the first draft is being written: three columns of ghost tiles. */

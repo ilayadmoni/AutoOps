@@ -1,7 +1,7 @@
-import type { NodeType } from '../../../shared/api/types';
-import { Tile } from '../../../shared/ui';
-import { STEP_ICON, STEP_TYPES } from '../../../shared/ui/flow';
-import { useI18n } from '../../../i18n/I18nProvider';
+import type { NodeType } from '../../../types/api';
+import { Tile } from '../../../components/ui';
+import { STEP_ICON, STEP_TYPES } from '../../../components/ui/flow';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 const TONE = { COMMAND: 'primary', FILE_TRANSFER: 'info', WAIT_UNTIL: 'warn' } as const;
 

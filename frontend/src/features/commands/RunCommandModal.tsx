@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Play } from 'lucide-react';
-import { ApiError, get, post } from '../../shared/api/client';
-import type { Command, CommandPreview, ExecutionDetail, RunOptions } from '../../shared/api/types';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Button, Checkbox, Code, ErrorAlert, Field, Modal, RiskBadge, Select } from '../../shared/ui';
-import { useToast } from '../../shared/ui/Toast';
+import { ApiError, get, post } from '../../services/client';
+import type { Command, CommandPreview, ExecutionDetail, RunOptions } from '../../types/api';
+import { useI18n } from '../../app/providers/I18nProvider';
+import { Button, Checkbox, Code, ErrorAlert, Field, Modal, RiskBadge, Select } from '../../components/ui';
+import { useToast } from '../../components/ui/Toast';
 import { ParameterInputs, cleanParams } from './ParameterInputs';
 import { RunOptionsForm, defaultRunOptions } from '../executions/RunOptionsForm';
 

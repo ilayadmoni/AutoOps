@@ -1,6 +1,6 @@
-import type { ParameterSpec } from '../../shared/api/types';
-import { Field, Select, TextInput } from '../../shared/ui';
-import { useI18n } from '../../i18n/I18nProvider';
+import type { ParameterSpec } from '../../types/api';
+import { Field, Select, TextInput } from '../../components/ui';
+import { useI18n } from '../../app/providers/I18nProvider';
 
 /** Renders inputs from a command's parameter schema. Values are validated again by the server. */
 export function ParameterInputs({ specs, values, onChange, errors, prefix = '' }: {

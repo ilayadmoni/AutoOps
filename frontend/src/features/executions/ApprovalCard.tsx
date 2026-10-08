@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Check, X } from 'lucide-react';
-import { ApiError, post } from '../../shared/api/client';
-import type { ApprovalView } from '../../shared/api/types';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Button, Checkbox, ErrorAlert, RiskBadge, TextInput } from '../../shared/ui';
-import { useToast } from '../../shared/ui/Toast';
-import { formatDate } from '../../shared/format';
+import { ApiError, post } from '../../services/client';
+import type { ApprovalView } from '../../types/api';
+import { useI18n } from '../../app/providers/I18nProvider';
+import { Button, Checkbox, ErrorAlert, RiskBadge, TextInput } from '../../components/ui';
+import { useToast } from '../../components/ui/Toast';
+import { formatDate } from '../../utils/format';
 
 /** Persisted approval decision: explicit Run click, plus acknowledgement for HIGH risk (enforced by the backend too). */
 export function ApprovalCard({ approval, showLink }: { approval: ApprovalView; showLink?: boolean }) {

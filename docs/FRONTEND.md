@@ -1,7 +1,7 @@
 # Frontend
 
 React 19 + TypeScript + Vite, TanStack Query for server state, React Router, Lucide icons and a small custom i18n
-layer. No CSS framework: `src/styles.css` defines light/dark tokens and uses logical properties so RTL works.
+layer. No CSS framework: `src/assets/styles/` defines light/dark tokens and uses logical properties so RTL works.
 
 - **Auth**: `AuthProvider` refreshes the session on startup, loads `/auth/me`, keeps the access token in memory,
   exposes `isAdmin` for navigation and route guards, and logs out on refresh failure.
@@ -21,9 +21,24 @@ layer. No CSS framework: `src/styles.css` defines light/dark tokens and uses log
 - **Settings**: theme (system/light/dark) and language (English/Hebrew), stored per device. Hebrew sets `dir=rtl`;
   commands, paths and addresses stay LTR.
 
+## Folder structure
+
+Organized by responsibility, not file type:
+
+- `app/`: `App.tsx` (routes), `providers/` (Auth, Theme, I18n), `layout/` (app shell, sidebar footer).
+- `assets/styles/`: `index.css` imports the style layers in cascade order.
+- `components/`: reusable UI. `ui/` holds the design-system primitives, `ui/flow/` the canvas; `AppControls` is the
+  language/theme pill used by the app shell and the login page.
+- `features/<name>/`: feature-specific components, hooks and stores (assistant chat, workflow builder, run forms).
+- `pages/<name>/`: route-level views (`*Page.tsx`).
+- `lib/i18n/`: English and Hebrew dictionaries.
+- `services/`: API client (`client.ts`).
+- `types/`: shared TypeScript types (`api.ts`).
+- `utils/`: pure helpers (`format.ts`).
+
 ## Shared UI
 
-Every reusable visual lives in `src/shared/ui` and is imported from `shared/ui` (or `shared/ui/flow` for the canvas,
+Every reusable visual lives in `src/components/ui` and is imported from `components/ui` (or `components/ui/flow` for the canvas,
 kept separate so React Flow only loads on pages that draw a graph). Feature folders compose these; they do not style
 their own buttons, inputs or floating layers.
 
@@ -32,7 +47,7 @@ their own buttons, inputs or floating layers.
 - Floating layers: `Tooltip`, `Menu`, and the `Select` list all position through `useFloating` (`floating.ts`): fixed,
   portalled, flip when out of room, RTL-aware, never clipped by `overflow: hidden`.
 - Surfaces: `Card` (+ `.cardFoot`), `Tile`, `ListItem`, `Modal`, `ConfirmDialog`, badges, alerts, loaders.
-- Canvas (`shared/ui/flow`): `FlowCanvas` with n8n-style step nodes, a trigger-shaped preflight node, success/failure
+- Canvas (`components/ui/flow`): `FlowCanvas` with n8n-style step nodes, a trigger-shaped preflight node, success/failure
   outputs, "+" stubs that add a wired next step, and selectable connections with a remove button. The canvas always
   lays out left to right because columns are execution order.
-- Scrollbars, z-index layers, canvas and tooltip colours are tokens in `styles/tokens.css`.
+- Scrollbars, z-index layers, canvas and tooltip colours are tokens in `assets/styles/tokens.css`.

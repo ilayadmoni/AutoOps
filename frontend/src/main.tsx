@@ -2,14 +2,14 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App';
-import { I18nProvider } from './i18n/I18nProvider';
-import { ThemeProvider } from './features/settings/ThemeProvider';
-import { AuthProvider } from './features/auth/AuthProvider';
-import { ToastProvider } from './shared/ui/Toast';
-import { ApiError } from './shared/api/client';
+import App from './app/App';
+import { I18nProvider } from './app/providers/I18nProvider';
+import { ThemeProvider } from './app/providers/ThemeProvider';
+import { AuthProvider } from './app/providers/AuthProvider';
+import { ToastProvider } from './components/ui/Toast';
+import { ApiError } from './services/client';
 import '@xyflow/react/dist/style.css';
-import './styles.css';
+import './assets/styles/index.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -11,9 +11,9 @@ const source = async (path) => {
   }
 };
 
-/** styles.css is only an import manifest, so assertions run against every layer it pulls in. */
+/** assets/styles/index.css is only an import manifest, so assertions run against every layer it pulls in. */
 const allStyles = async () => {
-  const dir = new URL('../src/styles/', import.meta.url);
+  const dir = new URL('../src/assets/styles/', import.meta.url);
   const files = await readdir(dir);
   const parts = await Promise.all(files.filter((f) => f.endsWith('.css')).map((f) => readFile(new URL(f, dir), 'utf8')));
   return parts.join('\n');
@@ -22,7 +22,7 @@ const allStyles = async () => {
 test('draws the AutoOps brand as a themed vector with an accessible name', async () => {
   // The supplied raster carries a black plate that showed as a box on light surfaces, so the
   // mark is redrawn from it as SVG; the wordmark must still announce itself as AutoOps.
-  const brand = await source('src/shared/ui/Brand.tsx');
+  const brand = await source('src/components/ui/Brand.tsx');
   assert.match(brand, /<svg/);
   assert.match(brand, /aria-label="AutoOps"/);
   assert.doesNotMatch(brand, /<img/);
@@ -30,10 +30,10 @@ test('draws the AutoOps brand as a themed vector with an accessible name', async
 
 test('floating layers are shared, portalled primitives', async () => {
   const [tooltip, select, menu, index] = await Promise.all([
-    source('src/shared/ui/Tooltip.tsx'),
-    source('src/shared/ui/Select.tsx'),
-    source('src/shared/ui/Menu.tsx'),
-    source('src/shared/ui/index.tsx'),
+    source('src/components/ui/Tooltip.tsx'),
+    source('src/components/ui/Select.tsx'),
+    source('src/components/ui/Menu.tsx'),
+    source('src/components/ui/index.tsx'),
   ]);
   for (const layer of [tooltip, select, menu]) {
     assert.match(layer, /createPortal/);
@@ -44,22 +44,22 @@ test('floating layers are shared, portalled primitives', async () => {
   assert.match(index, /Select/);
 });
 
-test('the workflow canvas lives in the shared folder and the assistant splits to show it', async () => {
+test('the workflow canvas lives in the components folder and the assistant splits to show it', async () => {
   const [canvas, builder, assistant] = await Promise.all([
-    source('src/shared/ui/flow/FlowCanvas.tsx'),
-    source('src/features/workflows/WorkflowBuilderPage.tsx'),
-    source('src/features/ai-assistant/AIAssistantPage.tsx'),
+    source('src/components/ui/flow/FlowCanvas.tsx'),
+    source('src/pages/workflows/WorkflowBuilderPage.tsx'),
+    source('src/pages/ai-assistant/AIAssistantPage.tsx'),
   ]);
   assert.match(canvas, /@xyflow\/react/);
-  assert.match(builder, /shared\/ui\/flow/);
+  assert.match(builder, /components\/ui\/flow/);
   assert.match(assistant, /WorkflowPreview/);
   assert.match(assistant, /split/);
 });
 
 test('renders the supplied boot and inline loader family', async () => {
   const [app, loaders, styles] = await Promise.all([
-    source('src/App.tsx'),
-    source('src/shared/ui/Loaders.tsx'),
+    source('src/app/App.tsx'),
+    source('src/components/ui/Loaders.tsx'),
     allStyles(),
   ]);
   assert.match(app, /<BootLoader/);
@@ -69,9 +69,9 @@ test('renders the supplied boot and inline loader family', async () => {
 });
 
 test('implements the bilingual split login with a password reveal', async () => {
-  const login = await source('src/features/auth/LoginPage.tsx');
+  const login = await source('src/pages/auth/LoginPage.tsx');
   assert.match(login, /loginShell/);
-  assert.match(login, /LoginLanguageToggle/);
+  assert.match(login, /<AppControls/);
   assert.match(login, /PasswordInput/);
   // The submit control is the shared Button now; `busy` is what sets aria-busy and blocks
   // double submits, so the prop is the thing worth asserting.
@@ -80,9 +80,9 @@ test('implements the bilingual split login with a password reveal', async () => 
 
 test('puts language and theme buttons in a floating pill, opposite the sidebar', async () => {
   const [layout, footer, controls] = await Promise.all([
-    source('src/layouts/AppLayout.tsx'),
-    source('src/layouts/SidebarFooter.tsx'),
-    source('src/layouts/AppControls.tsx'),
+    source('src/app/layout/AppLayout.tsx'),
+    source('src/app/layout/SidebarFooter.tsx'),
+    source('src/components/AppControls.tsx'),
   ]);
   assert.match(layout, /<SidebarFooter/);
   assert.match(layout, /className="appFloat"><AppControls/);

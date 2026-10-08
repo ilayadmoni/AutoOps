@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle } from 'lucide-react';
-import { get } from '../../shared/api/client';
-import type { Credential, Machine, RunOptions } from '../../shared/api/types';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Checkbox, Field, Loading, Segmented, Select } from '../../shared/ui';
+import { get } from '../../services/client';
+import type { Credential, Machine, RunOptions } from '../../types/api';
+import { useI18n } from '../../app/providers/I18nProvider';
+import { Checkbox, Field, Loading, Segmented, Select } from '../../components/ui';
 
 export const machinesQuery = { queryKey: ['machines'], queryFn: () => get<Machine[]>('/machines') };
 

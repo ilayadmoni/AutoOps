@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Play } from 'lucide-react';
-import { ApiError, post } from '../../shared/api/client';
-import type { ExecutionDetail, RunOptions } from '../../shared/api/types';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Button, ErrorAlert, Modal } from '../../shared/ui';
-import { useToast } from '../../shared/ui/Toast';
+import { ApiError, post } from '../../services/client';
+import type { ExecutionDetail, RunOptions } from '../../types/api';
+import { useI18n } from '../../app/providers/I18nProvider';
+import { Button, ErrorAlert, Modal } from '../../components/ui';
+import { useToast } from '../../components/ui/Toast';
 import { RunOptionsForm, defaultRunOptions } from '../executions/RunOptionsForm';
 
 export default function RunWorkflowModal({ workflowId, name, onClose }: { workflowId: number; name: string; onClose: () => void }) {

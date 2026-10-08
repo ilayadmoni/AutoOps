@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { AIOperation, MissingField, WorkflowNode } from '../../shared/api/types';
+import type { AIOperation, MissingField, WorkflowNode } from '../../types/api';
 import type { Msg } from './ChatMessage';
 
 export type CanvasDraft = {

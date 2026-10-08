@@ -1,8 +1,8 @@
 import { PanelRightClose, PanelLeftClose, Trash2 } from 'lucide-react';
-import type { ConversationSummary } from '../../shared/api/types';
-import { IconButton, ListItem } from '../../shared/ui';
-import { useI18n } from '../../i18n/I18nProvider';
-import { shortDate } from '../../shared/format';
+import type { ConversationSummary } from '../../types/api';
+import { IconButton, ListItem } from '../../components/ui';
+import { useI18n } from '../../app/providers/I18nProvider';
+import { shortDate } from '../../utils/format';
 
 /**
  * Conversation history. The user hides it from its own header or from the chat bar; the choice is

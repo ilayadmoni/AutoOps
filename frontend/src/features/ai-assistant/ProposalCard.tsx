@@ -1,8 +1,8 @@
 import { Eye, ShieldCheck, Workflow as WorkflowIcon, TerminalSquare } from 'lucide-react';
-import { STEP_ICON } from '../../shared/ui/flow/StepNode';
-import type { AIOperation, MissingField, WorkflowNode } from '../../shared/api/types';
-import { Button, Code, RiskBadge } from '../../shared/ui';
-import { useI18n } from '../../i18n/I18nProvider';
+import { STEP_ICON } from '../../components/ui/flow/StepNode';
+import type { AIOperation, MissingField, WorkflowNode } from '../../types/api';
+import { Button, Code, RiskBadge } from '../../components/ui';
+import { useI18n } from '../../app/providers/I18nProvider';
 
 function Missing({ fields }: { fields: MissingField[] }) {
   const { t } = useI18n();
