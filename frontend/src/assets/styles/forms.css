@@ -210,9 +210,11 @@ input[type='checkbox']:disabled::before, input[type='radio']:disabled::before { 
 }
 
 /* Field scaffolding. Label above, control, then one description slot: hint or error, never both. */
-.field { display: grid; gap: 6px; min-width: 0; }
+/* align-content: start keeps the control on the same line as a neighbour that carries a hint. */
+.field { display: grid; gap: 6px; min-width: 0; align-content: start; }
 .field > input, .field > select, .field > textarea,
 .field > .selectWrap, .field > .inputWrap, .field > .stepper { width: 100%; }
+.field > .stepper { max-width: none; }
 .fieldLabel { font-size: 12.5px; font-weight: 600; color: var(--text); }
 .fieldError { color: var(--bad); font-size: 12px; display: flex; align-items: center; gap: 5px; }
 .fieldError > svg { flex: none; }
