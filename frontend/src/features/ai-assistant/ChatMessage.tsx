@@ -25,8 +25,11 @@ function useEnter() {
  * images are dropped, since message content originates from a model and must not embed remote
  * resources into an operations console.
  */
-export default function ChatMessage({ msg, onWorkflow, onRun }: {
+export default function ChatMessage({ msg, onCanvas, onShow, onWorkflow, onRun }: {
   msg: Msg;
+  /** This turn's workflow proposal is the one on the split canvas. */
+  onCanvas?: boolean;
+  onShow?: () => void;
   onWorkflow: (op: AIOperation) => void;
   onRun: (op: AIOperation) => void;
 }) {
@@ -64,7 +67,7 @@ export default function ChatMessage({ msg, onWorkflow, onRun }: {
           </ReactMarkdown>
         </div>
         {msg.operations?.map((op, i) => (
-          <ProposalCard key={i} op={op} onWorkflow={() => onWorkflow(op)} onRun={() => onRun(op)} />
+          <ProposalCard key={i} op={op} onCanvas={onCanvas} onShow={onShow} onWorkflow={() => onWorkflow(op)} onRun={() => onRun(op)} />
         ))}
       </div>
     </motion.article>

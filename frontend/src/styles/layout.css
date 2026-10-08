@@ -1,16 +1,19 @@
 /* App shell: fixed sidebar, scrolling main, mobile topbar. */
-.shell { display: grid; grid-template-columns: 252px 1fr; min-height: 100vh; }
+.shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); height: 100dvh; overflow: hidden; }
 .topbar { display: none; }
-aside {
+.sidebar {
   padding: var(--s5) var(--s3); border-inline-end: 1px solid var(--border); background: var(--sidebar);
   display: flex; flex-direction: column; gap: var(--s2);
-  position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start;
+  height: 100dvh; overflow-y: auto; min-height: 0;
 }
-.brand { width: var(--brand-width); height: var(--brand-height); overflow: hidden; flex: none; margin: 0 var(--s1) var(--s4); }
-.brandLogo { display: block; width: var(--brand-width); height: auto; mix-blend-mode: lighten; }
-[data-theme='light'] .brandLogo { filter: invert(1) hue-rotate(180deg); mix-blend-mode: multiply; }
+/* Wordmark: vector mark plus live text, so it takes the theme instead of carrying a plate. */
+.brand { display: inline-flex; align-items: center; gap: .45em; flex: none; direction: ltr; line-height: 1; }
+.brandMark { display: block; flex: none; }
+.brandWord { font-weight: 700; letter-spacing: -.035em; color: var(--text); }
+.brandWord b { font-weight: inherit; color: var(--primary); }
+.sidebar > .brand { margin: var(--s1) 10px var(--s5); align-self: flex-start; }
 
-nav { display: grid; gap: 1px; }
+nav { display: grid; gap: 2px; }
 nav a {
   display: flex; gap: 10px; align-items: center; height: var(--control-h); padding-inline: 10px;
   border-radius: var(--radius-sm); color: var(--muted); position: relative; font-weight: 500;
@@ -35,43 +38,71 @@ nav > .navSection:first-child { margin-top: 0; }
 }
 
 .sidebarFooter {
-  margin-top: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s3);
-  display: grid; gap: var(--s3); background: var(--surface);
+  margin-top: auto; padding: var(--s3) var(--s1) 0; border-top: 1px solid var(--border);
+  display: grid; gap: var(--s2);
 }
-.sidebarIdentity { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sidebarIdentity { display: flex; align-items: center; gap: 10px; min-width: 0; padding-inline: var(--s1); }
 .userAvatar {
-  width: 34px; height: 34px; border-radius: var(--radius-pill); display: grid; place-items: center; flex: none;
-  background: var(--primary-soft); color: var(--primary); font-weight: 700;
+  width: 32px; height: 32px; border-radius: var(--radius-pill); display: grid; place-items: center; flex: none;
+  background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: 13px;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
 }
-.userDetails { display: grid; min-width: 0; }
-.userDetails strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.userDetails small { color: var(--muted); }
-.sidebarControls { display: flex; align-items: center; gap: var(--s1); border-top: 1px solid var(--border); padding-top: var(--s3); }
-.sidebarControl, .sidebarLogout {
-  height: var(--control-h-sm); border-radius: var(--radius-sm); border: 1px solid transparent;
-  background: transparent; color: var(--muted);
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
-  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
-}
-.sidebarControl { padding-inline: 10px; font-weight: 600; border-color: var(--border); background: var(--surface-2); color: var(--text); }
-.sidebarControl.iconOnly { width: var(--control-h-sm); padding: 0; background: transparent; border-color: transparent; color: var(--muted); }
-.sidebarControl svg, .sidebarLogout svg { width: 16px; height: 16px; }
-.languageControl svg { color: var(--primary); }
-.sidebarLogout { margin-inline-start: auto; padding-inline: var(--s2); white-space: nowrap; }
-.sidebarControl:hover, .sidebarLogout:hover { color: var(--text); background: var(--surface-2); }
+.userDetails { display: grid; min-width: 0; flex: 1; line-height: 1.3; }
+.userDetails strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.userDetails small { color: var(--muted); font-size: 11.5px; }
+/* Main: a top bar holding the preferences notch, then the scrolling body. The body owns the page
+   scroll, so the sidebar never scrolls with it and full-height pages (assistant, builder) can size
+   themselves to the viewport without a second scrollbar. */
+main { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+/* The preferences pill floats in main's top inline-end corner and takes no row of its own. It is
+   aligned with the first line of whatever page is below: the page title row on ordinary pages,
+   the pane header on full-height pages. Those rows reserve --pill-room at their inline end. */
+main { --pill-h: 36px; --pill-room: 132px; --pill-top: 10px; --bar-h: 56px; }
+.appFloat { position: absolute; inset-block-start: var(--pill-top); inset-inline-end: var(--s4); z-index: 5; }
+.mainBody { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; container-type: inline-size; }
+/* Pages fill main, with the same side inset as the header bar, so title and content share one edge. */
+main { --page-x: var(--s6); }
+.mainBody > :not(.fillPage) { width: 100%; padding: 0 var(--page-x) 104px; flex: none; }
+.mainBody:has(> .fillPage) { overflow: hidden; }
+.fillPage { flex: 1; min-height: 0; width: 100%; }
 
-main { padding: var(--s7) var(--s7) 64px; max-width: 1280px; width: 100%; margin: 0 auto; }
-
-/* Page header. The title block and its actions sit on one baseline and wrap together. */
-.pageTitle {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4);
-  margin-bottom: var(--s6); flex-wrap: wrap;
+/* Preferences: a floating pill in the top corner opposite the navigation. The bar reserves its
+   row so the pill never covers a page's own header actions. */
+.appControls {
+  display: inline-flex; align-items: center; gap: 2px; padding: 2px; height: var(--pill-h, 36px);
+  background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(8px);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  box-shadow: 0 6px 20px -8px color-mix(in srgb, var(--text) 30%, transparent), var(--inset-top);
 }
-.pageTitle > div { min-width: 0; }
-.pageTitle p { margin: 0; max-width: 72ch; }
+.appControls .appControl { border-radius: var(--radius-pill); color: var(--muted); }
+.appControls .btn.appControl { height: 30px; padding-inline: 10px 12px; gap: 6px; }
+.appControls .icon.appControl { width: 30px; height: 30px; }
+.appControls .appControl:hover:not(:disabled) { color: var(--text); background: var(--surface-2); }
+.appControls .appControl svg { color: var(--primary); }
+.appControlCode { font-size: 12.5px; font-weight: 650; letter-spacing: .02em; min-width: 2ch; text-align: center; }
+.appControlsDivider { width: 1px; height: 16px; background: var(--border); }
+
+/* Page bar: the same header row the assistant's chat uses, on every route. It bleeds to the full
+   width of main (container units), starts at the same inset from the corner as the chat bar, sticks
+   while the page scrolls, and leaves room at its inline end for the floating preferences pill. */
+.pageBar {
+  position: sticky; top: 0; z-index: 4; display: flex; align-items: center; gap: var(--s2);
+  height: var(--bar-h); margin-inline: calc((100% - 100cqw) / 2); margin-bottom: var(--s5);
+  padding-inline-start: var(--page-x); padding-inline-end: var(--pill-room);
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+.pageBarIcon { display: grid; place-items: center; color: var(--muted); flex: none; }
+.pageBarIcon svg { width: 18px; height: 18px; }
+.pageBarTitle {
+  margin: 0; flex: 1; min-width: 0; font-size: 14.5px; font-weight: 650; letter-spacing: -.01em;
+  display: flex; align-items: center; gap: var(--s2); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.pageBarActions { display: flex; align-items: center; gap: var(--s2); flex: none; }
+.pageCrumb { display: flex; align-items: center; gap: 2px; color: var(--muted); font-size: 14px; flex: none; }
+.pageCrumb a { color: var(--muted); font-weight: 500; padding: 4px 6px; border-radius: var(--radius-xs); }
+.pageCrumb a:hover { color: var(--text); background: var(--surface-2); text-decoration: none; }
+.pageIntro { margin: 0 0 var(--s5); color: var(--muted); max-width: 72ch; }
 .actionsRow { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; }
-.back { display: inline-flex; gap: 6px; align-items: center; margin-bottom: var(--s2); font-size: 13px; color: var(--muted); }
-.back:hover { color: var(--text); }
 
 /* Toolbar. Every child resolves to --control-h, so filters line up without per-page tuning. */
 .toolbar { display: flex; gap: var(--s2); flex-wrap: wrap; align-items: center; margin-bottom: var(--s4); }

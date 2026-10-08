@@ -1,6 +1,6 @@
 import { useRef, type InputHTMLAttributes, type ReactNode } from 'react';
 
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> & {
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'children'> & {
   onPick: (file?: File) => void;
   children: (open: () => void) => ReactNode;
 };

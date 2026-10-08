@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Play, Plus, Sparkles } from 'lucide-react';
+import { Play, Sparkles } from 'lucide-react';
 import { ApiError, get, post } from '../../shared/api/client';
 import type { Command, ParamType, ParameterSpec, SearchResult } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Checkbox, Code, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader,
-  RiskBadge, SearchInput, Select, StatusBadge, TextInput, Textarea,
+  Button, Checkbox, Code, EmptyState, ErrorAlert, Fab, Field, Loading, Modal, PageHeader, RiskBadge, SearchInput, Select, StatusBadge, Textarea, TextInput,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import RunCommandModal from './RunCommandModal';
@@ -46,8 +45,8 @@ export default function CommandsPage() {
 
   return (
     <section>
-      <PageHeader title={t('commands.title')} subtitle={t('commands.subtitle')}
-        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setCreating(true)}>{t('commands.create')}</Button>} />
+      <PageHeader title={t('commands.title')} subtitle={t('commands.subtitle')} />
+      <Fab label={t('commands.create')} onClick={() => setCreating(true)} />
       <div className="toolbar">
         <SearchInput className="grow" aria-label={t('commands.searchPlaceholder')} placeholder={t('commands.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} />
         <Select

@@ -43,16 +43,6 @@
 .loginHeading p { color: var(--muted); font-size: 15px; margin: 0; }
 .loginForm input { height: var(--control-h-lg); font-size: 15px; }
 
-.passwordInput { position: relative; display: grid; }
-.passwordInput input { width: 100%; padding-inline-end: var(--s8); }
-.passwordInput button {
-  position: absolute; inset-block: 4px; inset-inline-end: 4px; width: 36px;
-  display: grid; place-items: center; border: 0; border-radius: var(--radius-xs);
-  background: transparent; color: var(--muted); cursor: pointer;
-  transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
-}
-.passwordInput button:hover { color: var(--text); background: var(--surface-2); }
-.passwordInput svg { width: 18px; height: 18px; }
 
 /* The only action on the form, so it spans the column rather than sizing to its label. */
 .loginSubmit { width: 100%; height: var(--control-h-lg); margin-top: var(--s1); font-size: 15px; }

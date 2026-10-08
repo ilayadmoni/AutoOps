@@ -1,34 +1,58 @@
-/* Breakpoints: 900px collapses split panes, 760px switches the shell to a drawer. */
+/* Breakpoints: 1100px stacks the assistant's canvas over the chat, 900px collapses split panes,
+   760px switches the shell to a drawer. */
+@media (max-width: 1100px) {
+  .assistant.split, .assistant.split.withRail { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(260px, 42%) minmax(0, 1fr); }
+  .assistant.split .convRail { display: none; }
+  .assistant.split .previewPane { grid-row: 1; border-inline-start: 0; border-bottom: 1px solid var(--border); }
+  .assistant.split .chat { grid-row: 2; }
+}
+
 @media (max-width: 900px) {
-  .assistant { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
-  .convRail { display: none; }
-  .chatScroll { overflow: visible; }
+  .assistant.withRail { grid-template-columns: minmax(0, 1fr); }
+  .assistant .convRail { display: none; }
+  .suggestions { grid-template-columns: minmax(0, 1fr); }
   .grid3 { grid-template-columns: 1fr; }
   .loginShell { grid-template-columns: 1fr; }
   .loginVisual { display: none; }
   .builderShell { grid-template-columns: 1fr; grid-template-rows: auto minmax(360px, 1fr); }
   .inspector { width: 100%; }
-  .palette { grid-auto-flow: column; grid-auto-columns: minmax(160px, 1fr); overflow-x: auto; border-inline-end: 0; border-bottom: 1px solid var(--border); }
-  .paletteLabel { display: none; }
+  .palette { flex-direction: row; overflow-x: auto; border-inline-end: 0; border-bottom: 1px solid var(--border); padding: var(--s2); }
+  .palette .tile { flex: none; width: auto; }
+  .palette .tileText small, .paletteLabel, .paletteHint { display: none; }
 }
 
 @media (max-width: 760px) {
   /* Auto grid rows stretch to fill min-height:100vh, which would inflate the topbar.
      Pinning the rows keeps the bar at its content height and gives main the remainder. */
   .shell { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  main { --page-x: var(--s4); }
+  .mainBody > :not(.fillPage) { padding-bottom: 96px; }
+  .fab { inset-block-end: var(--s4); inset-inline-end: var(--s4); }
+  .appFloat { display: none; }
+  .pageBar { padding-inline-end: var(--s4); }
+  .pageBarActions .btn > span:not(:only-child) { display: inline; }
+  .topbar .appControls { margin-inline-start: auto; box-shadow: none; }
   .topbar {
     display: flex; align-items: center; gap: 10px; padding: 10px 14px;
     border-bottom: 1px solid var(--border); background: var(--sidebar);
-    position: sticky; top: 0; z-index: var(--z-nav);
+    z-index: var(--z-nav);
   }
   .topbar .brand { margin: 0; }
-  aside { display: none; }
-  .shell.navOpen aside {
+  .sidebar { display: none; }
+  .shell.navOpen .sidebar {
     display: flex; position: fixed; inset-block: 0; inset-inline-start: 0;
     width: 260px; z-index: var(--z-drawer); box-shadow: var(--shadow);
   }
-  main { padding: var(--s5) var(--s4) 56px; }
+  .navScrim { position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1); background: #0008; animation: aoFadeUp var(--fast) var(--ease); }
   .grid2 { grid-template-columns: 1fr; }
+  /* The builder stops being a fixed-height workspace on phones: the page scrolls and the canvas
+     takes a usable fixed height instead of whatever is left under the header. */
+  .mainBody:has(> .builderPage) { overflow-y: auto; }
+  .builderPage { flex: none; padding: var(--s4); }
+  .builderShell { flex: none; height: 72dvh; }
+  .previewHead .badge, .previewTitle small { display: none; }
+  .previewFoot { display: none; }
+  .chatScroll, .composerWrap, .split .chatScroll, .split .composerWrap { padding-inline: var(--s3); }
   .list > .row { flex-wrap: wrap; }
   .table { display: block; overflow-x: auto; }
   .loginPanel { min-height: 100vh; padding: var(--s6) var(--s5) 40px; }

@@ -2,6 +2,7 @@ import { Trash2, X } from 'lucide-react';
 import type { Command, StoredFile, WorkflowNode } from '../../../shared/api/types';
 import { Checkbox, Field, IconButton, NumberInput, Select, TextInput } from '../../../shared/ui';
 import { CommandConfig, FileConfig, WaitConfig } from './StepConfigs';
+import { STEP_ICON } from '../../../shared/ui/flow';
 import { useI18n } from '../../../i18n/I18nProvider';
 
 /** Right-hand drawer holding the selected step's full configuration. */
@@ -17,17 +18,19 @@ export default function NodeInspector({ node, nodes, errors, commands, files, on
 }) {
   const { t } = useI18n();
 
+  const Icon = STEP_ICON[node.type as keyof typeof STEP_ICON];
   const others = nodes.filter((x) => x.key !== node.key);
   const paramErrors = Object.fromEntries(
     Object.entries(errors).filter(([k]) => k.startsWith('parameters.')).map(([k, v]) => [k.slice(11), v]),
   );
 
   return (
-    <aside className="inspector">
+    <aside className="inspector" aria-label={t('steps.' + node.type, undefined, String(node.type))}>
       <div className="inspectorHead">
+        <span className={'paletteIcon type-' + String(node.type).toLowerCase()}>{Icon && <Icon />}</span>
         <strong>{t('steps.' + node.type, undefined, String(node.type))}</strong>
         <IconButton label={t('common.delete')} danger onClick={onRemove}><Trash2 size={14} /></IconButton>
-        <IconButton label={t('common.cancel')} onClick={onClose}><X size={16} /></IconButton>
+        <IconButton label={t('common.close')} onClick={onClose}><X size={16} /></IconButton>
       </div>
       <div className="inspectorBody">
         <Field label={t('common.name')} error={errors.name}>

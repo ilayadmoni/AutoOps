@@ -1,67 +1,69 @@
-/* AI assistant: conversation rail, message thread, proposal cards, composer. */
+/* AI assistant: conversation rail, chat column, live workflow canvas, proposal cards, composer. */
+/* Columns: [history] [chat] [canvas]. Logical order, so under RTL the chat sits on the right and
+   the pipeline on the left; the canvas column only exists while a draft is being built or shown. */
 .assistant {
-  display: grid; grid-template-columns: 268px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
-  gap: var(--s5); height: calc(100vh - 88px);
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
+  height: 100%; min-height: 0; background: var(--bg);
 }
+.assistant.withRail { grid-template-columns: 264px minmax(0, 1fr); }
+.assistant.split { grid-template-columns: minmax(380px, 440px) minmax(0, 1fr); }
+.assistant.split.withRail { grid-template-columns: 240px minmax(360px, 420px) minmax(0, 1fr); }
 
-/* Conversation rail. Its own column rule rather than a card, so the thread stays the subject. */
+/* One header height for every column (history, chat, canvas), so their bottom rules line up. The
+   header on the inline-end edge (chat alone, or the canvas in split view) leaves room for the
+   floating preferences pill, which sits vertically centred in this row. */
+.assistant:not(.split) .chatBar, .assistant.split .previewHead { padding-inline-end: var(--pill-room); }
+.assistant { --pane-head: 56px; }
+
+/* Conversation rail. */
 .convRail {
-  display: flex; flex-direction: column; gap: var(--s3); min-height: 0;
-  border-inline-end: 1px solid var(--border); padding-inline-end: var(--s5);
+  display: flex; flex-direction: column; min-height: 0;
+  border-inline-end: 1px solid var(--border); background: var(--surface);
+  animation: aoFadeUp var(--base) var(--ease-out);
 }
-.convRailHead { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
-.convRailHead h2 {
-  margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
-  color: var(--muted); font-weight: 650;
+.convRailHead {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
+  height: var(--pane-head); flex: none; padding-inline: var(--s4) var(--s3); border-bottom: 1px solid var(--border);
 }
-.convList {
-  display: grid; gap: 1px; align-content: start; overflow-y: auto; min-height: 0;
-  margin-inline: calc(var(--s2) * -1); padding-inline: var(--s2);
-}
-.convItem {
-  display: flex; align-items: center; gap: var(--s1); border-radius: var(--radius-sm);
-  transition: background var(--fast) var(--ease);
-}
-.convItem:hover { background: var(--surface-2); }
-.convItem.active { background: var(--primary-soft); }
-.convItem.active .convOpen { color: var(--primary); font-weight: 600; }
-.convOpen {
-  flex: 1; min-width: 0; display: grid; gap: 1px; text-align: start; background: transparent; border: 0;
-  color: var(--text); cursor: pointer; padding: 7px var(--s2); border-radius: var(--radius-sm);
-}
-.convOpen > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.convOpen > small { color: var(--muted); font-size: 11px; }
-.convItem .icon { opacity: 0; transition: opacity var(--fast) var(--ease); }
-.convItem:hover .icon, .convItem:focus-within .icon { opacity: 1; }
-.convEmpty { color: var(--muted); font-size: 12px; padding: var(--s2); }
+.convRailHead h2 { margin: 0; font-size: 13px; font-weight: 650; letter-spacing: -.005em; color: var(--text); }
+.convList { display: grid; gap: 2px; align-content: start; overflow-y: auto; min-height: 0; padding: var(--s2); }
+.convSkeleton { height: 40px; border-radius: var(--radius-sm); }
+.convEmpty { color: var(--muted); font-size: 12.5px; padding: var(--s2); margin: 0; }
+.convRail .listItemMain { padding: 8px 10px; }
 
-.chat { display: flex; flex-direction: column; min-height: 0; position: relative; }
-.chatScroll { flex: 1; overflow-y: auto; min-height: 0; scroll-behavior: smooth; padding-inline: var(--s1); }
-.chatInner { width: 100%; max-width: 740px; margin-inline: auto; display: grid; gap: var(--s6); padding-block: var(--s5) var(--s7); }
+/* Chat column and its bar. */
+.chat { display: flex; flex-direction: column; min-height: 0; min-width: 0; position: relative; }
+.chatBar {
+  display: flex; align-items: center; gap: var(--s2); height: var(--pane-head); flex: none;
+  padding-inline: var(--page-x) var(--s3); border-bottom: 1px solid var(--border);
+}
+.chatTitle {
+  flex: 1; min-width: 0; font-weight: 650; font-size: 13.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start;
+}
+.chatScroll { flex: 1; overflow-y: auto; min-height: 0; padding-inline: var(--s5); }
+.chatInner {
+  width: 100%; max-width: 760px; margin-inline: auto; min-height: 100%;
+  display: flex; flex-direction: column; gap: var(--s6); padding-block: var(--s6) var(--s7);
+}
+/* An empty thread centres the launch pad in the space above the composer. */
+.chatInner.isEmpty { justify-content: center; padding-block: var(--s5); }
+.split .chatScroll { padding-inline: var(--s4); }
 
 /* The empty state doubles as the launch pad: identity, scope, and four concrete openers. */
-.chatHero { display: grid; justify-items: center; gap: var(--s3); text-align: center; padding-block: clamp(32px, 7vh, 72px); }
+.chatHero { display: grid; gap: var(--s2); }
 .orb {
-  width: 60px; height: 60px; border-radius: var(--radius-lg); display: grid; place-items: center;
-  background: var(--primary-soft); border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--primary) 6%, transparent);
+  width: 40px; height: 40px; border-radius: var(--radius); display: grid; place-items: center; margin-bottom: var(--s2);
+  background: var(--primary-soft); border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
 }
-.orb svg { color: var(--primary); width: 28px; height: 28px; }
-.chatHero h2 { margin: var(--s2) 0 0; font-size: 24px; letter-spacing: -.025em; }
-.chatHero > p { margin: 0; color: var(--muted); max-width: 48ch; }
-.suggestions {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s2);
-  width: 100%; max-width: 580px; margin-top: var(--s4);
-}
-.suggestion {
-  display: flex; align-items: center; gap: 10px; text-align: start; padding: 11px var(--s3);
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text); cursor: pointer; box-shadow: var(--inset-top);
-  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease), transform var(--fast) var(--ease);
-}
-.suggestion:hover { border-color: var(--border-strong); background: var(--surface-2); }
-.suggestion:active { transform: translateY(1px); }
-.suggestion svg { width: var(--s4); height: var(--s4); color: var(--primary); flex: none; }
+.orb svg { color: var(--primary); width: 20px; height: 20px; }
+.chatHero h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; line-height: 1.2; }
+.chatHero > p { margin: 0; color: var(--muted); max-width: 56ch; font-size: 14px; line-height: 1.55; }
+.suggestions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); width: 100%; margin-top: var(--s4); }
+.suggestions .tile { padding: var(--s3); align-items: flex-start; }
+.suggestions .tileIcon { width: 32px; height: 32px; }
+.suggestions .tileIcon svg { width: 16px; height: 16px; }
+.split .suggestions { grid-template-columns: minmax(0, 1fr); }
 
 /* Thread. The two roles are shaped differently rather than only tinted: the operator's own
    message is a contained bubble, the assistant's answer is full-width prose under a byline. */
@@ -69,8 +71,8 @@
 .message.user { justify-items: end; }
 .userBubble {
   background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-lg);
-  border-end-end-radius: var(--radius-xs); padding: 10px var(--s4); max-width: min(82%, 560px);
-  white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: var(--inset-top);
+  border-end-end-radius: var(--radius-xs); padding: 10px var(--s4); max-width: min(85%, 560px);
+  white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: var(--inset-top); line-height: 1.5;
 }
 [dir='rtl'] .userBubble { border-end-end-radius: var(--radius-lg); border-end-start-radius: var(--radius-xs); }
 .msgHead { display: flex; align-items: center; gap: var(--s2); }
@@ -84,8 +86,9 @@
 .message:hover .msgActions, .message:focus-within .msgActions { opacity: 1; }
 .msgBody { display: grid; gap: var(--s3); min-width: 0; padding-inline-start: 34px; }
 
-/* Markdown prose. Tight vertical rhythm so answers stay scannable. */
-.prose { display: grid; gap: 10px; min-width: 0; }
+/* Markdown prose. Tight vertical rhythm so answers stay scannable. The thread takes the direction of
+   the interface language; only code, paths and commands are forced left-to-right. */
+.prose { display: grid; gap: 10px; min-width: 0; line-height: 1.6; text-align: start; }
 .prose > :first-child { margin-top: 0; }
 .prose > :last-child { margin-bottom: 0; }
 .prose p { margin: 0; max-width: 72ch; }
@@ -97,30 +100,41 @@
 .prose pre code { background: none; border: 0; padding: 0; font-size: 12.5px; }
 .prose a { text-decoration: underline; }
 .prose blockquote { margin: 0; padding-inline-start: var(--s3); border-inline-start: 2px solid var(--border); color: var(--muted); }
-/* A table is the one block that can be wider than the thread; it scrolls inside itself
-   rather than widening the column. */
+/* A table is the one block that can be wider than the thread; it scrolls inside itself. */
 .proseTable { overflow-x: auto; }
 .prose table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .prose th, .prose td { border: 1px solid var(--border); padding: 5px var(--s2); text-align: start; }
 
 /* A proposal is a reviewable artifact, not a result: it states what WOULD run. */
 .proposal {
-  border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--border)); border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); border-radius: var(--radius);
   background: var(--surface); overflow: hidden; box-shadow: var(--shadow-sm), var(--inset-top);
+  transition: border-color var(--base) var(--ease), box-shadow var(--base) var(--ease);
 }
+.proposal.onCanvas { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
 .proposalHead {
   display: flex; align-items: center; gap: var(--s2); padding: var(--s2) var(--s3);
-  background: var(--primary-soft); border-bottom: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  background: var(--primary-soft); border-bottom: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
   font-weight: 600; font-size: 12.5px;
 }
 .proposalHead svg { width: 15px; height: 15px; color: var(--primary); flex: none; }
 .proposalHead .badge { margin-inline-start: auto; }
-.proposalBody { padding: var(--s3); display: grid; gap: var(--s2); }
-.proposalSteps { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--s1); font-size: 13px; }
-.proposalSteps li { display: flex; align-items: baseline; gap: var(--s2); }
+.proposalBody { padding: var(--s3); display: grid; gap: var(--s3); }
+.proposalTitle { display: flex; align-items: center; gap: var(--s2); font-size: 13.5px; min-width: 0; }
+.proposalTitle > svg { color: var(--primary); flex: none; }
+.proposalSteps { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13px; }
 /* The step index is real sequence information: these steps run in this order. */
-.proposalSteps li > b { font: 11px/1.6 var(--font-mono); color: var(--primary); flex: none; }
-.proposalFoot { display: flex; gap: var(--s2); flex-wrap: wrap; padding: 0 var(--s3) var(--s3); }
+.proposalSteps li { display: flex; align-items: center; gap: var(--s2); min-width: 0; }
+.proposalSteps li > svg { flex: none; }
+.proposalSteps li > b { font: 600 11px/1.6 var(--font-mono); color: var(--muted); }
+.proposalSteps li > svg { color: var(--primary); }
+.proposalSteps li.type-file_transfer > svg { color: var(--info); }
+.proposalSteps li.type-wait_until > svg { color: var(--warn); }
+.proposalSteps li > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; }
+.proposalSteps li > small { color: var(--muted); font-size: 11.5px; flex: none; }
+.proposalSteps li > small::before { content: '·'; margin-inline-end: var(--s2); }
+.proposalFoot { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; padding: 0 var(--s3) var(--s3); }
+.proposalShown { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--primary); font-weight: 600; }
 
 .thinking { display: flex; align-items: center; gap: var(--s2); color: var(--muted); font-size: 13px; }
 .thinkingDots { display: inline-flex; gap: 3px; }
@@ -130,19 +144,20 @@
 @keyframes aoBounce { 0%, 60%, 100% { opacity: .25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
 
 /* Composer. The scrim fades the thread out beneath it instead of cutting it with a hard edge. */
-.composerWrap { padding-block: var(--s3) var(--s4); background: linear-gradient(to top, var(--bg) 72%, transparent); }
+.composerWrap { padding: 0 var(--s5) var(--s4); }
+.split .composerWrap { padding-inline: var(--s4); }
 .composer {
-  width: 100%; max-width: 740px; margin-inline: auto; display: grid; gap: var(--s2);
+  width: 100%; max-width: 760px; margin-inline: auto; display: grid; gap: var(--s2);
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-  padding: var(--s3) var(--s3) var(--s2); box-shadow: var(--shadow-sm), var(--inset-top);
+  padding: var(--s3) var(--s3) var(--s2) var(--s4); box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--text) 25%, transparent), var(--inset-top);
   transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
 }
 .composer:focus-within { border-color: color-mix(in srgb, var(--primary) 60%, var(--border)); box-shadow: 0 0 0 var(--ring-w) var(--primary-soft); }
 .composer textarea {
   border: 0; background: transparent; padding: 0; min-height: 24px; max-height: 192px;
-  resize: none; line-height: 1.55; box-shadow: none;
+  resize: none; line-height: 1.55; box-shadow: none; font-size: 14.5px;
 }
-.composer textarea:focus { outline: none; box-shadow: none; border: 0; }
+.composer textarea:hover, .composer textarea:focus { outline: none; box-shadow: none; border: 0; }
 .composer textarea:disabled { background: transparent; }
 .composerBar { display: flex; align-items: center; gap: var(--s2); }
 .composerHint { font-size: 11px; color: var(--muted); }
@@ -151,12 +166,55 @@
   border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 0 4px;
 }
 .composerCount { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.composerSend {
+.icon.composerSend {
   margin-inline-start: auto; width: var(--control-h); height: var(--control-h); border-radius: var(--radius-sm);
-  border: 0; background: var(--primary); color: var(--primary-ink); display: grid; place-items: center;
-  cursor: pointer; flex: none;
-  transition: background var(--fast) var(--ease), opacity var(--fast) var(--ease);
+  background: var(--primary); color: var(--primary-ink);
 }
-.composerSend:disabled { opacity: .35; cursor: not-allowed; }
-.composerSend:hover:not(:disabled) { background: color-mix(in srgb, var(--primary) 88%, var(--text)); }
-[dir='rtl'] .composerSend svg { transform: scaleX(-1); }
+.icon.composerSend:hover:not(:disabled) { background: color-mix(in srgb, var(--primary) 88%, var(--text)); color: var(--primary-ink); }
+.icon.composerSend:disabled { opacity: 1; background: var(--surface-2); color: var(--muted); }
+.tipHost:has(> .composerSend) { margin-inline-start: auto; }
+
+/* ---------- Split canvas pane ---------- */
+.previewPane {
+  display: flex; flex-direction: column; min-width: 0; min-height: 0;
+  border-inline-start: 1px solid var(--border); background: var(--canvas-bg);
+  animation: aoPaneIn var(--slow) var(--ease-out);
+}
+@keyframes aoPaneIn { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+[dir='rtl'] .previewPane { animation-name: aoPaneInRtl; }
+@keyframes aoPaneInRtl { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.previewHead {
+  display: flex; align-items: center; gap: var(--s2); height: var(--pane-head); flex: none; padding-inline: var(--page-x) var(--s3);
+  border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.previewIcon {
+  width: 30px; height: 30px; border-radius: var(--radius-sm); display: grid; place-items: center; flex: none;
+  background: var(--primary-soft); color: var(--primary);
+}
+.previewTitle { display: grid; min-width: 0; line-height: 1.25; }
+.previewTitle strong { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; }
+.previewTitle small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.previewHead .badge { flex: none; }
+.previewBody { position: relative; flex: 1; min-height: 0; }
+.isBuilding .flowCanvas { opacity: .5; transition: opacity var(--slow) var(--ease); }
+.previewStatus {
+  position: absolute; inset-block-start: var(--s3); left: 50%; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: var(--s2); padding: 6px var(--s3);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-pop); font-size: 12.5px; font-weight: 500; color: var(--text); white-space: nowrap;
+}
+.previewFoot {
+  display: flex; gap: var(--s2); align-items: flex-start; flex: none; padding: var(--s3) var(--s4);
+  border-top: 1px solid var(--border); background: var(--warn-soft); color: var(--warn); font-size: 12.5px;
+  max-height: 120px; overflow-y: auto;
+}
+.previewFoot > svg { flex: none; margin-top: 2px; }
+.previewFoot ul { margin: 0; padding-inline-start: var(--s4); display: grid; gap: 2px; }
+
+/* Ghost pipeline: shown while the first draft is written. Columns pulse in sequence. */
+.ghostPipeline { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 56px; direction: ltr; }
+.ghostColumn { display: grid; justify-items: center; gap: var(--s2); animation: ghostPulse 1.6s var(--ease) infinite; animation-delay: calc(var(--i) * 180ms); }
+.ghostTile { width: 84px; height: 84px; border-radius: var(--radius-lg); border: 2px dashed var(--border-strong); background: var(--surface); }
+.ghostLine { width: 96px; height: 8px; border-radius: var(--radius-pill); background: var(--border); }
+.ghostLine.short { width: 60px; }
+@keyframes ghostPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }

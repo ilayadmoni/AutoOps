@@ -5,12 +5,12 @@ export const he: Record<keyof typeof en, string> = {
   'common.loading': 'טוען…', 'common.starting': 'מפעיל את AutoOps…', 'common.retry': 'נסה שוב', 'common.cancel': 'ביטול',
   'common.confirm': 'אישור', 'common.close': 'סגירה', 'common.save': 'שמירה', 'common.edit': 'עריכה', 'common.notSet': 'לא הוגדר', 'common.copy': 'העתקה', 'common.copied': 'הועתק', 'common.delete': 'מחיקה',
   'common.name': 'שם', 'common.description': 'תיאור', 'common.status': 'סטטוס', 'common.none': 'ללא',
-  'common.next': 'הבא', 'common.previous': 'הקודם',
+  'common.more': 'פעולות נוספות', 'common.next': 'הבא', 'common.previous': 'הקודם',
 
   'nav.assistant': 'עוזר AI', 'nav.workflows': 'תהליכי עבודה', 'nav.commands': 'מאגר פקודות', 'nav.machines': 'שרתים',
   'nav.credentials': 'פרטי גישה', 'nav.files': 'קבצים', 'nav.executions': 'הרצות', 'nav.approvals': 'אישורים',
   'nav.admin': 'ניהול', 'nav.adminOverview': 'סקירה', 'nav.users': 'משתמשים', 'nav.commandApprovals': 'סקירת פקודות',
-  'nav.datasets': 'מאגרי נתונים', 'nav.audit': 'יומן ביקורת', 'nav.settings': 'הגדרות', 'nav.logout': 'התנתקות',
+  'nav.datasets': 'מאגרי נתונים', 'nav.audit': 'יומן ביקורת', 'nav.settings': 'הגדרות', 'nav.menu': 'תפריט', 'nav.logout': 'התנתקות',
 
   'role.USER': 'משתמש', 'role.ADMIN': 'מנהל מערכת',
   'risk.LOW': 'סיכון נמוך', 'risk.MEDIUM': 'סיכון בינוני', 'risk.HIGH': 'סיכון גבוה',
@@ -95,7 +95,8 @@ export const he: Record<keyof typeof en, string> = {
   'preflight.sshStatus': 'SSH', 'preflight.authenticationStatus': 'הזדהות', 'preflight.osStatus': 'מערכת הפעלה (RHEL)', 'preflight.sudoStatus': 'Sudo',
   'workflows.approval': 'אישור', 'workflows.ok': 'הצלחה', 'workflows.fail': 'כשל',
   'workflows.noSelection': 'לא נבחר צעד', 'workflows.noSelectionHint': 'בחרו צעד בלוח כדי להגדיר אותו.',
-  'workflows.canvasHint': 'גררו נקודת חיבור כדי לקשר לצעד הבא. לחיצה כפולה על חיבור מסירה אותו.',
+  'workflows.canvasHint': 'לחצו + על צעד כדי להוסיף את הבא, או גררו מיציאה כדי לחבר צעדים קיימים. בחרו חיבור כדי להסיר אותו.',
+  'workflows.removeLink': 'הסרת חיבור',
   'stepHints.COMMAND': 'הרצת פקודה מאושרת', 'stepHints.FILE_TRANSFER': 'שליחת קובץ שמור', 'stepHints.WAIT_UNTIL': 'בדיקה חוזרת עד שמתקיים תנאי',
   'steps.COMMAND': 'פקודה', 'steps.FILE_TRANSFER': 'העברת קובץ', 'steps.WAIT_UNTIL': 'המתנה עד',
 
@@ -131,6 +132,10 @@ export const he: Record<keyof typeof en, string> = {
   'workflows.serviceName': 'שם שירות', 'workflows.interval': 'בדוק כל (שניות)', 'workflows.discardConfirm': 'לבטל שינויים שלא נשמרו?',
   'checks.SERVICE_ACTIVE': 'השירות פעיל', 'checks.FILE_EXISTS': 'הקובץ קיים', 'checks.OUTPUT_CONTAINS': 'פלט הפקודה מכיל', 'checks.EXIT_CODE': 'קוד היציאה של הפקודה הוא',
 
+  'ai.canvasTitle': 'טיוטת תהליך עבודה', 'ai.canvasBuilding': 'מנסח את תהליך העבודה…', 'ai.missingCount': '{n} חסרים',
+  'ai.openInBuilder': 'פתיחה בבונה', 'ai.closeCanvas': 'סגירת הקנבס', 'ai.showCanvas': 'הצגה בקנבס', 'ai.onCanvas': 'מוצג בקנבס',
+  'ai.showHistory': 'הצגת ההיסטוריה',
+  'ai.hideHistory': 'הסתרת ההיסטוריה',
   'ai.history': 'היסטוריה', 'ai.hintSend': 'לשליחה', 'ai.hintNewline': 'לשורה חדשה', 'ai.stepCount': '{n} צעדים',
   'ai.newChat': 'שיחה חדשה', 'ai.title': 'עוזר תפעול AI', 'ai.subtitle': 'מציאת פקודות, טיוטות לתהליכי עבודה והסבר כשלונות. העוזר מציע; אתם מחליטים.',
   'ai.quickFind': 'מציאת פקודה', 'ai.quickWorkflow': 'טיוטת תהליך עבודה', 'ai.quickExplain': 'הסבר כשלון', 'ai.quickMachines': 'השרתים שלי',

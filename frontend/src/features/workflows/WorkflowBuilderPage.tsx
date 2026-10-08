@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Bot, CheckCircle2, Play, Save } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { AlertTriangle, Bot, CheckCircle2, Play, Save } from 'lucide-react';
 import { ApiError, get, post, put } from '../../shared/api/client';
 import type { Command, NodeType, ValidationResult, WorkflowDraft, WorkflowNode, WorkflowView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Button, ErrorAlert, Loading, TextInput } from '../../shared/ui';
+import { Button, ErrorAlert, Loading, PageHeader, TextInput } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { cleanParams } from '../commands/ParameterInputs';
 import { filesQuery } from '../files/FilesPage';
 import RunWorkflowModal from './RunWorkflowModal';
 import { setCurrentDraft, takeAiDraft } from './draftStore';
-import WorkflowCanvas from './builder/WorkflowCanvas';
+import { FlowCanvas, type Branch } from '../../shared/ui/flow';
 import NodePalette from './builder/NodePalette';
 import NodeInspector from './builder/NodeInspector';
 import { fromFieldErrors, groupErrors, newNode, normalize, type Errors } from './builder/model';
+
+/** Matches `.inspector` in flow.css. The canvas shifts by half of it so the edited step stays visible. */
+const INSPECTOR_WIDTH = 352;
 
 export default function WorkflowBuilderPage() {
   const { id } = useParams();
@@ -107,11 +110,18 @@ export default function WorkflowBuilderPage() {
     })));
   };
 
-  const connect = useCallback((source: string, branch: 'success' | 'failure', target: string) => {
+  /** n8n-style "+" on an output: the new step arrives already wired to that branch. */
+  const addAfter = useCallback((source: string, branch: Branch, type: NodeType) => change((list) => {
+    const node = newNode(type, list);
+    setSelected(node.key);
+    return [...list.map((n) => (n.key === source ? { ...n, [branch === 'success' ? 'successNext' : 'failureNext']: node.key } : n)), node];
+  }), [change]);
+
+  const connect = useCallback((source: string, branch: Branch, target: string) => {
     update(source, branch === 'success' ? { successNext: target } : { failureNext: target });
   }, [update]);
 
-  const disconnect = useCallback((source: string, branch: 'success' | 'failure') => {
+  const disconnect = useCallback((source: string, branch: Branch) => {
     update(source, branch === 'success' ? { successNext: null } : { failureNext: null });
   }, [update]);
 
@@ -145,60 +155,69 @@ export default function WorkflowBuilderPage() {
   });
 
   if (workflowId != null && existing.isLoading) return <Loading />;
-  if (workflowId != null && existing.error) return <ErrorAlert error={existing.error} />;
+  if (workflowId != null && existing.error) return <section><ErrorAlert error={existing.error} /></section>;
   const stale = save.error instanceof ApiError && save.error.code === 'STALE_VERSION';
   const general = errors._ ?? {};
   const selectedNode = nodes.find((n) => n.key === selected) ?? null;
 
   return (
-    <section className="builderPage">
-      <Link to="/workflows" className="back" onClick={(e) => { if (dirty && !window.confirm(t('workflows.discardConfirm'))) e.preventDefault(); }}>
-        <ArrowLeft size={14} /> {t('nav.workflows')}
-      </Link>
-      <div className="pageTitle">
-        <div className="grow stack tight">
-          <TextInput className="titleInput" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} aria-label={t('common.name')} maxLength={200} />
-          {general.name && <span className="fieldError">{general.name}</span>}
-          <TextInput className="subtle" aria-label={t('common.description')} placeholder={t('workflows.descriptionPlaceholder')} value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} maxLength={2000} />
-        </div>
-        <div className="actionsRow">
+    <section className="builderPage fillPage">
+      <PageHeader
+        back={{
+          to: '/workflows',
+          label: t('nav.workflows'),
+          onClick: (e) => { if (dirty && !window.confirm(t('workflows.discardConfirm'))) e.preventDefault(); },
+        }}
+        title={name || t('workflows.newName')}
+        actions={<>
           {dirty ? <span className="badge warn">{t('workflows.unsaved')}</span> : workflowId != null && <span className="badge ok">{t('workflows.savedBadge')}</span>}
-          <Button icon={<CheckCircle2 size={14} />} busy={validate.isPending} disabled={!nodes.length} onClick={() => validate.mutate()}>
+          <Button icon={<CheckCircle2 size={15} />} busy={validate.isPending} disabled={!nodes.length} onClick={() => validate.mutate()}>
             {t('workflows.validate')}
           </Button>
-          <Button variant="primary" icon={<Save size={14} />} busy={save.isPending} disabled={!nodes.length} onClick={() => save.mutate()}>
-            {t('common.save')}
-          </Button>
-          <Button icon={<Play size={14} />} disabled={workflowId == null || dirty} title={dirty ? t('workflows.saveBeforeRun') : ''} onClick={() => setRunning(true)}>
+          <Button icon={<Play size={15} />} disabled={workflowId == null || dirty} hint={dirty ? t('workflows.saveBeforeRun') : undefined} onClick={() => setRunning(true)}>
             {t('workflows.run')}
           </Button>
+          <Button variant="primary" icon={<Save size={15} />} busy={save.isPending} disabled={!nodes.length} onClick={() => save.mutate()}>
+            {t('common.save')}
+          </Button>
+        </>}
+      />
+      <div className="builderHead">
+        <div className="builderTitle">
+          <TextInput dir="auto" className="titleInput" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} aria-label={t('common.name')} maxLength={200} />
+          {general.name && <span className="fieldError">{general.name}</span>}
+          <TextInput dir="auto" className="subtle" aria-label={t('common.description')} placeholder={t('workflows.descriptionPlaceholder')} value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} maxLength={2000} />
         </div>
       </div>
 
-      {fromAi && <div className="alert info"><Bot size={16} /> {t('workflows.aiDraftNote')}</div>}
-      {stale ? (
-        <div className="alert danger">
-          {t('workflows.stale')}
-          <Button small onClick={() => { loaded.current = false; setDirty(false); existing.refetch(); }}>{t('workflows.reload')}</Button>
-        </div>
-      ) : (
-        <ErrorAlert error={save.error && !(save.error instanceof ApiError && Object.keys(save.error.fieldErrors).length) ? save.error : null} />
-      )}
-      {valid === true && !dirty && validate.isSuccess && <div className="alert ok"><CheckCircle2 size={16} /> {t('workflows.valid')}</div>}
-      {valid === false && <div className="alert danger">{t('workflows.invalid')}</div>}
-      {general.nodes && <div className="alert danger">{general.nodes}</div>}
+      <div className="builderAlerts">
+        {fromAi && <div className="alert info"><Bot size={16} /> {t('workflows.aiDraftNote')}</div>}
+        {stale ? (
+          <div className="alert danger">
+            <span className="grow">{t('workflows.stale')}</span>
+            <Button small onClick={() => { loaded.current = false; setDirty(false); existing.refetch(); }}>{t('workflows.reload')}</Button>
+          </div>
+        ) : (
+          <ErrorAlert error={save.error && !(save.error instanceof ApiError && Object.keys(save.error.fieldErrors).length) ? save.error : null} />
+        )}
+        {valid === true && !dirty && validate.isSuccess && <div className="alert ok"><CheckCircle2 size={16} /> {t('workflows.valid')}</div>}
+        {valid === false && <div className="alert danger"><AlertTriangle size={16} /> {t('workflows.invalid')}</div>}
+        {general.nodes && <div className="alert danger"><AlertTriangle size={16} /> {general.nodes}</div>}
+      </div>
 
       <div className="builderShell">
         <NodePalette onAdd={add} />
         <div className="canvasWrap">
-          <WorkflowCanvas
+          <FlowCanvas
             nodes={nodes}
             errors={errors}
             selected={selected}
-            workflowId={workflowId}
+            storageId={workflowId}
+            overlayWidth={selectedNode ? INSPECTOR_WIDTH : 0}
             onSelect={setSelected}
             onConnect={connect}
             onDisconnect={disconnect}
+            onAddAfter={addAfter}
             subtitleFor={subtitleFor}
           />
           {/* Overlays the canvas only while a step is selected, so the graph keeps full width. */}

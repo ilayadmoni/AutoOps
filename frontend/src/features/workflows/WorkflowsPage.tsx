@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
-import { Copy, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Copy, Pencil, Play, Trash2 } from 'lucide-react';
 import { del, get, post } from '../../shared/api/client';
 import type { WorkflowSummary, WorkflowView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Card, ConfirmDialog, EmptyState, ErrorAlert, IconButton, Loading, PageHeader, errorMessage,
+  Button, ButtonLink, Card, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, IconButton, Loading, PageHeader,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
@@ -32,20 +32,20 @@ export default function WorkflowsPage() {
   });
   return (
     <section>
-      <PageHeader title={t('workflows.title')} subtitle={t('workflows.subtitle')}
-        actions={<Link className="btn primary" to="/workflows/new"><Plus size={16} /> {t('workflows.create')}</Link>} />
+      <PageHeader title={t('workflows.title')} subtitle={t('workflows.subtitle')} />
+      <Fab to="/workflows/new" label={t('workflows.create')} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
-        <EmptyState title={t('workflows.empty')} hint={t('workflows.emptyHint')} action={<Link className="btn primary" to="/workflows/new">{t('workflows.create')}</Link>} />
+        <EmptyState title={t('workflows.empty')} hint={t('workflows.emptyHint')} action={<ButtonLink variant="primary" to="/workflows/new">{t('workflows.create')}</ButtonLink>} />
       ) : (
         <div className="cards">
           {q.data.map((w) => (
             <Card key={w.id}>
-              <h3>{w.name}</h3>
+              <h3 dir="auto">{w.name}</h3>
               {w.description && <p className="muted">{w.description}</p>}
               <small className="muted">{t('workflows.steps', { n: w.stepCount })} · {t('workflows.updated')} {formatDate(w.updatedAt, lang)}</small>
-              <div className="row gap wrap">
+              <div className="cardFoot">
                 <Button small variant="primary" icon={<Play size={14} />} onClick={() => setRunning(w)}>{t('workflows.run')}</Button>
-                <Link className="btn small" to={`/workflows/${w.id}/edit`}><Pencil size={14} /> {t('common.edit')}</Link>
+                <ButtonLink small to={`/workflows/${w.id}/edit`} icon={<Pencil size={14} />}>{t('common.edit')}</ButtonLink>
                 <span className="grow" />
                 <IconButton label={t('workflows.duplicate')} onClick={() => duplicate.mutate(w.id)}><Copy size={14} /></IconButton>
                 <IconButton danger label={t('common.delete')} onClick={() => setDeleting(w)}><Trash2 size={14} /></IconButton>

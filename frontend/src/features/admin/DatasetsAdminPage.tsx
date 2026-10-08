@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { FileUp } from 'lucide-react';
+
 import { get, post, upload } from '../../shared/api/client';
 import type { DatasetView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Code, EmptyState, ErrorAlert, Field, FilePicker, Loading, Modal, PageHeader, RiskBadge, Select,
-  StatusBadge, TextInput, Progress, errorMessage,
+  Button, Code, EmptyState, ErrorAlert, errorMessage, Fab, Field, FilePicker, Loading, Modal, PageHeader, Progress, RiskBadge, Select, StatusBadge, TextInput,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatBytes, formatDate } from '../../shared/format';
@@ -28,11 +27,10 @@ export default function DatasetsAdminPage() {
   });
   return (
     <section>
-      <PageHeader title={t('datasets.title')} subtitle={t('datasets.subtitle')} actions={
-        <FilePicker accept=".csv,text/csv" onPick={(file) => { if (file) up.mutate(file); }}>
-          {(open) => <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={open}>{t('datasets.upload')}</Button>}
-        </FilePicker>
-      } />
+      <PageHeader title={t('datasets.title')} subtitle={t('datasets.subtitle')} />
+      <FilePicker accept=".csv,text/csv" onPick={(file) => { if (file) up.mutate(file); }}>
+        {(open) => <Fab label={t('datasets.upload')} busy={up.isPending} onClick={open} />}
+      </FilePicker>
       <p className="muted small">{t('datasets.format')} <Code>name, description, category, command, os, parameters</Code></p>
       <ErrorAlert error={up.error} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} /> : !q.data?.length ? <EmptyState title={t('datasets.empty')} /> : (

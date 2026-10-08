@@ -53,18 +53,20 @@ export function ErrorAlert({ error, onRetry }: { error: unknown; onRetry?: () =>
 export function Field({ label, error, hint, required, children }: {
   label: ReactNode; error?: string; hint?: ReactNode; required?: boolean; children: ReactNode;
 }) {
-  const id = useId();
+  const generated = useId();
+  const valid = isValidElement<{ id?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }>(children);
+  const id = (valid && children.props.id) || generated;
   const describedBy = error || hint ? id + '-desc' : undefined;
-  const control = isValidElement<{ id?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }>(children)
+  const control = valid
     ? cloneElement(children, {
-      id: children.props.id ?? id,
+      id,
       'aria-describedby': describedBy,
       'aria-invalid': error ? true : undefined,
     })
     : children;
   return (
     <div className={'field' + (error ? ' invalid' : '')}>
-      <label className="fieldLabel" htmlFor={id}>
+      <label className="fieldLabel" id={id + '-label'} htmlFor={id}>
         {label}
         {required && <span className="req" aria-hidden="true">*</span>}
       </label>
@@ -76,7 +78,9 @@ export function Field({ label, error, hint, required, children }: {
   );
 }
 
+/** Inline technical value. An empty value renders as a muted dash rather than an empty chip. */
 export function Code({ children }: { children: ReactNode }) {
+  if (children == null || children === '' || children === false) return <span className="muted">—</span>;
   return <code className="code" dir="ltr">{children}</code>;
 }
 

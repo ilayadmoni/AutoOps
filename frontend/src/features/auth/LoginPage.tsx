@@ -2,10 +2,9 @@ import { useState, type FormEvent } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Button, ErrorAlert, TextInput } from '../../shared/ui';
+import { Button, ErrorAlert, TextInput, PasswordInput } from '../../shared/ui';
 import LoginLanguageToggle from './LoginLanguageToggle';
 import LoginVisual from './LoginVisual';
-import PasswordInput from './PasswordInput';
 import { loginCopy } from './loginCopy';
 
 export default function LoginPage() {

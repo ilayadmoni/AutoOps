@@ -46,7 +46,7 @@ export default function App() {
           <Route path="/executions/:id" element={<ExecutionDetailPage />} />
           <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/files" element={<FilesPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings" element={<RequireAdmin><SettingsPage /></RequireAdmin>} />
           <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
           <Route path="/admin/users" element={<RequireAdmin><UsersAdminPage /></RequireAdmin>} />
           <Route path="/admin/commands" element={<RequireAdmin><CommandApprovalsPage /></RequireAdmin>} />

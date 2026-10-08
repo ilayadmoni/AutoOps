@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { IconButton, TextInput } from '../../shared/ui';
+import { IconButton } from './Button';
+import TextInput from './Input';
 
+/** Password field with a reveal toggle. The toggle is an icon button with a pressed state, so it
+ * announces whether the password is currently visible. */
 export default function PasswordInput({ value, onChange, showLabel, hideLabel }: {
   value: string;
   onChange: (value: string) => void;

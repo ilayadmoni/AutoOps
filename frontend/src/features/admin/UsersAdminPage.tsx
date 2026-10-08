@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { KeyRound, Plus, Trash2 } from 'lucide-react';
+import { KeyRound, Trash2 } from 'lucide-react';
 import { ApiError, del, get, patch, post } from '../../shared/api/client';
 import type { Role, UserView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useAuth } from '../auth/AuthProvider';
 import {
-  Button, ConfirmDialog, EmptyState, ErrorAlert, Field, IconButton, Loading, Modal, PageHeader,
-  Select, StatusBadge, TextInput, errorMessage,
+  Button, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Field, IconButton, Loading, Modal, PageHeader, Select, StatusBadge, TextInput,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
@@ -36,8 +35,8 @@ export default function UsersAdminPage() {
   });
   return (
     <section>
-      <PageHeader title={t('users.title')} subtitle={t('users.subtitle')}
-        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setCreating(true)}>{t('users.create')}</Button>} />
+      <PageHeader title={t('users.title')} subtitle={t('users.subtitle')} />
+      <Fab label={t('users.create')} onClick={() => setCreating(true)} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} /> : !q.data?.length ? <EmptyState title={t('users.empty')} /> : (
         <table className="table">
           <thead><tr><th>{t('login.username')}</th><th>{t('users.role')}</th><th>{t('common.status')}</th><th>{t('users.created')}</th><th /></tr></thead>
@@ -57,13 +56,13 @@ export default function UsersAdminPage() {
                 </td>
                 <td><StatusBadge status={u.status} /></td>
                 <td>{formatDate(u.createdAt, lang)}</td>
-                <td className="row gap">
+                <td className="actionsCell"><div className="row gap">
                   <Button small onClick={() => status.mutate({ id: u.id, status: u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE' })}>
                     {u.status === 'ACTIVE' ? t('users.disable') : t('users.enable')}
                   </Button>
                   <IconButton label={t('users.reset')} onClick={() => setResetting(u)}><KeyRound size={14} /></IconButton>
                   <IconButton danger label={t('common.delete')} disabled={u.id === me?.id} onClick={() => setDeleting(u)}><Trash2 size={14} /></IconButton>
-                </td>
+                </div></td>
               </tr>
             ))}
           </tbody>

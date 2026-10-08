@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, FileUp, Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import { del, get, getAccessToken, upload } from '../../shared/api/client';
 import type { StoredFile } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Code, ConfirmDialog, EmptyState, ErrorAlert, FilePicker, IconButton, Loading, PageHeader, errorMessage,
+  Code, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, FilePicker, IconButton, Loading, PageHeader,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatBytes, formatDate } from '../../shared/format';
@@ -46,11 +46,10 @@ export default function FilesPage() {
   const onPick = (file?: File) => file && up.mutate(file, { onSuccess: () => toast.success(t('files.uploaded', { name: file.name })) });
   return (
     <section>
-      <PageHeader title={t('files.title')} subtitle={t('files.subtitle')} actions={
-        <FilePicker onPick={onPick}>
-          {(open) => <Button variant="primary" icon={<FileUp size={16} />} busy={up.isPending} onClick={open}>{t('files.upload')}</Button>}
-        </FilePicker>
-      } />
+      <PageHeader title={t('files.title')} subtitle={t('files.subtitle')} />
+      <FilePicker onPick={onPick}>
+        {(open) => <Fab label={t('files.upload')} busy={up.isPending} onClick={open} />}
+      </FilePicker>
       <ErrorAlert error={up.error} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('files.empty')} hint={t('files.emptyHint')} />
@@ -65,10 +64,10 @@ export default function FilesPage() {
                 <td><Code>{f.checksum.slice(0, 16)}</Code></td>
                 <td>{f.referencedBy.length ? f.referencedBy.join(', ') : <span className="muted">{t('files.unused')}</span>}</td>
                 <td>{formatDate(f.createdAt, lang)}</td>
-                <td className="row gap">
+                <td className="actionsCell"><div className="row gap">
                   <IconButton label={t('files.download')} onClick={() => download(f).catch((e) => toast.error(errorMessage(e)))}><Download size={14} /></IconButton>
-                  <IconButton danger label={t('common.delete')} disabled={f.referencedBy.length > 0} title={f.referencedBy.length ? t('files.inUse') : t('common.delete')} onClick={() => setDeleting(f)}><Trash2 size={14} /></IconButton>
-                </td>
+                  <IconButton danger label={t('common.delete')} disabled={f.referencedBy.length > 0} hint={f.referencedBy.length ? t('files.inUse') : undefined} onClick={() => setDeleting(f)}><Trash2 size={14} /></IconButton>
+                </div></td>
               </tr>
             ))}
           </tbody>

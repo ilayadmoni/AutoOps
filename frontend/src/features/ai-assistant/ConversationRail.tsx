@@ -1,36 +1,46 @@
-import { MessageSquarePlus, Trash2 } from 'lucide-react';
+import { PanelRightClose, PanelLeftClose, Trash2 } from 'lucide-react';
 import type { ConversationSummary } from '../../shared/api/types';
-import { Button, IconButton } from '../../shared/ui';
+import { IconButton, ListItem } from '../../shared/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { shortDate } from '../../shared/format';
 
-/** Conversation history. Hidden below 900px, where the thread takes the full width. */
-export default function ConversationRail({ items, activeId, onOpen, onNew, onDelete }: {
+/**
+ * Conversation history. The user hides it from its own header or from the chat bar; the choice is
+ * remembered per device. It also folds away by itself while the workflow canvas is open.
+ */
+export default function ConversationRail({ items, loading, activeId, onOpen, onDelete, onCollapse }: {
   items: ConversationSummary[];
+  loading?: boolean;
   activeId: number | null;
   onOpen: (id: number) => void;
-  onNew: () => void;
   onDelete: (id: number) => void;
+  onCollapse: () => void;
 }) {
   const { t, lang } = useI18n();
   return (
-    <aside className="convRail">
-      <Button variant="primary" icon={<MessageSquarePlus size={16} />} onClick={onNew}>
-        {t('ai.newChat')}
-      </Button>
-      <div className="convRailHead"><h2>{t('ai.history')}</h2></div>
+    <aside className="convRail" aria-label={t('ai.history')}>
+      <div className="convRailHead">
+        <h2>{t('ai.history')}</h2>
+        <IconButton label={t('ai.hideHistory')} onClick={onCollapse}>
+          {lang === 'he' ? <PanelRightClose size={16} /> : <PanelLeftClose size={16} />}
+        </IconButton>
+      </div>
       <div className="convList">
-        {items.length === 0 && <p className="convEmpty">{t('ai.noHistory')}</p>}
+        {loading && [0, 1, 2].map((i) => <span key={i} className="skeletonBlock convSkeleton" />)}
+        {!loading && items.length === 0 && <p className="convEmpty">{t('ai.noHistory')}</p>}
         {items.map((c) => (
-          <div key={c.id} className={'convItem' + (c.id === activeId ? ' active' : '')}>
-            <button className="convOpen" onClick={() => onOpen(c.id)} aria-current={c.id === activeId}>
-              <span>{c.title}</span>
-              {c.updatedAt && <small>{shortDate(c.updatedAt, lang)}</small>}
-            </button>
-            <IconButton label={t('common.delete')} danger onClick={() => onDelete(c.id)}>
-              <Trash2 size={14} />
-            </IconButton>
-          </div>
+          <ListItem
+            key={c.id}
+            label={c.title}
+            meta={c.updatedAt ? shortDate(c.updatedAt, lang) : undefined}
+            active={c.id === activeId}
+            onClick={() => onOpen(c.id)}
+            actions={(
+              <IconButton label={t('common.delete')} danger onClick={() => onDelete(c.id)}>
+                <Trash2 size={14} />
+              </IconButton>
+            )}
+          />
         ))}
       </div>
     </aside>

@@ -28,10 +28,10 @@ export function ApprovalCard({ approval, showLink }: { approval: ApprovalView; s
   return (
     <div className={'approval ' + (high ? 'high' : '')}>
       <div className="row spread wrap">
-        <div>
+        <div className="stack tight grow">
           <strong>{approval.scope === 'STEP' ? t('approvals.stepGate', { step: approval.stepName ?? '', machine: approval.machineName ?? '' }) : t('approvals.executionGate')}</strong>
           {showLink && <div><Link to={'/executions/' + approval.executionId}>#{approval.executionId} {approval.executionTitle}</Link></div>}
-          <small className="muted">{approval.reason} · {formatDate(approval.requestedAt, lang)}</small>
+          <small className="muted"><bdi>{approval.reason}</bdi> · {formatDate(approval.requestedAt, lang)}</small>
         </div>
         <RiskBadge risk={approval.riskLevel} />
       </div>

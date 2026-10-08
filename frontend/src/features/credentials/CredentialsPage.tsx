@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { KeyRound, Pencil, Plus, Trash2 } from 'lucide-react';
+import { KeyRound, Pencil, Trash2 } from 'lucide-react';
 import { del, get, post, put } from '../../shared/api/client';
 import type { Credential } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, ConfirmDialog, EmptyState, ErrorAlert, Field, Loading, Modal, PageHeader,
-  TextInput, errorMessage,
+  Button, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Field, Loading, Modal, PageHeader, TextInput,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
@@ -34,8 +33,8 @@ export default function CredentialsPage() {
   });
   return (
     <section>
-      <PageHeader title={t('credentials.title')} subtitle={t('credentials.subtitle')}
-        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setEditing('new')}>{t('credentials.add')}</Button>} />
+      <PageHeader title={t('credentials.title')} subtitle={t('credentials.subtitle')} />
+      <Fab label={t('credentials.add')} onClick={() => setEditing('new')} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('credentials.empty')} hint={t('credentials.emptyHint')} />
       ) : (

@@ -1,6 +1,7 @@
 /* Buttons, icon buttons and the segmented control. Form fields live in forms.css. */
 
 .btn {
+  color: var(--text); text-decoration: none;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface);
   box-shadow: var(--inset-top);
@@ -18,8 +19,10 @@
 /* A busy button is disabled, but it is still the thing the operator is waiting on: keep it legible. */
 .btn[aria-busy='true']:disabled { opacity: .85; cursor: progress; }
 .btn.primary { background: var(--primary); color: var(--primary-ink); border-color: transparent; font-weight: 650; }
+/* Solid fills carry no inset highlight: on a coloured face it reads as a second, inner edge. */
+.btn.primary, .btn.danger { box-shadow: none; }
 .btn.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--primary) 88%, var(--text)); border-color: transparent; }
-.btn.danger { background: var(--bad); color: #fff; border-color: transparent; font-weight: 600; }
+.btn.danger { background: var(--bad); color: var(--on-bad); border-color: transparent; font-weight: 600; }
 .btn.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--bad) 88%, #000); border-color: transparent; }
 .btn.ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--muted); }
 .btn.ghost:hover:not(:disabled) { background: var(--surface-2); border-color: transparent; color: var(--text); }
@@ -30,6 +33,21 @@
 .btn.start { justify-content: flex-start; text-align: start; }
 .btn.block { width: 100%; }
 .btn > svg { flex: none; }
+
+/* Floating action button: round, primary, pinned to the bottom corner opposite the navigation. */
+.fab {
+  position: fixed; inset-block-end: var(--s6); inset-inline-end: var(--s6); z-index: var(--z-nav);
+  width: 56px; height: 56px; border-radius: var(--radius-pill); border: 0; cursor: pointer;
+  display: grid; place-items: center; background: var(--primary); color: var(--primary-ink);
+  box-shadow: 0 10px 24px -6px color-mix(in srgb, var(--primary) 55%, transparent), 0 2px 6px #0000002e;
+  transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background var(--fast) var(--ease);
+  animation: aoScaleIn var(--base) var(--ease-out);
+}
+.fab:hover { background: color-mix(in srgb, var(--primary) 88%, var(--text)); transform: translateY(-2px); text-decoration: none; }
+.fab:active { transform: scale(.96); }
+.fab:focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 45%, transparent); outline-offset: 3px; }
+.fab:disabled { cursor: progress; }
+.fab .aoRing { width: 22px; height: 22px; }
 
 .icon {
   background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer;

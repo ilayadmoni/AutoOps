@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Octagon, RotateCcw, Radio, ChevronDown, ChevronRight } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Octagon, RotateCcw, Radio, ChevronDown, ChevronRight } from 'lucide-react';
 import { get, post, streamEvents } from '../../shared/api/client';
 import type { ExecutionDetail, MachineRunView, StepRunView } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -77,8 +77,8 @@ export default function ExecutionDetailPage() {
   const owner = user?.id === s.startedBy;
   return (
     <section>
-      <Link to="/executions" className="back"><ArrowLeft size={14} /> {t('nav.executions')}</Link>
       <PageHeader
+        back={{ to: '/executions', label: t('nav.executions') }}
         title={<>#{s.id} {s.title} <StatusBadge status={s.status} /></>}
         subtitle={<>{t('executions.type.' + s.type)} · {t('run.' + s.mode.toLowerCase())} · {t('run.concurrency')} {s.concurrency} · {t('run.' + (s.failurePolicy === 'CONTINUE' ? 'continue' : 'stopNew'))}</>}
         actions={<>

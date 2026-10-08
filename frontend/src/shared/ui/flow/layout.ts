@@ -1,10 +1,10 @@
-import type { WorkflowNode } from '../../../shared/api/types';
+import type { WorkflowNode } from '../../api/types';
 
 export type Pos = { x: number; y: number };
 export type Positions = Record<string, Pos>;
 
-export const COL = 265;
-export const LANE = 140;
+export const COL = 196;
+export const LANE = 170;
 
 /**
  * Derives canvas coordinates from the graph itself, since the API stores no positions.

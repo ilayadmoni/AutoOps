@@ -59,12 +59,43 @@ input[type='number']::-webkit-inner-spin-button { appearance: none; margin: 0; }
 .selectTrigger .placeholder { color: var(--muted); }
 .selectTrigger > svg { width: 16px; height: 16px; flex: none; color: var(--muted); transition: transform var(--fast) var(--ease); }
 .selectWrap.open > .selectTrigger > svg { transform: rotate(180deg); color: var(--primary); }
-.selectMenu { position: absolute; z-index: var(--z-popover); inset-block-start: calc(100% + 5px); inset-inline: 0; display: grid; gap: 2px; max-height: 260px; overflow-y: auto; padding: 5px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); }
-.selectOption { min-height: var(--control-h-sm); width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--s2); padding: 6px 9px; border: 0; border-radius: var(--radius-xs); background: transparent; color: var(--text); cursor: pointer; text-align: start; }
-.selectOption:hover:not(:disabled), .selectOption:focus-visible { outline: none; background: var(--surface-2); }
-.selectOption[aria-selected='true'] { background: var(--primary-soft); font-weight: 600; }
+.selectValue { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Floating layers (select list, action menu) share one surface: portalled, fixed, token-styled. */
+.selectMenu, .menu {
+  z-index: var(--z-popover); display: grid; gap: 1px; align-content: start; overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--s1); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-pop), var(--inset-top); max-width: min(420px, calc(100vw - 16px));
+  animation: aoPop var(--fast) var(--ease-out);
+}
+.selectMenu { max-height: 280px; }
+.menu { min-width: 220px; }
+.selectMenu[data-side='top'], .menu[data-side='top'] { animation-name: aoPopUp; }
+@keyframes aoPop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes aoPopUp { from { opacity: 0; transform: translateY(4px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.selectOption, .menuItem {
+  min-height: var(--control-h-sm); width: 100%; display: flex; align-items: center; gap: var(--s2);
+  padding: 6px var(--s2); border: 0; border-radius: var(--radius-xs); background: transparent;
+  color: var(--text); cursor: pointer; text-align: start; font-size: 13.5px;
+}
+.selectOption { justify-content: space-between; }
+.selectOption.active, .menuItem:hover, .menuItem:focus-visible { outline: none; background: var(--surface-2); }
+.selectOption[aria-selected='true'] { color: var(--primary); font-weight: 600; }
 .selectOption[aria-selected='true'] > svg { color: var(--primary); flex: none; }
-.selectOption:disabled { color: var(--muted); cursor: not-allowed; opacity: .55; }
+.selectOption.isPlaceholder { color: var(--muted); }
+.selectOption[aria-disabled='true'] { color: var(--muted); cursor: not-allowed; opacity: .55; }
+.selectOptionText, .menuText { display: grid; min-width: 0; gap: 1px; }
+.selectOptionText > span, .menuText > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selectOptionText small, .menuText small { color: var(--muted); font-size: 11.5px; font-weight: 400; }
+.menuItem.danger { color: var(--bad); }
+.menuItem.danger:hover { background: var(--bad-soft); }
+.menuIcon {
+  width: 28px; height: 28px; border-radius: var(--radius-sm); display: grid; place-items: center; flex: none;
+  background: var(--primary-soft); color: var(--primary);
+}
+.menuIcon svg { width: 15px; height: 15px; }
+.menuItem.danger .menuIcon { background: var(--bad-soft); color: var(--bad); }
 
 /* Input with a leading icon or a trailing adornment. */
 .inputWrap { position: relative; display: grid; align-items: center; min-width: 0; }
@@ -81,6 +112,18 @@ input[type='number']::-webkit-inner-spin-button { appearance: none; margin: 0; }
 /* Toolbar search. Defined here, after `.inputWrap`, so its floor width is not reset to zero;
    the floor is what makes a crowded toolbar wrap instead of squeezing the field to nothing. */
 .inputWrap.searchBox { flex: 1; min-width: 220px; }
+
+/* Password field with a reveal toggle inside its trailing edge. */
+.passwordInput { position: relative; display: grid; }
+.passwordInput input { width: 100%; padding-inline-end: var(--s8); }
+.passwordInput button {
+  position: absolute; inset-block: 4px; inset-inline-end: 4px; width: 36px;
+  display: grid; place-items: center; border: 0; border-radius: var(--radius-xs);
+  background: transparent; color: var(--muted); cursor: pointer;
+  transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
+}
+.passwordInput button:hover { color: var(--text); background: var(--surface-2); }
+.passwordInput svg { width: 18px; height: 18px; }
 
 /* Number stepper. Replaces the native spinners, which are a few pixels wide and OS-themed. */
 .stepper { display: inline-flex; align-items: stretch; min-width: 0; max-width: 168px; }

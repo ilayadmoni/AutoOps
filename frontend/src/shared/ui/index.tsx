@@ -6,15 +6,20 @@
  * Going through `TextInput` / `Select` / `Checkbox` / `Radio` / `Switch` / `NumberInput` is what
  * guarantees one height, one focus ring and one disabled treatment across every page.
  */
-export { default as Button, IconButton } from './Button';
-export { default as Brand } from './Brand';
+export { default as Button, ButtonLink, IconButton } from './Button';
+export { default as Brand, BrandMark } from './Brand';
 export { default as Card, CardHeader, Stat } from './Card';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as CopyButton } from './CopyButton';
+export { default as Fab } from './Fab';
 export { default as FilePicker } from './FilePicker';
+export { default as Menu } from './Menu';
 export { default as Modal } from './Modal';
-export { default as PageHeader } from './PageHeader';
+export { default as PasswordInput } from './PasswordInput';
+export { default as PageHeader, PageIconContext } from './PageHeader';
+export type { PageBack } from './PageHeader';
 export { default as Segmented } from './Segmented';
+export { default as Tile, ListItem } from './Tile';
 export { default as Tooltip } from './Tooltip';
 
 export { default as TextInput, SearchInput, Textarea } from './Input';
@@ -30,3 +35,4 @@ export { Code, EmptyState, ErrorAlert, Field, Output, errorMessage } from './Fee
 export type { ButtonProps } from './Button';
 export type { SegmentedOption } from './Segmented';
 export type { SelectOption } from './Select';
+export type { MenuItem } from './Menu';

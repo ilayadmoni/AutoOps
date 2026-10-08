@@ -3,12 +3,12 @@ export const en = {
   'common.loading': 'Loading…', 'common.starting': 'Starting AutoOps…', 'common.retry': 'Retry', 'common.cancel': 'Cancel',
   'common.confirm': 'Confirm', 'common.close': 'Close', 'common.save': 'Save', 'common.edit': 'Edit', 'common.notSet': 'Not set', 'common.copy': 'Copy', 'common.copied': 'Copied', 'common.delete': 'Delete',
   'common.name': 'Name', 'common.description': 'Description', 'common.status': 'Status', 'common.none': 'None',
-  'common.next': 'Next', 'common.previous': 'Previous',
+  'common.more': 'More actions', 'common.next': 'Next', 'common.previous': 'Previous',
 
   'nav.assistant': 'AI Assistant', 'nav.workflows': 'Workflows', 'nav.commands': 'Command Bank', 'nav.machines': 'Machines',
   'nav.credentials': 'Credentials', 'nav.files': 'Files', 'nav.executions': 'Executions', 'nav.approvals': 'Approvals',
   'nav.admin': 'Administration', 'nav.adminOverview': 'Overview', 'nav.users': 'Users', 'nav.commandApprovals': 'Command reviews',
-  'nav.datasets': 'Datasets', 'nav.audit': 'Audit log', 'nav.settings': 'Settings', 'nav.logout': 'Sign out',
+  'nav.datasets': 'Datasets', 'nav.audit': 'Audit log', 'nav.settings': 'Settings', 'nav.menu': 'Menu', 'nav.logout': 'Sign out',
 
   'role.USER': 'User', 'role.ADMIN': 'Administrator',
   'risk.LOW': 'Low risk', 'risk.MEDIUM': 'Medium risk', 'risk.HIGH': 'High risk',
@@ -93,7 +93,8 @@ export const en = {
   'preflight.sshStatus': 'SSH', 'preflight.authenticationStatus': 'Authentication', 'preflight.osStatus': 'OS (RHEL)', 'preflight.sudoStatus': 'Sudo',
   'workflows.approval': 'approval', 'workflows.ok': 'ok', 'workflows.fail': 'fail',
   'workflows.noSelection': 'No step selected', 'workflows.noSelectionHint': 'Pick a step on the canvas to configure it.',
-  'workflows.canvasHint': 'Drag a handle to wire the next step. Double-click a connection to remove it.',
+  'workflows.canvasHint': 'Use + on a step to add the next one, or drag from an output to wire existing steps. Select a connection to remove it.',
+  'workflows.removeLink': 'Remove connection',
   'stepHints.COMMAND': 'Run an approved command', 'stepHints.FILE_TRANSFER': 'Send a stored file', 'stepHints.WAIT_UNTIL': 'Poll until a condition holds',
   'steps.COMMAND': 'Command', 'steps.FILE_TRANSFER': 'File transfer', 'steps.WAIT_UNTIL': 'Wait until',
 
@@ -129,6 +130,10 @@ export const en = {
   'workflows.serviceName': 'Service name', 'workflows.interval': 'Check every (seconds)', 'workflows.discardConfirm': 'Discard unsaved changes?',
   'checks.SERVICE_ACTIVE': 'Service is active', 'checks.FILE_EXISTS': 'File exists', 'checks.OUTPUT_CONTAINS': 'Command output contains', 'checks.EXIT_CODE': 'Command exit code is',
 
+  'ai.canvasTitle': 'Workflow draft', 'ai.canvasBuilding': 'Drafting the workflow…', 'ai.missingCount': '{n} missing',
+  'ai.openInBuilder': 'Open in builder', 'ai.closeCanvas': 'Close canvas', 'ai.showCanvas': 'Show on canvas', 'ai.onCanvas': 'Shown on canvas',
+  'ai.showHistory': 'Show history',
+  'ai.hideHistory': 'Hide history',
   'ai.history': 'History', 'ai.hintSend': 'to send', 'ai.hintNewline': 'for a new line', 'ai.stepCount': '{n} steps',
   'ai.newChat': 'New chat', 'ai.title': 'AI Operations Assistant', 'ai.subtitle': 'Find commands, draft workflows and explain failures. The assistant proposes; you decide.',
   'ai.quickFind': 'Find a command', 'ai.quickWorkflow': 'Draft a workflow', 'ai.quickExplain': 'Explain a failure', 'ai.quickMachines': 'My machines',

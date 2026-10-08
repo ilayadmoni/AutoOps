@@ -1,0 +1,17 @@
+{
+  "name": "autoops",
+  "version": "1.0.0",
+  "description": "AutoOps manages and automates RHEL machines over verified SSH: an approved **Command Bank**, typed **workflows**,\r one central **execution engine** with preflight, approvals, live progress and full history, file transfer through\r MinIO, and an **AI assistant** that finds, proposes and explains — but never executes.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4"
+  }
+}

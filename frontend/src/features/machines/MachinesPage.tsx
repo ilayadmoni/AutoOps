@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Fingerprint, Pencil, Play, Plus, ShieldAlert, ShieldCheck, ShieldQuestion, Trash2, Wifi } from 'lucide-react';
+import { Fingerprint, MoreHorizontal, Pencil, Play, ShieldAlert, ShieldCheck, ShieldQuestion, Trash2, Wifi } from 'lucide-react';
 import { ApiError, del, get, post, put } from '../../shared/api/client';
 import type { Credential, Discovery, Machine, MachineTest } from '../../shared/api/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import {
-  Button, Card, Checkbox, Code, ConfirmDialog, EmptyState, ErrorAlert, Field, IconButton, Loading, Modal,
-  NumberInput, PageHeader, Select, StatusBadge, TextInput, errorMessage,
+  Button, Card, Checkbox, Code, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Field, IconButton, Loading, Menu, Modal, NumberInput, PageHeader, Select, StatusBadge, TextInput,
 } from '../../shared/ui';
 import { useToast } from '../../shared/ui/Toast';
 import { formatDate } from '../../shared/format';
@@ -30,8 +29,8 @@ export default function MachinesPage() {
   });
   return (
     <section>
-      <PageHeader title={t('machines.title')} subtitle={t('machines.subtitle')}
-        actions={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setEditing('new')}>{t('machines.add')}</Button>} />
+      <PageHeader title={t('machines.title')} subtitle={t('machines.subtitle')} />
+      <Fab label={t('machines.add')} onClick={() => setEditing('new')} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('machines.empty')} hint={t('machines.emptyHint')} />
       ) : (
@@ -47,13 +46,19 @@ export default function MachinesPage() {
               {m.trustStatus === 'KEY_CHANGED' && <div className="alert danger small"><ShieldAlert size={16} /> {t('machines.keyChanged')}</div>}
               {m.sshFingerprint && <small className="muted fp" dir="ltr">{m.hostKeyAlgorithm} {m.sshFingerprint}</small>}
               {m.lastTestStatus && <small className="muted">{t('machines.lastTest')}: <StatusBadge status={m.lastTestStatus} /> {formatDate(m.lastTestedAt, lang)}</small>}
-              <div className="row gap wrap">
+              <div className="cardFoot">
+                <Button small variant="primary" icon={<Play size={14} />} onClick={() => setRunning(m)} disabled={m.trustStatus !== 'TRUSTED'} hint={m.trustStatus !== 'TRUSTED' ? t('machines.trustFirst') : undefined}>{t('machines.run')}</Button>
                 <Button small icon={<Fingerprint size={14} />} onClick={() => setTrusting(m)}>{m.trustStatus === 'TRUSTED' ? t('machines.reviewTrust') : t('machines.trust')}</Button>
-                <Button small icon={<Wifi size={14} />} onClick={() => setTesting(m)} disabled={m.trustStatus !== 'TRUSTED'}>{t('machines.test')}</Button>
-                <Button small variant="primary" icon={<Play size={14} />} onClick={() => setRunning(m)} disabled={m.trustStatus !== 'TRUSTED'} title={m.trustStatus !== 'TRUSTED' ? t('machines.trustFirst') : ''}>{t('machines.run')}</Button>
                 <span className="grow" />
-                <IconButton label={t('common.edit')} onClick={() => setEditing(m)}><Pencil size={14} /></IconButton>
-                <IconButton danger label={t('common.delete')} onClick={() => setDeleting(m)}><Trash2 size={14} /></IconButton>
+                <IconButton label={t('machines.test')} hint={m.trustStatus !== 'TRUSTED' ? t('machines.trustFirst') : undefined} onClick={() => setTesting(m)} disabled={m.trustStatus !== 'TRUSTED'}><Wifi size={15} /></IconButton>
+                <Menu
+                  label={t('common.more')}
+                  items={[
+                    { key: 'edit', icon: <Pencil />, label: t('common.edit'), onSelect: () => setEditing(m) },
+                    { key: 'delete', icon: <Trash2 />, label: t('common.delete'), danger: true, onSelect: () => setDeleting(m) },
+                  ]}
+                  trigger={<IconButton label={t('common.more')}><MoreHorizontal size={16} /></IconButton>}
+                />
               </div>
             </Card>
           ))}

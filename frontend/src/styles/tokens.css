@@ -5,6 +5,8 @@
   --text: #eef2ef; --muted: #959e98; --primary: #7cff6b; --primary-ink: #071006; --primary-soft: #7cff6b1c;
   --ok: #4ade80; --ok-soft: #4ade801f; --warn: #fbbf24; --warn-soft: #fbbf2420; --bad: #f87171; --bad-soft: #f8717120;
   --info: #60a5fa; --info-soft: #60a5fa20; --code-bg: #0f1210;
+  /* Text on a solid danger fill. Dark ink in dark mode, where the red is light. */
+  --on-bad: #1f0707;
 
   /* Border roles. `border` is the resting hairline; `border-strong` is the neutral hover edge.
      Hover must never borrow the accent: the accent means focus or selection, nothing else. */
@@ -37,8 +39,19 @@
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --fast: 150ms; --base: 200ms; --slow: 300ms;
 
-  /* Z-index scale: nav 20, drawer 30, modal 50, toast 60, tooltip 70. */
-  --z-nav: 20; --z-drawer: 30; --z-modal: 50; --z-toast: 60; --z-tooltip: 70;
+  /* Z-index scale: nav 20, drawer 30, modal 50, toast 60, popover 65, tooltip 70.
+     Popovers sit above modals because a select or menu can open from inside one. */
+  --z-nav: 20; --z-drawer: 30; --z-modal: 50; --z-toast: 60; --z-popover: 65; --z-tooltip: 70;
+
+  /* Scrollbar. Thin, token-coloured, and only as visible as the content it scrolls. */
+  --scroll-thumb: #ffffff1f; --scroll-thumb-hover: #ffffff3d;
+
+  /* Brand mark gradient. */
+  --brand-from: #3fd36a; --brand-to: #9dff7a;
+  /* Tooltips invert against the page so they read as transient, not as another surface. */
+  --tooltip-bg: #eef2ef; --tooltip-text: #0b0d0c;
+  /* Canvas. */
+  --canvas-bg: #0d100e; --canvas-dot: #2a302b; --edge: #4a544c; --edge-ok: #3f9d5a; --edge-bad: #c25b5b;
 
   --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Hebrew', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -51,14 +64,30 @@
   --bg: #f5f7f5; --surface: #ffffff; --surface-2: #f0f3f1; --sidebar: #edf1ee; --border: #d8dfda;
   --text: #172019; --muted: #5f6b63; --primary: #1f9d2f; --primary-ink: #ffffff; --primary-soft: #1f9d2f18;
   --ok: #15803d; --ok-soft: #15803d14; --warn: #b45309; --warn-soft: #b4530914; --bad: #b91c1c; --bad-soft: #b91c1c12;
-  --info: #1d4ed8; --info-soft: #1d4ed812; --code-bg: #f1f4f2;
+  --info: #1d4ed8; --info-soft: #1d4ed812; --code-bg: #f1f4f2; --on-bad: #ffffff;
   --border-strong: #b6c1ba;
   --input-bg: #ffffff; --input-disabled: #f0f3f1;
   --shadow: 0 10px 40px #0002; --shadow-sm: 0 1px 2px #0000000f; --shadow-pop: 0 12px 32px #0000001f;
   --inset-top: inset 0 1px 0 #ffffff;
+  --scroll-thumb: #17201926; --scroll-thumb-hover: #17201947;
+  --brand-from: #138a2a; --brand-to: #36b64a;
+  --tooltip-bg: #172019; --tooltip-text: #ffffff;
+  --canvas-bg: #f7f9f7; --canvas-dot: #cfd8d1; --edge: #9aa79e; --edge-ok: #2f9e4a; --edge-bad: #c24141;
 }
 
 * { box-sizing: border-box; }
+* { scrollbar-color: var(--scroll-thumb) transparent; scrollbar-width: thin; }
+/* WebKit scrollbars. The thumb is inset by a transparent border so it reads as a slim pill
+   floating inside its track rather than a bar glued to the edge. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb); border-radius: var(--radius-pill);
+  border: 3px solid transparent; background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--scroll-thumb-hover); }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
 h1 { font-size: 24px; margin: 0 0 var(--s1); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; letter-spacing: -.02em; }
 h2 { font-size: 18px; margin: var(--s6) 0 var(--s3); letter-spacing: -.015em; }
