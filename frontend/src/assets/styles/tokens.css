@@ -53,8 +53,8 @@
   /* Canvas. */
   --canvas-bg: #0d100e; --canvas-dot: #2a302b; --edge: #4a544c; --edge-ok: #3f9d5a; --edge-bad: #c25b5b;
 
-  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Hebrew', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: 'Roboto', 'Google Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Google Sans', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   font-family: var(--font-sans);
   color: var(--text); background: var(--bg);

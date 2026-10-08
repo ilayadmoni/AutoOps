@@ -1,0 +1,29 @@
+/* Self-hosted fonts: nothing is fetched from an external CDN. Files live in assets/fonts (OFL licensed).
+   Roboto draws Latin text; Google Sans only declares the Hebrew range, so the browser picks it per
+   character inside one font stack. FontGate waits for these before the app mounts, hence font-display: block. */
+@font-face {
+  font-family: 'Roboto';
+  src: url('../fonts/roboto-latin-var.woff2') format('woff2');
+  font-weight: 100 900; font-style: normal; font-display: block;
+}
+@font-face {
+  font-family: 'Google Sans';
+  src: url('../fonts/google-sans-hebrew-var.woff2') format('woff2');
+  font-weight: 400 700; font-style: normal; font-display: block;
+  unicode-range: U+0590-05FF, U+200E-200F, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('../fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: block;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('../fonts/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: block;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('../fonts/ibm-plex-mono-latin-600-normal.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: block;
+}

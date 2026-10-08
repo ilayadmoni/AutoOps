@@ -1,4 +1,5 @@
 /* AutoOps stylesheet. Layers are imported in cascade order: tokens first, overrides last. */
+@import './fonts.css';
 @import './tokens.css';
 @import './layout.css';
 @import './controls.css';

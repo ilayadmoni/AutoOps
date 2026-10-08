@@ -2,6 +2,9 @@
 
 React 19 + TypeScript + Vite, TanStack Query for server state, React Router, Lucide icons and a small custom i18n
 layer. No CSS framework: `src/assets/styles/` defines light/dark tokens and uses logical properties so RTL works.
+Fonts are self-hosted in `src/assets/fonts` (no external requests): Roboto for Latin text, Google Sans for Hebrew
+(declared with a Hebrew `unicode-range`, so one stack mixes both per character) and IBM Plex Mono for code. `FontGate`
+keeps the boot loader up until they are loaded, then mounts the app.
 
 - **Auth**: `AuthProvider` refreshes the session on startup, loads `/auth/me`, keeps the access token in memory,
   exposes `isAdmin` for navigation and route guards, and logs out on refresh failure.
