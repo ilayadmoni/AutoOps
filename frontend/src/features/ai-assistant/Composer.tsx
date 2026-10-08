@@ -1,7 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { ArrowUp } from 'lucide-react';
-import { useI18n } from '../../i18n/I18nProvider';
-import { IconButton, Textarea } from '../../shared/ui';
+import { useI18n } from '../../hooks/useI18n';
+import { IconButton, Textarea } from '../../components';
 
 const LIMIT = 4000;
 

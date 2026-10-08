@@ -1,21 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle } from 'lucide-react';
-import { get } from '../../shared/api/client';
-import type { Credential, Machine, RunOptions } from '../../shared/api/types';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Checkbox, Field, Loading, Segmented, Select } from '../../shared/ui';
-
-export const machinesQuery = { queryKey: ['machines'], queryFn: () => get<Machine[]>('/machines') };
-
-export const defaultRunOptions = (machineIds: number[] = []): RunOptions => ({
-  machineIds, credentialId: null, mode: 'MANUAL', concurrency: 1, failurePolicy: 'STOP_NEW_MACHINES',
-});
+import type { RunOptions } from '../../types/api';
+import { Checkbox, Field, Loading, Segmented, Select } from '../../components';
+import { useCredentials } from '../../hooks/useCredentials';
+import { useI18n } from '../../hooks/useI18n';
+import { useMachines } from '../../hooks/useMachines';
 
 /** Machine/credential/mode/concurrency selection shared by command and workflow runs. */
-export function RunOptionsForm({ value, onChange, errors }: { value: RunOptions; onChange: (v: RunOptions) => void; errors?: Record<string, string> }) {
+export default function RunOptionsForm({ value, onChange, errors }: { value: RunOptions; onChange: (v: RunOptions) => void; errors?: Record<string, string> }) {
   const { t } = useI18n();
-  const machines = useQuery(machinesQuery);
-  const creds = useQuery({ queryKey: ['credentials'], queryFn: () => get<Credential[]>('/credentials') });
+  const machines = useMachines();
+  const creds = useCredentials();
   const toggle = (id: number) => onChange({ ...value, machineIds: value.machineIds.includes(id) ? value.machineIds.filter((x) => x !== id) : [...value.machineIds, id] });
   const selected = (machines.data ?? []).filter((m) => value.machineIds.includes(m.id));
   const untrusted = selected.filter((m) => m.trustStatus !== 'TRUSTED');

@@ -3,7 +3,7 @@ import {
   Background, BackgroundVariant, Controls, MiniMap, ReactFlow, useReactFlow,
   type Connection, type Edge, type Node, type NodeChange, type EdgeMouseHandler,
 } from '@xyflow/react';
-import type { WorkflowNode } from '../../../shared/api/types';
+import type { WorkflowNode } from '../../../types/api';
 import StepNode, { PreflightNode, type StepNodeData } from './StepNode';
 import { autoLayout, COL, loadPositions, savePositions, type Positions } from './layout';
 

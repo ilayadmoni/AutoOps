@@ -1,8 +1,8 @@
 import { MessageSquarePlus, Trash2 } from 'lucide-react';
-import type { ConversationSummary } from '../../shared/api/types';
-import { Button, IconButton } from '../../shared/ui';
-import { useI18n } from '../../i18n/I18nProvider';
-import { shortDate } from '../../shared/format';
+import type { ConversationSummary } from '../../types/api';
+import { Button, IconButton } from '../../components';
+import { useI18n } from '../../hooks/useI18n';
+import { shortDate } from '../../utils/format';
 
 /** Conversation history. Hidden below 900px, where the thread takes the full width. */
 export default function ConversationRail({ items, activeId, onOpen, onNew, onDelete }: {

@@ -1,5 +1,5 @@
-import type { Lang } from '../../i18n/I18nProvider';
-import { Segmented } from '../../shared/ui';
+import type { Lang } from '../../types/preferences';
+import { Segmented } from '../../components';
 
 export default function LoginLanguageToggle({ lang, setLang }: {
   lang: Lang;

@@ -1,12 +1,12 @@
 import { FileUp } from 'lucide-react';
-import type { Command, StoredFile, WorkflowNode } from '../../../shared/api/types';
+import type { Command, StoredFile, WorkflowNode } from '../../../types/api';
 import {
   Button, Checkbox, Code, Field, FilePicker, NumberInput, RiskBadge, Select, StatusBadge, TextInput,
-} from '../../../shared/ui';
-import { useToast } from '../../../shared/ui/Toast';
-import { ParameterInputs } from '../../commands/ParameterInputs';
-import { useUpload } from '../../files/FilesPage';
-import { useI18n } from '../../../i18n/I18nProvider';
+} from '../../../components';
+import { useToast } from '../../../hooks/useToast';
+import ParameterInputs from '../../commands/ParameterInputs';
+import { useUploadFile } from '../../../hooks/useFiles';
+import { useI18n } from '../../../hooks/useI18n';
 
 type ConfigProps = {
   node: WorkflowNode;
@@ -65,7 +65,7 @@ export function CommandConfig({ node, onChange, commands, errors, paramErrors }:
 
 export function FileConfig({ node, onChange, files, errors }: ConfigProps & { files: StoredFile[] }) {
   const { t } = useI18n();
-  const up = useUpload();
+  const up = useUploadFile();
   const toast = useToast();
   return (
     <>

@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Play } from 'lucide-react';
-import { ApiError, get, post } from '../../shared/api/client';
-import type { Command, CommandPreview, ExecutionDetail, RunOptions } from '../../shared/api/types';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Button, Checkbox, Code, ErrorAlert, Field, Modal, RiskBadge, Select } from '../../shared/ui';
-import { useToast } from '../../shared/ui/Toast';
-import { ParameterInputs, cleanParams } from './ParameterInputs';
-import { RunOptionsForm, defaultRunOptions } from '../executions/RunOptionsForm';
+import { ApiError } from '../../lib/apiClient';
+import type { CommandPreview, RunOptions } from '../../types/api';
+import { Button, Checkbox, Code, ErrorAlert, Field, Modal, RiskBadge, Select } from '../../components';
+import { useApprovedCommands } from '../../hooks/useCommands';
+import { useI18n } from '../../hooks/useI18n';
+import { useToast } from '../../hooks/useToast';
+import { commandsService } from '../../services/commands';
+import { executionsService } from '../../services/executions';
+import { cleanParams } from '../../utils/params';
+import { defaultRunOptions, toRunRequest } from '../../utils/runOptions';
+import RunOptionsForm from '../executions/RunOptionsForm';
+import ParameterInputs from './ParameterInputs';
 
 export interface RunCommandInitial {
   commandId?: number;
@@ -21,7 +26,7 @@ export default function RunCommandModal({ initial, onClose }: { initial: RunComm
   const { t } = useI18n();
   const nav = useNavigate();
   const toast = useToast();
-  const commands = useQuery({ queryKey: ['commands', 'approved'], queryFn: () => get<Command[]>('/commands?status=APPROVED') });
+  const commands = useApprovedCommands();
   const [commandId, setCommandId] = useState<number | undefined>(initial.commandId);
   const [params, setParams] = useState<Record<string, string>>(initial.parameters ?? {});
   const [sudo, setSudo] = useState(!!initial.runWithSudo);
@@ -33,7 +38,7 @@ export default function RunCommandModal({ initial, onClose }: { initial: RunComm
   useEffect(() => {
     if (!commandId) return;
     const h = setTimeout(() => {
-      post<CommandPreview>(`/commands/${commandId}/preview`, { parameters: cleanParams(params), runWithSudo: sudo })
+      commandsService.preview(commandId, cleanParams(params), sudo)
         .then((p) => { setPreview(p); setPreviewError(null); })
         .catch((e) => { setPreview(null); setPreviewError(e instanceof ApiError ? e : null); });
     }, 300);
@@ -41,9 +46,8 @@ export default function RunCommandModal({ initial, onClose }: { initial: RunComm
   }, [commandId, params, sudo]);
 
   const start = useMutation({
-    mutationFn: () => post<ExecutionDetail>('/executions/commands', {
-      commandDefinitionId: commandId, parameters: cleanParams(params), runWithSudo: sudo, ...options,
-      credentialId: options.credentialId || null,
+    mutationFn: () => executionsService.runCommand({
+      ...toRunRequest(options), commandDefinitionId: commandId!, parameters: cleanParams(params), runWithSudo: sudo,
     }),
     onSuccess: (d) => {
       toast.success(t('run.started'));

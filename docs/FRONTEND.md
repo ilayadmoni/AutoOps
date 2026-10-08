@@ -1,7 +1,8 @@
 # Frontend
 
 React 19 + TypeScript + Vite, TanStack Query for server state, React Router, Lucide icons and a small custom i18n
-layer. No CSS framework: `src/styles.css` defines light/dark tokens and uses logical properties so RTL works.
+layer. No CSS framework: `src/assets/styles/` defines light/dark tokens and uses logical properties so RTL works.
+The source layout (organized by responsibility, not file type) is described in `frontend/README.md`.
 
 - **Auth**: `AuthProvider` refreshes the session on startup, loads `/auth/me`, keeps the access token in memory,
   exposes `isAdmin` for navigation and route guards, and logs out on refresh failure.

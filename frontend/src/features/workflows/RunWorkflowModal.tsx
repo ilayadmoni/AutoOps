@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Play } from 'lucide-react';
-import { ApiError, post } from '../../shared/api/client';
-import type { ExecutionDetail, RunOptions } from '../../shared/api/types';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Button, ErrorAlert, Modal } from '../../shared/ui';
-import { useToast } from '../../shared/ui/Toast';
-import { RunOptionsForm, defaultRunOptions } from '../executions/RunOptionsForm';
+import { ApiError } from '../../lib/apiClient';
+import type { RunOptions } from '../../types/api';
+import { Button, ErrorAlert, Modal } from '../../components';
+import { useI18n } from '../../hooks/useI18n';
+import { useToast } from '../../hooks/useToast';
+import { workflowsService } from '../../services/workflows';
+import { defaultRunOptions, toRunRequest } from '../../utils/runOptions';
+import RunOptionsForm from '../executions/RunOptionsForm';
 
 export default function RunWorkflowModal({ workflowId, name, onClose }: { workflowId: number; name: string; onClose: () => void }) {
   const { t } = useI18n();
@@ -15,7 +17,7 @@ export default function RunWorkflowModal({ workflowId, name, onClose }: { workfl
   const toast = useToast();
   const [options, setOptions] = useState<RunOptions>(defaultRunOptions());
   const run = useMutation({
-    mutationFn: () => post<ExecutionDetail>(`/workflows/${workflowId}/run`, { ...options, credentialId: options.credentialId || null }),
+    mutationFn: () => workflowsService.run(workflowId, toRunRequest(options)),
     onSuccess: (d) => { toast.success(t('run.started')); onClose(); nav('/executions/' + d.summary.id); },
   });
   return (

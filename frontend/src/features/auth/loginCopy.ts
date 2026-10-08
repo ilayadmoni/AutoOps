@@ -1,4 +1,4 @@
-import type { Lang } from '../../i18n/I18nProvider';
+import type { Lang } from '../../types/preferences';
 
 export const loginCopy: Record<Lang, {
   headline: string;

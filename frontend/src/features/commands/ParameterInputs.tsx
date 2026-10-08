@@ -1,9 +1,9 @@
-import type { ParameterSpec } from '../../shared/api/types';
-import { Field, Select, TextInput } from '../../shared/ui';
-import { useI18n } from '../../i18n/I18nProvider';
+import type { ParameterSpec } from '../../types/api';
+import { Field, Select, TextInput } from '../../components';
+import { useI18n } from '../../hooks/useI18n';
 
 /** Renders inputs from a command's parameter schema. Values are validated again by the server. */
-export function ParameterInputs({ specs, values, onChange, errors, prefix = '' }: {
+export default function ParameterInputs({ specs, values, onChange, errors, prefix = '' }: {
   specs: ParameterSpec[]; values: Record<string, string>; onChange: (v: Record<string, string>) => void;
   errors?: Record<string, string>; prefix?: string;
 }) {
@@ -36,9 +36,4 @@ export function ParameterInputs({ specs, values, onChange, errors, prefix = '' }
       })}
     </div>
   );
-}
-
-/** Drops empty values so server-side defaults apply. */
-export function cleanParams(values: Record<string, string>) {
-  return Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''));
 }

@@ -1,8 +1,8 @@
 import { Trash2, X } from 'lucide-react';
-import type { Command, StoredFile, WorkflowNode } from '../../../shared/api/types';
-import { Checkbox, Field, IconButton, NumberInput, Select, TextInput } from '../../../shared/ui';
+import type { Command, StoredFile, WorkflowNode } from '../../../types/api';
+import { Checkbox, Field, IconButton, NumberInput, Select, TextInput } from '../../../components';
 import { CommandConfig, FileConfig, WaitConfig } from './StepConfigs';
-import { useI18n } from '../../../i18n/I18nProvider';
+import { useI18n } from '../../../hooks/useI18n';
 
 /** Right-hand drawer holding the selected step's full configuration. */
 export default function NodeInspector({ node, nodes, errors, commands, files, onChange, onRemove, onClose }: {

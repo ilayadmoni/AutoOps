@@ -1,6 +1,6 @@
 import { Bot, Search, Server, TerminalSquare, Workflow } from 'lucide-react';
-import { useI18n } from '../../i18n/I18nProvider';
-import { Button } from '../../shared/ui';
+import { useI18n } from '../../hooks/useI18n';
+import { Button } from '../../components';
 
 /** Empty-thread state: identity, scope, and four concrete starting prompts. */
 export default function ChatHero({ onPick }: { onPick: (prompt: string) => void }) {

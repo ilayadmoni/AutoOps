@@ -1,6 +1,6 @@
 import { Clock, FileUp, TerminalSquare } from 'lucide-react';
-import type { NodeType } from '../../../shared/api/types';
-import { useI18n } from '../../../i18n/I18nProvider';
+import type { NodeType } from '../../../types/api';
+import { useI18n } from '../../../hooks/useI18n';
 
 const ITEMS: { type: NodeType; icon: typeof Clock }[] = [
   { type: 'COMMAND', icon: TerminalSquare },

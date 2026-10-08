@@ -1,4 +1,4 @@
-import type { NodeType, ValidationError, WorkflowNode } from '../../../shared/api/types';
+import type { NodeType, ValidationError, WorkflowNode } from '../../../types/api';
 
 export type Errors = Record<string, Record<string, string>>;
 

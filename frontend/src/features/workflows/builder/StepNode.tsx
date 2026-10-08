@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Clock, FileUp, Lock, ShieldCheck, TerminalSquare } from 'lucide-react';
-import type { WorkflowNode } from '../../../shared/api/types';
-import { useI18n } from '../../../i18n/I18nProvider';
+import type { WorkflowNode } from '../../../types/api';
+import { useI18n } from '../../../hooks/useI18n';
 
 export type StepNodeData = {
   node: WorkflowNode;

@@ -1,5 +1,5 @@
 import { Check, Clock3, LockKeyhole } from 'lucide-react';
-import Brand from '../../shared/ui/Brand';
+import { Brand } from '../../components';
 import type { loginCopy } from './loginCopy';
 
 type Copy = (typeof loginCopy)['en'];

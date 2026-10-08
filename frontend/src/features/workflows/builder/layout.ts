@@ -1,4 +1,5 @@
-import type { WorkflowNode } from '../../../shared/api/types';
+import type { WorkflowNode } from '../../../types/api';
+import { readJson, writeJson } from '../../../utils/storage';
 
 export type Pos = { x: number; y: number };
 export type Positions = Record<string, Pos>;
@@ -48,18 +49,10 @@ const storageKey = (id: number | null) => `autoops.flow.${id ?? 'new'}`;
 
 /** Manual drags are a local viewing preference, so they live in localStorage, not the workflow. */
 export function loadPositions(id: number | null): Positions {
-  try {
-    const raw = localStorage.getItem(storageKey(id));
-    return raw ? (JSON.parse(raw) as Positions) : {};
-  } catch {
-    return {};
-  }
+  return readJson<Positions>(storageKey(id)) ?? {};
 }
 
+/** Best effort: if storage is unavailable, auto-layout still applies on next load. */
 export function savePositions(id: number | null, positions: Positions) {
-  try {
-    localStorage.setItem(storageKey(id), JSON.stringify(positions));
-  } catch {
-    // storage unavailable; auto-layout still applies on next load
-  }
+  writeJson(storageKey(id), positions);
 }

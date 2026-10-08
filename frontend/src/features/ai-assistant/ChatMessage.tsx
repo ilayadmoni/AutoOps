@@ -2,10 +2,10 @@ import { Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion, useReducedMotion } from 'motion/react';
-import type { AIOperation } from '../../shared/api/types';
-import { CopyButton } from '../../shared/ui';
+import type { AIOperation } from '../../types/api';
+import { CopyButton } from '../../components';
 import ProposalCard from './ProposalCard';
-import { useI18n } from '../../i18n/I18nProvider';
+import { useI18n } from '../../hooks/useI18n';
 
 export type Msg = { role: 'user' | 'assistant'; content: string; operations?: AIOperation[] };
 
