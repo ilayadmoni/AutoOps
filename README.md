@@ -204,7 +204,7 @@ Checks: `cd backend && mvn test` and `cd frontend && npm run build` (includes an
 
 <div align="center">
 
-**Built by [Ilay Admoni](https://github.com/ilayadmoni)**: Computer Science student and Application Support Engineer (Tier 3) at Elbit Systems.<br/>
+**Built by [Ilay Admoni](https://github.com/ilayadmoni)**: Computer Science student and software engineer.<br/>
 AutoOps grew out of years of hands-on work running RHEL and VMware infrastructure.
 
 [![GitHub](https://img.shields.io/badge/GitHub-ilayadmoni-181717?style=flat-square&logo=github)](https://github.com/ilayadmoni)
