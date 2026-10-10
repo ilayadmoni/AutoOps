@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 420" width="1280" height="420" role="img" aria-labelledby="t d">
+  <title id="t">AutoOps</title>
+  <desc id="d">AutoOps — secure, AI-assisted automation for RHEL fleets.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07090d"/>
+      <stop offset="1" stop-color="#0d1410"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#16c062"/>
+      <stop offset="1" stop-color="#aaf77f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#3ee27a" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3ee27a" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1b2a20" stroke-width="1"/>
+    </pattern>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+      .pulse { animation: pulse 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+      .p2 { animation-delay: .45s } .p3 { animation-delay: .9s } .p4 { animation-delay: 1.35s } .p5 { animation-delay: 1.8s }
+      @keyframes pulse { 0%,100% { opacity: .55; transform: scale(1) } 50% { opacity: 1; transform: scale(1.12) } }
+      .flow { stroke-dasharray: 10 14; animation: flow 1.6s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -48 } }
+      .line { opacity: 0; animation: reveal .6s ease-out forwards; }
+      .l1 { animation-delay: .2s } .l2 { animation-delay: .9s } .l3 { animation-delay: 1.6s }
+      .l4 { animation-delay: 2.3s } .l5 { animation-delay: 3.0s } .l6 { animation-delay: 3.7s }
+      @keyframes reveal { from { opacity: 0; transform: translateX(-6px) } to { opacity: 1; transform: none } }
+      .cursor { animation: blink 1s steps(1) infinite; }
+      @keyframes blink { 50% { opacity: 0 } }
+      @media (prefers-reduced-motion: reduce) {
+        .pulse, .flow, .line, .cursor { animation: none; opacity: 1; }
+      }
+    </style>
+  </defs>
+
+  <rect width="1280" height="420" rx="24" fill="url(#bg)"/>
+  <rect width="1280" height="420" rx="24" fill="url(#grid)" opacity="0.55"/>
+  <circle cx="300" cy="140" r="260" fill="url(#glow)"/>
+  <circle cx="1040" cy="300" r="220" fill="url(#glow)" opacity="0.6"/>
+
+  <!-- Node-graph mark (from the AutoOps logo) -->
+  <g transform="translate(72 52)" fill="none" stroke="url(#green)" stroke-width="7" stroke-linecap="round">
+    <path d="M22 60 H70 M106 60 H130 Q146 60 146 44 V18 Q146 6 160 6 H182"/>
+    <path d="M106 60 H196"/>
+    <path d="M130 60 Q146 60 146 76 V102 Q146 114 160 114 H186"/>
+    <path class="flow" stroke="#d9ffc4" stroke-width="3" d="M22 60 H196"/>
+    <circle class="pulse" cx="12" cy="60" r="14" fill="#08100b"/>
+    <circle class="pulse p2" cx="88" cy="60" r="14" fill="#08100b"/>
+    <circle class="pulse p3" cx="196" cy="6" r="14" fill="#08100b"/>
+    <circle class="pulse p4" cx="210" cy="60" r="14" fill="#08100b"/>
+    <circle class="pulse p5" cx="200" cy="114" r="14" fill="#08100b"/>
+  </g>
+
+  <!-- Wordmark + pitch -->
+  <text x="72" y="262" class="sans" font-size="84" font-weight="800" fill="#ffffff" letter-spacing="-2">Auto<tspan fill="url(#green)">Ops</tspan></text>
+  <text x="76" y="308" class="sans" font-size="26" fill="#c9d4cc">Secure, AI-assisted automation for RHEL fleets.</text>
+  <text x="76" y="342" class="sans" font-size="18" fill="#7f9186">Command Bank · typed workflows · pinned SSH keys · approvals</text>
+
+  <!-- Tech chips -->
+  <g class="sans" font-size="14" font-weight="600">
+    <g transform="translate(76 362)"><rect width="88" height="30" rx="15" fill="#122019" stroke="#1f3b2a"/><text x="44" y="20" text-anchor="middle" fill="#9df29b">Java 21</text></g>
+    <g transform="translate(174 362)"><rect width="120" height="30" rx="15" fill="#122019" stroke="#1f3b2a"/><text x="60" y="20" text-anchor="middle" fill="#9df29b">Spring Boot 3</text></g>
+    <g transform="translate(304 362)"><rect width="92" height="30" rx="15" fill="#122019" stroke="#1f3b2a"/><text x="46" y="20" text-anchor="middle" fill="#9df29b">React 19</text></g>
+    <g transform="translate(406 362)"><rect width="188" height="30" rx="15" fill="#122019" stroke="#1f3b2a"/><text x="94" y="20" text-anchor="middle" fill="#9df29b">PostgreSQL + pgvector</text></g>
+    <g transform="translate(604 362)"><rect width="84" height="30" rx="15" fill="#122019" stroke="#1f3b2a"/><text x="42" y="20" text-anchor="middle" fill="#9df29b">Docker</text></g>
+  </g>
+
+  <!-- Terminal card: the life of one execution -->
+  <g transform="translate(736 64)">
+    <rect width="480" height="292" rx="16" fill="#0a0f0c" stroke="#1f3b2a" stroke-width="1.5"/>
+    <rect width="480" height="40" rx="16" fill="#101813"/>
+    <rect y="24" width="480" height="16" fill="#101813"/>
+    <circle cx="24" cy="20" r="6" fill="#ff5f57"/><circle cx="44" cy="20" r="6" fill="#febc2e"/><circle cx="64" cy="20" r="6" fill="#28c840"/>
+    <text x="240" y="25" text-anchor="middle" class="mono" font-size="13" fill="#6d8475">execution #1042 · restart-nginx</text>
+    <g class="mono" font-size="15" xml:space="preserve">
+      <text class="line l1" x="22" y="78"><tspan fill="#5fd38a">▸</tspan><tspan fill="#c9d4cc"> resolve  </tspan><tspan fill="#7f9186">approved command · params quoted</tspan></text>
+      <text class="line l2" x="22" y="110"><tspan fill="#5fd38a">▸</tspan><tspan fill="#c9d4cc"> risk     </tspan><tspan fill="#febc2e">HIGH</tspan><tspan fill="#7f9186"> → approval required</tspan></text>
+      <text class="line l3" x="22" y="142"><tspan fill="#5fd38a">✓</tspan><tspan fill="#c9d4cc"> approved </tspan><tspan fill="#7f9186">by admin · acknowledged</tspan></text>
+      <text class="line l4" x="22" y="174"><tspan fill="#5fd38a">✓</tspan><tspan fill="#c9d4cc"> preflight</tspan><tspan fill="#7f9186"> host key SHA256 pinned · sudo ok</tspan></text>
+      <text class="line l5" x="22" y="206"><tspan fill="#5fd38a">✓</tspan><tspan fill="#c9d4cc"> run      </tspan><tspan fill="#7f9186">rhel-web-01  rhel-web-02  rhel-db-01</tspan></text>
+      <text class="line l6" x="22" y="238"><tspan fill="#5fd38a">●</tspan><tspan fill="#ffffff" font-weight="700"> SUCCESS  </tspan><tspan fill="#7f9186">3/3 machines · saved to history</tspan></text>
+      <text x="22" y="270" fill="#5fd38a">$ <tspan class="cursor">▍</tspan></text>
+    </g>
+  </g>
+</svg>
