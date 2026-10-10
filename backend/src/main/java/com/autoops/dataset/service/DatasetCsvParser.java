@@ -38,6 +38,11 @@ public final class DatasetCsvParser {
     private DatasetCsvParser() {
     }
 
+    /** Canonical column for a header or JSON key (case-insensitive, spaces as underscores), or null when unknown. */
+    static String canonical(String key) {
+        return key == null ? null : ALIASES.get(key.replace("﻿", "").trim().toLowerCase(Locale.ROOT).replace(' ', '_'));
+    }
+
     /** Streams rows to {@code consumer}; returns the normalized header. Throws IllegalArgumentException on malformed input. */
     public static Header parse(InputStream input, Consumer<Row> consumer) {
         CSVFormat format = CSVFormat.RFC4180.builder()
@@ -55,8 +60,7 @@ public final class DatasetCsvParser {
             Map<String, String> mapping = new LinkedHashMap<>();
             List<String> unknown = new ArrayList<>();
             for (String h : raw.keySet()) {
-                String key = h == null ? "" : h.replace("﻿", "").trim().toLowerCase(Locale.ROOT).replace(' ', '_');
-                String canonical = ALIASES.get(key);
+                String canonical = canonical(h);
                 if (canonical == null) {
                     unknown.add(h);
                 } else if (!mapping.containsValue(canonical)) {

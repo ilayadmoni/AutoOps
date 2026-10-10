@@ -16,7 +16,7 @@ export const loginCopy: Record<Lang, {
   environment: string;
 }> = {
   en: {
-    headline: 'Run approved operations across your RHEL fleet.',
+    headline: 'Run approved operations across your Linux fleet.',
     summary: 'Command Bank, workflows, and live execution history over verified SSH.',
     points: [
       'Pinned host keys on every connection',
@@ -35,7 +35,7 @@ export const loginCopy: Record<Lang, {
     environment: 'SECURE OPERATIONS CONSOLE',
   },
   he: {
-    headline: 'הריצו פעולות מאושרות על צי שרתי ה־RHEL שלכם.',
+    headline: 'הריצו פעולות מאושרות על צי שרתי הלינוקס שלכם.',
     summary: 'מאגר פקודות, תהליכי עבודה והיסטוריית הרצות חיה דרך SSH מאומת.',
     points: [
       'מפתחות מארח מוצמדים בכל חיבור',

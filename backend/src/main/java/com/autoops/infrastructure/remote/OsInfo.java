@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /** Parsed /etc/os-release. */
@@ -39,6 +40,11 @@ public record OsInfo(String id, String idLike, String name, String versionId, St
             return true;
         }
         return Arrays.stream(idLike.toLowerCase(Locale.ROOT).split("\\s+")).anyMatch("rhel"::equals);
+    }
+
+    /** Distribution family (RHEL, DEBIAN, SUSE...), or empty for a distro outside the known families. */
+    public Optional<OsFamily> family() {
+        return OsFamily.ofRelease(id, idLike);
     }
 
     public String display() {

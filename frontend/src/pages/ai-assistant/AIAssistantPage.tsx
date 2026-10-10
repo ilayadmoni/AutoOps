@@ -1,136 +1,66 @@
 import { useEffect, useRef, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import { History, MessageSquarePlus, Workflow as WorkflowIcon } from 'lucide-react';
-import { ApiError, del, get, post } from '../../services/client';
-import type { AIOperation, ChatReply, ConversationSummary, ConversationView, WorkflowNode } from '../../types/api';
-import { ErrorAlert, IconButton } from '../../components/ui';
-import { setAiDraft, getCurrentDraft } from '../../features/workflows/draftStore';
-import RunCommandModal, { type RunCommandInitial } from '../../features/commands/RunCommandModal';
+import { ApiError } from '../../services/client';
+import type { AIOperation } from '../../types/api';
+import { ErrorAlert, IconButton, errorMessage } from '../../components/ui';
+import RunCommandModal from '../../features/commands/RunCommandModal';
 import ConversationRail from '../../features/ai-assistant/ConversationRail';
-import ChatMessage, { ThinkingMessage, type Msg } from '../../features/ai-assistant/ChatMessage';
+import ChatMessage, { ThinkingMessage } from '../../features/ai-assistant/ChatMessage';
 import ChatHero from '../../features/ai-assistant/ChatHero';
 import Composer from '../../features/ai-assistant/Composer';
-import WorkflowPreview from '../../features/ai-assistant/WorkflowPreview';
-import { useWorkflowCanvas } from '../../features/ai-assistant/useWorkflowCanvas';
+import MachineForm, { type MachineDraft } from '../../features/machines/MachineForm';
+import WorkflowWorkspace from '../../features/ai-assistant/workspace/WorkflowWorkspace';
+import { proposalOf } from '../../features/ai-assistant/workspace/model';
+import { forgetWorkspace } from '../../features/ai-assistant/workspace/store';
+import { useWorkflowWorkspace } from '../../features/ai-assistant/workspace/useWorkflowWorkspace';
+import { useChatSession } from '../../features/ai-assistant/useChatSession';
+import { useProposalActions } from '../../features/ai-assistant/useProposalActions';
+import { useConversationRail } from '../../features/ai-assistant/useConversationRail';
 import { useI18n } from '../../app/providers/I18nProvider';
 
-/** Below this width the rail would squeeze the thread, so it starts collapsed. */
-const RAIL_MIN_VIEWPORT = 1180;
-const RAIL_KEY = 'autoops.ai.historyOpen';
-
-/** The user's last explicit choice wins; without one, the rail opens only on wide screens. */
-function initialRail() {
-  try {
-    const saved = localStorage.getItem(RAIL_KEY);
-    if (saved === '1' || saved === '0') return saved === '1';
-  } catch {
-    // storage unavailable
-  }
-  return window.innerWidth >= RAIL_MIN_VIEWPORT;
-}
-
-function rememberRail(open: boolean) {
-  try {
-    localStorage.setItem(RAIL_KEY, open ? '1' : '0');
-  } catch {
-    // storage unavailable
-  }
-}
+const isDraft = (op: AIOperation) => op.type === 'REPLACE_WORKFLOW_DRAFT';
 
 export default function AIAssistantPage() {
   const { t } = useI18n();
-  const nav = useNavigate();
-  const qc = useQueryClient();
-  const status = useQuery({ queryKey: ['ai', 'status'], queryFn: () => get<{ configured: boolean }>('/ai/status') });
-  const conversations = useQuery({ queryKey: ['ai', 'conversations'], queryFn: () => get<ConversationSummary[]>('/ai/conversations') });
-  const [conversationId, setConversationId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [text, setText] = useState('');
-  const [runInitial, setRunInitial] = useState<RunCommandInitial | null>(null);
-  const [railOpen, setRailOpen] = useState(initialRail);
-  const scroller = useRef<HTMLDivElement>(null);
-
-  const send = useMutation({
-    mutationFn: (message: string) => {
-      const draft = getCurrentDraft();
-      return post<ChatReply>('/ai/chat', { conversationId, message, draftSummary: draft ? JSON.stringify(draft) : null });
+  const workspace = useWorkflowWorkspace();
+  const [closed, setClosed] = useState(false);
+  const session = useChatSession({
+    prepare: (text, refs) => {
+      setClosed(false);
+      return workspace.begin(text, refs.servers.map((s) => ({ id: s.id, name: s.label })), refs.files.map((f) => ({ id: f.id, name: f.label })));
     },
-    onMutate: (message) => setMessages((m) => [...m, { role: 'user', content: message }]),
-    onSuccess: (r) => {
-      setConversationId(r.conversationId);
-      setMessages((m) => [...m, { role: 'assistant', content: r.message, operations: r.operations }]);
-      qc.invalidateQueries({ queryKey: ['ai', 'conversations'] });
+    onReply: (reply, request, current) => {
+      if (current) workspace.bind(reply.conversationId);
+      const op = reply.operations.filter(isDraft).at(-1);
+      if (op) { workspace.receive(reply.conversationId, op, request.revision, current); if (current) setClosed(false); }
+    },
+    onFail: (error, _request, current) => {
+      if (!current) return;
+      workspace.dispatch({ type: 'failure', failure: { message: errorMessage(error), code: error instanceof ApiError ? error.code : undefined } });
+      setClosed(false);
     },
   });
-
-  const canvas = useWorkflowCanvas(messages, send.isPending ? send.variables ?? null : null);
-
-  // Scroll the thread itself. scrollIntoView would also scroll every ancestor (the page body, the
-  // shell), which pushed the app header and the sidebar brand out of view.
+  const { status, conversations, conversationId, messages, send, attach, remove, submit } = session;
+  const { actions, reviewWorkflow, runInitial, setRunInitial, machineOp, setMachineOp, markAdded } = useProposalActions(submit, send.isPending);
+  const { railOpen, setRailOpen, toggleRail } = useConversationRail();
+  const scroller = useRef<HTMLDivElement>(null);
+  const started = workspace.state.started;
+  const open = started && !closed;
+  const reset = () => { session.reset(); workspace.reset(); setClosed(false); };
+  const openConversation = async (id: number) => { workspace.restore(id, await session.open(id)); setClosed(false); };
+  const showProposal = (op: AIOperation) => {
+    if (workspace.state.nodes.length && !window.confirm(t('ai.replaceDraftConfirm'))) return;
+    workspace.dispatch({ type: 'apply', proposal: proposalOf(op) }); setClosed(false);
+  };
   useEffect(() => {
     const el = scroller.current;
-    if (!el || (messages.length === 0 && !send.isPending)) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-  }, [messages, send.isPending]);
-
-  // The canvas needs the room: collapse history when the split opens.
-  useEffect(() => {
-    if (canvas.open) setRailOpen(false);
-  }, [canvas.open]);
-
-  const toggleRail = (open: boolean) => {
-    setRailOpen(open);
-    rememberRail(open);
-  };
-
-  const reset = () => {
-    setConversationId(null);
-    setMessages([]);
-    canvas.reset();
-    send.reset();
-  };
-
-  const open = async (id: number) => {
-    const c = await get<ConversationView>('/ai/conversations/' + id);
-    canvas.reset();
-    setConversationId(id);
-    setMessages(c.messages.map((m) => ({ role: m.role, content: m.content, operations: m.operations })));
-  };
-
-  const remove = useMutation({
-    mutationFn: (id: number) => del('/ai/conversations/' + id),
-    onSuccess: (_, id) => {
-      if (id === conversationId) reset();
-      qc.invalidateQueries({ queryKey: ['ai', 'conversations'] });
-    },
-  });
-
-  const submit = (value = text) => {
-    if (!value.trim() || send.isPending) return;
-    setText('');
-    send.mutate(value.trim());
-  };
-
-  const reviewWorkflow = (op: AIOperation) => {
-    const p = op.payload as { name?: string; description?: string; nodes?: WorkflowNode[] };
-    setAiDraft({ name: p.name ?? 'AI draft', description: p.description ?? '', nodes: p.nodes ?? [] });
-    nav('/workflows/new');
-  };
-
-  const reviewRun = (op: AIOperation) => {
-    const p = op.payload as { commandDefinitionId: number; machineIds?: number[]; parameters?: Record<string, string>; runWithSudo?: boolean };
-    setRunInitial({
-      commandId: p.commandDefinitionId,
-      machineIds: p.machineIds ?? [],
-      parameters: p.parameters ?? {},
-      runWithSudo: p.runWithSudo,
-    });
-  };
-
+    if (el && (messages.length > 0 || send.isPending)) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }, [messages, send.isPending, session.failed]);
+  useEffect(() => { if (open) setRailOpen(false); }, [open]);
   const notConfigured = !!status.data && !status.data.configured;
   const title = conversations.data?.find((c) => c.id === conversationId)?.title;
-  const classes = ['assistant', 'fillPage', railOpen ? 'withRail' : '', canvas.open ? 'split' : ''].filter(Boolean).join(' ');
+  const classes = ['assistant', 'fillPage', railOpen ? 'withRail' : '', open ? 'split' : ''].filter(Boolean).join(' ');
+  const lastDraft = messages.reduce((found, m, i) => (m.operations?.some(isDraft) ? i : found), -1);
 
   return (
     <section className={classes}>
@@ -139,8 +69,8 @@ export default function AIAssistantPage() {
           items={conversations.data ?? []}
           loading={conversations.isLoading}
           activeId={conversationId}
-          onOpen={open}
-          onDelete={(id) => remove.mutate(id)}
+          onOpen={openConversation}
+          onDelete={(id) => remove.mutate(id, { onSuccess: () => forgetWorkspace(id) })}
           onCollapse={() => toggleRail(false)}
         />
       )}
@@ -152,46 +82,52 @@ export default function AIAssistantPage() {
             </IconButton>
           )}
           <span className="chatTitle">{title ?? t('ai.newChat')}</span>
-          {canvas.hasDraft && !canvas.open && (
-            <IconButton label={t('ai.showCanvas')} onClick={canvas.reopen}><WorkflowIcon size={17} /></IconButton>
-          )}
+          {started && closed && <IconButton label={t('ai.showCanvas')} onClick={() => setClosed(false)}><WorkflowIcon size={17} /></IconButton>}
           <IconButton label={t('ai.newChat')} onClick={reset}><MessageSquarePlus size={17} /></IconButton>
         </header>
         <div className="chatScroll" ref={scroller}>
           <div className={'chatInner' + (messages.length === 0 ? ' isEmpty' : '')}>
             {notConfigured && <div className="alert info">{t('ai.notConfigured')}</div>}
-            {messages.length === 0 && !notConfigured && <ChatHero onPick={submit} />}
+            {messages.length === 0 && !notConfigured && <ChatHero />}
             {messages.map((m, i) => (
               <ChatMessage
                 key={i}
                 msg={m}
-                onCanvas={canvas.open && canvas.draft?.messageIndex === i}
-                onShow={() => canvas.show(i)}
-                onWorkflow={reviewWorkflow}
-                onRun={reviewRun}
+                reply={messages[i + 1]?.role === 'user' ? messages[i + 1].content : undefined}
+                failed={session.failed && i === messages.length - 1 && m.role === 'user'}
+                onCanvas={open && i === lastDraft}
+                onShow={() => { const op = m.operations?.find(isDraft); if (op) showProposal(op); }}
+                actions={actions}
               />
             ))}
             {send.isPending && <ThinkingMessage />}
-            {send.error && <ErrorAlert error={send.error as ApiError} />}
+            {session.failed && <ErrorAlert error={session.error} onRetry={session.retry} />}
           </div>
         </div>
         <Composer
-          value={text}
-          onChange={setText}
+          doc={session.doc}
+          onChange={session.setDoc}
           onSubmit={() => submit()}
           disabled={notConfigured}
           busy={send.isPending}
+          uploading={attach.isPending ? attach.variables?.name ?? null : null}
+          onUpload={(file) => attach.mutateAsync(file)}
         />
       </div>
-      {canvas.open && (
-        <WorkflowPreview
-          draft={canvas.draft}
-          building={canvas.building}
-          onOpenBuilder={() => canvas.draft && reviewWorkflow(canvas.draft.op)}
-          onClose={canvas.close}
+      {open && (
+        <WorkflowWorkspace
+          state={workspace.state} dispatch={workspace.dispatch} change={workspace.change}
+          building={send.isPending} canRetry={session.failed} onRetry={session.retry}
+          onClose={() => setClosed(true)}
         />
       )}
       {runInitial && <RunCommandModal initial={runInitial} onClose={() => setRunInitial(null)} />}
+      {machineOp && (
+        <MachineForm
+          machine={null} initial={machineOp.payload as MachineDraft}
+          onClose={() => setMachineOp(null)} onSaved={() => markAdded(machineOp)}
+        />
+      )}
     </section>
   );
 }

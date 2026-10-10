@@ -7,11 +7,15 @@
  * guarantees one height, one focus ring and one disabled treatment across every page.
  */
 export { default as Button, ButtonLink, IconButton } from './Button';
+export { default as Avatar } from './Avatar';
 export { default as Brand, BrandMark } from './Brand';
 export { default as Card, CardHeader, Stat } from './Card';
+export { NoMatches, SearchToolbar, useCollectionSearch } from './CollectionSearch';
 export { default as ConfirmDialog } from './ConfirmDialog';
+export { default as ChoiceList } from './ChoiceList';
 export { default as CopyButton } from './CopyButton';
 export { default as Fab } from './Fab';
+export { default as FileChip } from './FileChip';
 export { default as FilePicker } from './FilePicker';
 export { default as Menu } from './Menu';
 export { default as Modal } from './Modal';
@@ -28,11 +32,12 @@ export { default as NumberInput } from './NumberInput';
 export { default as Progress } from './Progress';
 export { default as Checkbox, Radio, Switch } from './Toggle';
 
-export { BootLoader, Loading, SkeletonList, Spinner } from './Loaders';
+export { BootLoader, Loading, ProgressPanel, SkeletonList, Spinner } from './Loaders';
 export { RiskBadge, StatusBadge } from './Badges';
 export { Code, EmptyState, ErrorAlert, Field, Output, errorMessage } from './Feedback';
 
 export type { ButtonProps } from './Button';
 export type { SegmentedOption } from './Segmented';
+export type { Choice } from './ChoiceList';
 export type { SelectOption } from './Select';
 export type { MenuItem } from './Menu';

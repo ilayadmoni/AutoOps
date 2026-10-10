@@ -1,8 +1,7 @@
 import type { WorkflowDraft } from '../../types/api';
 
-/** Hand-off of AI-proposed drafts to the builder, and of the builder's current draft to the assistant. Local only. */
+/** Hand-off of AI-proposed drafts to the builder. Local only; the assistant's own draft lives in its workspace store. */
 const AI_DRAFT = 'autoops.workflow.aiDraft';
-const CURRENT = 'autoops.workflow.current';
 
 function read(key: string): WorkflowDraft | null {
   try {
@@ -28,5 +27,3 @@ export const takeAiDraft = () => {
   write(AI_DRAFT, null);
   return d;
 };
-export const setCurrentDraft = (d: WorkflowDraft | null) => write(CURRENT, d);
-export const getCurrentDraft = () => read(CURRENT);

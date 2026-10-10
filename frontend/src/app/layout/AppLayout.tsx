@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Bot, Server, Workflow, TerminalSquare, History, Settings, Shield, KeyRound, FileUp, Menu, CheckSquare, Users, Database, ScrollText } from 'lucide-react';
+import { Bot, Server, Workflow, TerminalSquare, History, Shield, KeyRound, FileUp, Menu, CheckSquare, Users, Database, ScrollText } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { useI18n } from '../providers/I18nProvider';
 import { Brand, IconButton, PageIconContext } from '../../components/ui';
@@ -12,10 +12,10 @@ import AppControls from '../../components/AppControls';
 
 /** Section icons, longest prefix first, so a detail route takes its parent section's icon. */
 const SECTION_ICONS: [string, ReactNode][] = [
-  ['/admin/users', <Users />], ['/admin/commands', <TerminalSquare />], ['/admin/datasets', <Database />],
+  ['/admin/users', <Users />], ['/admin/datasets', <Database />],
   ['/admin/audit', <ScrollText />], ['/admin', <Shield />], ['/workflows', <Workflow />], ['/commands', <TerminalSquare />],
   ['/machines', <Server />], ['/credentials', <KeyRound />], ['/files', <FileUp />], ['/executions', <History />],
-  ['/approvals', <CheckSquare />], ['/settings', <Settings />], ['/', <Bot />],
+  ['/approvals', <CheckSquare />], ['/', <Bot />],
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -52,12 +52,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <div className="navSection">{t('nav.admin')}</div>
             {link('/admin', <Shield />, t('nav.adminOverview'))}
             {link('/admin/users', <Users />, t('nav.users'))}
-            {link('/admin/commands', <TerminalSquare />, t('nav.commandApprovals'))}
             {link('/admin/datasets', <Database />, t('nav.datasets'))}
             {link('/admin/audit', <ScrollText />, t('nav.audit'))}
           </>)}
-          {/* Language and theme live in the top pill, so Settings only carries admin value. */}
-          {isAdmin && link('/settings', <Settings />, t('nav.settings'))}
         </nav>
         <SidebarFooter />
       </aside>

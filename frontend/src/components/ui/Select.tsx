@@ -1,21 +1,33 @@
 import {
-  useEffect, useId, useRef, useState,
+  isValidElement, useEffect, useId, useRef, useState,
   type ChangeEvent, type KeyboardEvent, type ReactNode, type SelectHTMLAttributes,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Search } from 'lucide-react';
+import { useI18n } from '../../app/providers/I18nProvider';
 import { useFloating } from './floating';
 
-export type SelectOption = { value: string | number; label: ReactNode; hint?: ReactNode; disabled?: boolean };
+/** `search` overrides the text matched against the query when the label is not plain text. */
+export type SelectOption = { value: string | number; label: ReactNode; hint?: ReactNode; disabled?: boolean; search?: string };
+
+/** Lists longer than this get a search field; shorter ones stay a plain list. */
+const SEARCH_THRESHOLD = 7;
 
 type Props = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> & {
   options?: SelectOption[];
   children?: ReactNode;
   placeholder?: string;
   block?: boolean;
+  /** Force the search field on or off. Defaults to on for lists longer than a handful of options. */
+  searchable?: boolean;
 };
 
-const textOf = (label: ReactNode) => (typeof label === 'string' || typeof label === 'number' ? String(label) : '');
+const textOf = (label: ReactNode): string => {
+  if (typeof label === 'string' || typeof label === 'number') return String(label);
+  if (Array.isArray(label)) return label.map(textOf).join('');
+  if (isValidElement<{ children?: ReactNode }>(label)) return textOf(label.props.children);
+  return '';
+};
 
 /**
  * Themed listbox. A visually hidden native `<select>` keeps `name`, form submission and label
@@ -26,7 +38,7 @@ const textOf = (label: ReactNode) => (typeof label === 'string' || typeof label 
  * arrows on the closed trigger step the value directly (as a native select does).
  */
 export default function Select({
-  options = [], children, placeholder, block, className, value, defaultValue,
+  options = [], children, placeholder, block, searchable, className, value, defaultValue,
   disabled, onChange, name, id, 'aria-label': ariaLabel,
   'aria-describedby': describedBy, 'aria-invalid': invalid, ...rest
 }: Props) {
@@ -39,16 +51,28 @@ export default function Select({
   const [internalValue, setInternalValue] = useState(String(value ?? defaultValue ?? ''));
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [query, setQuery] = useState('');
+  const search = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
   const pos = useFloating(open, trigger, menu, { matchWidth: true, offset: 4 });
 
   const currentValue = value !== undefined && value !== null ? String(value) : internalValue;
   const all: SelectOption[] = placeholder !== undefined ? [{ value: '', label: placeholder }, ...options] : options;
   const selectedIndex = all.findIndex((o) => String(o.value) === currentValue);
   const selected = all[selectedIndex];
+  const withSearch = searchable ?? options.length > SEARCH_THRESHOLD;
+  const needle = query.trim().toLowerCase();
+  // Indices into `all` that survive the query; the placeholder row is dropped while searching.
+  const shown = all.map((_, i) => i).filter((i) => {
+    if (!needle) return true;
+    const o = all[i];
+    return String(o.value) !== '' && `${o.search ?? textOf(o.label)} ${textOf(o.hint)}`.toLowerCase().includes(needle);
+  });
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setQuery(''); return; }
     setActive(selectedIndex >= 0 ? selectedIndex : all.findIndex((o) => !o.disabled));
+    if (withSearch) requestAnimationFrame(() => search.current?.focus());
     const close = (event: MouseEvent) => {
       const t = event.target as Node;
       if (!trigger.current?.contains(t) && !menu.current?.contains(t)) setOpen(false);
@@ -58,6 +82,12 @@ export default function Select({
     // Only on open: the highlight should not snap back while the user is moving it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Typing narrows the list; keep the highlight on the first surviving option so Enter picks it.
+  useEffect(() => {
+    if (open && needle) setActive(all.findIndex((_, i) => shown.includes(i) && !all[i].disabled));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needle]);
 
   useEffect(() => {
     if (!open || active < 0) return;
@@ -78,17 +108,29 @@ export default function Select({
   }
 
   function step(from: number, delta: number) {
-    for (let i = 1; i <= all.length; i++) {
-      const index = (from + delta * i + all.length * 2) % all.length;
+    const pool = open ? shown : all.map((_, i) => i);
+    if (!pool.length) return from;
+    const at = pool.indexOf(from);
+    for (let i = 1; i <= pool.length; i++) {
+      const index = pool[((at < 0 ? (delta > 0 ? -1 : 0) : at) + delta * i + pool.length * 2) % pool.length];
       if (!all[index].disabled) return index;
     }
     return from;
+  }
+
+  function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    const { key } = event;
+    if (key === 'Escape') { event.preventDefault(); event.stopPropagation(); setOpen(false); trigger.current?.focus(); }
+    else if (key === 'Tab') setOpen(false);
+    else if (key === 'ArrowDown' || key === 'ArrowUp') { event.preventDefault(); setActive((a) => step(a, key === 'ArrowDown' ? 1 : -1)); }
+    else if (key === 'Enter') { event.preventDefault(); if (shown.includes(active)) choose(active); }
   }
 
   function typeAhead(key: string) {
     const now = Date.now();
     typed.current = { text: (now - typed.current.at > 600 ? '' : typed.current.text) + key.toLowerCase(), at: now };
     const start = open ? active : selectedIndex;
+    if (open && withSearch) return -1;
     for (let i = 1; i <= all.length; i++) {
       const index = (start + i) % all.length;
       if (!all[index].disabled && textOf(all[index].label).toLowerCase().startsWith(typed.current.text)) return index;
@@ -181,7 +223,21 @@ export default function Select({
           style={pos.style}
           onClick={(e) => e.stopPropagation()}
         >
-          {all.map((option, index) => {
+          {withSearch && (
+            <div className="selectSearch">
+              <Search size={14} aria-hidden="true" />
+              <input
+                ref={search} type="text" value={query} placeholder={t('select.search')} aria-label={t('select.search')}
+                aria-controls={listId} aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+                autoComplete="off" spellCheck={false}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={onSearchKeyDown}
+              />
+            </div>
+          )}
+          {!shown.length && <div className="selectEmpty">{t('select.noResults')}</div>}
+          {shown.map((index) => {
+            const option = all[index];
             const optionValue = String(option.value);
             const isSelected = optionValue === currentValue;
             return (

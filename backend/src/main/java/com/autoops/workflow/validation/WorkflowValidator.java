@@ -168,7 +168,7 @@ public class WorkflowValidator {
     private void validateFile(WorkflowDtos.Node n, Long userId, List<WorkflowDtos.ValidationError> errors) {
         if (n.storedFileId() == null) {
             errors.add(new WorkflowDtos.ValidationError(n.key(), "storedFileId", "Select an uploaded file"));
-        } else if (files.findByIdAndCreatedByAndDeletedAtIsNull(n.storedFileId(), userId).isEmpty()) {
+        } else if (files.findByIdAndDeletedAtIsNull(n.storedFileId()).isEmpty()) {
             errors.add(new WorkflowDtos.ValidationError(n.key(), "storedFileId", "File not found"));
         }
         String p = n.destinationPath();

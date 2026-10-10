@@ -2,6 +2,9 @@ import type { NodeType, ValidationError, WorkflowNode } from '../../../types/api
 
 export type Errors = Record<string, Record<string, string>>;
 
+/** Matches `.inspector` in flow.css. The canvas shifts by half of it so the edited step stays visible. */
+export const INSPECTOR_WIDTH = 352;
+
 /** Creates a step with the defaults the engine expects, and a key that is free in this draft. */
 export function newNode(type: NodeType, existing: WorkflowNode[]): WorkflowNode {
   let i = existing.length + 1;

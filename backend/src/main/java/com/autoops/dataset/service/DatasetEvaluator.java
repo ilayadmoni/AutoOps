@@ -6,6 +6,7 @@ import com.autoops.command.risk.CommandRiskAnalyzer;
 import com.autoops.command.service.CommandTemplateService;
 import com.autoops.command.service.ParameterSpec;
 import com.autoops.common.error.ApiException;
+import com.autoops.infrastructure.remote.OsFamily;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
@@ -15,16 +16,11 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * Evaluates every CSV row: normalization, validation, RHEL applicability, de-duplication (within the file and against
+ * Evaluates every dataset row (CSV or JSON): normalization, validation, Linux applicability, de-duplication (within the file and against
  * the Command Bank) and server-side risk. Used both for the preview and, again, at import time.
  */
 @Component
 public class DatasetEvaluator {
-    private static final java.util.regex.Pattern RHEL = java.util.regex.Pattern.compile(
-            "\\b(rhel\\d*|red ?hat|redhat|centos|rocky|alma(linux)?|oracle linux|el\\d+|linux|any|all)\\b");
-    private static final java.util.regex.Pattern NON_RHEL = java.util.regex.Pattern.compile(
-            "\\b(ubuntu|debian|mint|suse|sles|opensuse|alpine|arch|gentoo|windows|macos|darwin|osx|freebsd|openbsd|solaris|aix|hp-ux)\\b");
-
     private final CommandTemplateService templates;
     private final CommandRiskAnalyzer risk;
     private final CommandDefinitionRepository commands;
@@ -38,19 +34,19 @@ public class DatasetEvaluator {
     }
 
     public record Candidate(long line, String name, String description, String category, String action, String resourceType,
-                            String template, List<ParameterSpec> parameters, String risk) {
+                            String template, List<ParameterSpec> parameters, String risk, String supportedOs) {
     }
 
     public record Issue(long line, String kind, String message) {
     }
 
-    public record Result(DatasetCsvParser.Header header, int total, int invalid, int nonRhel, int duplicates) {
+    public record Result(DatasetCsvParser.Header header, int total, int invalid, int nonLinux, int duplicates) {
     }
 
-    public Result evaluate(InputStream in, Consumer<Candidate> candidates, Consumer<Issue> issues) {
+    public Result evaluate(InputStream in, DatasetFormat format, Consumer<Candidate> candidates, Consumer<Issue> issues) {
         Set<String> seen = new HashSet<>();
         int[] counts = new int[4];
-        var header = DatasetCsvParser.parse(in, row -> {
+        var header = format.parse(in, row -> {
             counts[0]++;
             var v = row.values();
             if (!row.consistent()) {
@@ -70,10 +66,11 @@ public class DatasetEvaluator {
                 issues.accept(new Issue(row.line(), "INVALID", "Command is required (max 4000 characters)"));
                 return;
             }
-            String os = v.getOrDefault("os", "").strip().toLowerCase(Locale.ROOT);
-            if (!os.isEmpty() && Arrays.stream(os.split("[,;/|]")).map(String::strip).noneMatch(DatasetEvaluator::rhelApplicable)) {
+            String os = v.getOrDefault("os", "").strip();
+            Set<OsFamily> families = supportedFamilies(os, template).orElse(null);
+            if (families == null) {
                 counts[2]++;
-                issues.accept(new Issue(row.line(), "NON_RHEL", "Not applicable to RHEL (" + clip(os) + ")"));
+                issues.accept(new Issue(row.line(), "NON_LINUX", "Not a Linux command (" + clip(os) + ")"));
                 return;
             }
             List<ParameterSpec> declared = null;
@@ -109,13 +106,18 @@ public class DatasetEvaluator {
             }
             candidates.accept(new Candidate(row.line(), name, blankToNull(v.get("description")),
                     v.getOrDefault("category", "").isBlank() ? "IMPORTED" : clip(v.get("category").strip().toUpperCase(Locale.ROOT), 80),
-                    blankToNull(v.get("action")), blankToNull(v.get("resource_type")), template, specs, risk.analyze(template).name()));
+                    blankToNull(v.get("action")), blankToNull(v.get("resource_type")), template, specs, risk.analyze(template).name(),
+                    OsFamily.format(families)));
         });
         return new Result(header, counts[0], counts[1], counts[2], counts[3]);
     }
 
-    static boolean rhelApplicable(String osEntry) {
-        return !NON_RHEL.matcher(osEntry).find() && RHEL.matcher(osEntry).find();
+    /**
+     * Families from the row's OS value; empty when it names only non-Linux systems. A generic "linux" (or blank)
+     * value is narrowed by the template's tool, so an apt command is never stored as runnable everywhere.
+     */
+    static Optional<Set<OsFamily>> supportedFamilies(String os, String template) {
+        return OsFamily.ofDatasetValue(os).map(f -> f.contains(OsFamily.LINUX) ? OsFamily.ofTemplate(template) : f);
     }
 
     private static String blankToNull(String s) {

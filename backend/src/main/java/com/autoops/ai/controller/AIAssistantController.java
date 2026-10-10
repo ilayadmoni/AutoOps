@@ -4,6 +4,7 @@ import com.autoops.ai.provider.AIProvider;
 import com.autoops.ai.service.AIChatService;
 import com.autoops.common.security.CurrentUser;
 import com.autoops.conversation.service.ConversationService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,8 @@ public class AIAssistantController {
         this.current = current;
     }
 
-    public record ChatRequest(Long conversationId, @Size(max = 4000) String message, @Size(max = 20000) String draftSummary) {
+    public record ChatRequest(Long conversationId, @Size(max = 4000) String message, @Size(max = 20000) String draftSummary,
+                              @Size(max = 5) List<Long> fileIds, @Size(max = 20) List<Long> machineIds) {
     }
 
     @GetMapping("/status")
@@ -35,8 +37,8 @@ public class AIAssistantController {
     }
 
     @PostMapping("/chat")
-    public AIChatService.Reply chat(@RequestBody ChatRequest r) {
-        return chat.ask(current.id(), r.conversationId(), r.message(), r.draftSummary());
+    public AIChatService.Reply chat(@Valid @RequestBody ChatRequest r) {
+        return chat.ask(current.id(), r.conversationId(), r.message(), r.draftSummary(), r.fileIds(), r.machineIds());
     }
 
     @GetMapping("/conversations")

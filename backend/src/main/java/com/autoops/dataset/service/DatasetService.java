@@ -84,19 +84,18 @@ public class DatasetService {
 
     public DatasetDtos.DatasetView upload(Long adminId, MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw ApiException.validation("A CSV file is required");
+            throw ApiException.validation("A CSV or JSON file is required");
         }
         if (file.getSize() > maxBytes) {
             throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "Dataset exceeds the maximum allowed size");
         }
         String name = Objects.toString(file.getOriginalFilename(), "dataset.csv").replaceAll("[\\p{Cntrl}/\\\\\"]", "_");
-        if (!name.toLowerCase(Locale.ROOT).endsWith(".csv")) {
-            throw ApiException.validation("Only .csv datasets are supported");
-        }
-        String key = "datasets/" + UUID.randomUUID() + ".csv";
+        DatasetFormat format = DatasetFormat.fromFilename(name)
+                .orElseThrow(() -> ApiException.validation("Only .csv and .json datasets are supported"));
+        String key = "datasets/" + UUID.randomUUID() + format.extension();
         String checksum;
         try (InputStream raw = file.getInputStream(); DigestInputStream in = new DigestInputStream(raw, MessageDigest.getInstance("SHA-256"))) {
-            storage.put(key, in, file.getSize(), "text/csv");
+            storage.put(key, in, file.getSize(), format.contentType());
             checksum = HexFormat.of().formatHex(in.getMessageDigest().digest());
         } catch (ObjectStorageService.StorageException e) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "STORAGE_UNAVAILABLE", e.getMessage());
@@ -117,6 +116,11 @@ public class DatasetService {
         return DatasetDtos.DatasetView.from(d, null);
     }
 
+    /** Imports created before JSON support are all CSV, so an unknown extension falls back to CSV. */
+    private static DatasetFormat formatOf(DatasetImport d) {
+        return DatasetFormat.fromFilename(d.getFilename()).orElse(DatasetFormat.CSV);
+    }
+
     /** Background analysis: counts, issues and a preview. No command is created here. */
     void analyze(Long id) {
         if (!transition(id, Set.of("UPLOADED", "ANALYZING"), "ANALYZING")) {
@@ -128,7 +132,7 @@ public class DatasetService {
         Map<String, Integer> riskCounts = new TreeMap<>();
         int[] candidates = {0};
         try (InputStream in = storage.get(d.getObjectKey())) {
-            var result = evaluator.evaluate(in, c -> {
+            var result = evaluator.evaluate(in, formatOf(d), c -> {
                 candidates[0]++;
                 riskCounts.merge(c.risk(), 1, Integer::sum);
                 if (preview.size() < PREVIEW) {
@@ -144,15 +148,15 @@ public class DatasetService {
             analysis.put("ignoredColumns", result.header().unknown());
             analysis.put("riskCounts", riskCounts);
             analysis.put("preview", preview.stream().map(c -> Map.of("line", c.line(), "name", c.name(), "category", c.category(),
-                    "template", c.template(), "risk", c.risk(), "parameters", c.parameters().stream().map(p -> p.name()).toList())).toList());
+                    "template", c.template(), "risk", c.risk(), "os", c.supportedOs(), "parameters", c.parameters().stream().map(p -> p.name()).toList())).toList());
             analysis.put("issues", issues);
             update(id, x -> {
                 x.setTotalRecords(result.total());
                 x.setCandidateRecords(candidates[0]);
                 x.setInvalidRecords(result.invalid());
-                x.setNonRhelRecords(result.nonRhel());
+                x.setNonRhelRecords(result.nonLinux());
                 x.setDuplicateRecords(result.duplicates());
-                x.setRejectedRecords(result.invalid() + result.nonRhel());
+                x.setRejectedRecords(result.invalid() + result.nonLinux());
                 x.setAnalysis(write(analysis));
                 x.setStatus("READY_FOR_REVIEW");
                 x.setErrorMessage(null);
@@ -166,8 +170,7 @@ public class DatasetService {
         }
     }
 
-    public DatasetDtos.DatasetView confirm(Long adminId, Long id, String approveUpTo) {
-        String level = approveUpTo == null ? "NONE" : approveUpTo;
+    public DatasetDtos.DatasetView confirm(Long adminId, Long id) {
         tx.executeWithoutResult(s -> {
             DatasetImport d = load(id);
             if (!"READY_FOR_REVIEW".equals(d.getStatus())) {
@@ -179,14 +182,13 @@ public class DatasetService {
             d.setStatus("IMPORTING");
             d.setReviewedBy(adminId);
             d.setReviewedAt(Instant.now());
-            d.setApproveUpTo(level);
             d.setStartedAt(Instant.now());
             d.setProcessedRecords(0);
             d.setAddedRecords(0);
             d.setFailedRecords(0);
             repo.save(d);
         });
-        audit.record(adminId, "DATASET_CONFIRMED", "DATASET", id, Map.of("approveUpTo", level));
+        audit.record(adminId, "DATASET_CONFIRMED", "DATASET", id, Map.of());
         worker.execute(() -> importRows(id));
         return get(id);
     }
@@ -208,19 +210,44 @@ public class DatasetService {
     }
 
     /**
+     * Deletes an import, its stored file and the commands it added. Commands a workflow or past execution uses are
+     * kept (the foreign key unlinks them). Not allowed while the import is being analyzed or imported.
+     */
+    public DatasetDtos.DeleteResult delete(Long adminId, Long id) {
+        int[] counts = new int[2];
+        String objectKey = tx.execute(s -> {
+            DatasetImport d = load(id);
+            if (Set.of("ANALYZING", "IMPORTING").contains(d.getStatus())) {
+                throw ApiException.conflict("DATASET_BUSY", "Wait until this dataset finishes processing before deleting it");
+            }
+            List<Long> added = commands.findByDatasetImportId(id).stream().map(CommandDefinition::getId).toList();
+            Set<Long> inUse = added.isEmpty() ? Set.of() : new HashSet<>(commands.findReferencedIds(added));
+            List<Long> removable = added.stream().filter(c -> !inUse.contains(c)).toList();
+            commands.deleteAllByIdInBatch(removable);
+            counts[0] = removable.size();
+            counts[1] = inUse.size();
+            repo.delete(d);
+            return d.getObjectKey();
+        });
+        try {
+            storage.delete(objectKey);
+        } catch (ObjectStorageService.StorageException e) {
+            log.warn("Dataset {} file {} was not removed from storage: {}", id, objectKey, e.getMessage());
+        }
+        audit.record(adminId, "DATASET_DELETED", "DATASET", id, Map.of("deletedCommands", counts[0], "keptCommands", counts[1]));
+        return new DatasetDtos.DeleteResult(counts[0], counts[1]);
+    }
+
+    /**
      * Import re-reads the stored original and re-evaluates every row (de-duplication against the Command Bank is
-     * repeated because it may have changed since analysis). Risk is computed server-side; HIGH never auto-approves.
+     * repeated because it may have changed since analysis). Risk is computed server-side; every imported command is
+     * approved, and HIGH-risk ones still need approval each time they run.
      */
     void importRows(Long id) {
         DatasetImport d = load(id);
-        int ceiling = switch (Objects.toString(d.getApproveUpTo(), "NONE")) {
-            case "LOW" -> 0;
-            case "MEDIUM" -> 1;
-            default -> -1;
-        };
         int[] processed = {0}, added = {0}, failed = {0};
         try (InputStream in = storage.get(d.getObjectKey())) {
-            var result = evaluator.evaluate(in, c -> {
+            var result = evaluator.evaluate(in, formatOf(d), c -> {
                 try {
                     tx.executeWithoutResult(s -> {
                         if (commands.existsByNormalizedTemplate(CommandDefinition.normalize(c.template()))) {
@@ -238,15 +265,12 @@ public class DatasetService {
                         cmd.setRiskLevel(r.name());
                         cmd.setRequiresApproval(r == CommandRiskAnalyzer.Risk.HIGH);
                         cmd.setSource("DATASET");
-                        cmd.setSupportedOs("RHEL");
+                        cmd.setSupportedOs(c.supportedOs());
+                        cmd.setDatasetImportId(id);
                         cmd.setCreatedBy(d.getUploadedBy());
-                        if (r != CommandRiskAnalyzer.Risk.HIGH && r.ordinal() <= ceiling) {
-                            cmd.setStatus(CommandDefinition.APPROVED);
-                            cmd.setApprovedBy(d.getReviewedBy());
-                            cmd.setApprovedAt(Instant.now());
-                        } else {
-                            cmd.setStatus(CommandDefinition.PENDING);
-                        }
+                        cmd.setStatus(CommandDefinition.APPROVED);
+                        cmd.setApprovedBy(d.getReviewedBy());
+                        cmd.setApprovedAt(Instant.now());
                         embeddings.index(commands.save(cmd));
                         added[0]++;
                     });

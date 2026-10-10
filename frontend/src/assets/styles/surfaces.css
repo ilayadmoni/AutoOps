@@ -18,12 +18,26 @@
 /* Card footer: actions pinned to the bottom edge, so a row of cards lines its buttons up. */
 .card:has(> .cardFoot) { display: flex; flex-direction: column; }
 .cardFoot {
-  display: flex; align-items: center; gap: var(--s2); margin-top: auto;
+  display: flex; align-items: center; flex-wrap: nowrap; gap: var(--s2); margin-top: auto;
   padding-top: var(--s3); border-top: 1px solid var(--border);
 }
+/* One row: text actions shrink to share the width; icon actions keep their size. */
+.cardFoot > .btn { flex: 1 1 auto; min-width: 0; justify-content: center; white-space: nowrap; }
+.cardFoot > .grow { display: none; }
+.cardFoot > .icon, .cardFoot > .tipHost { flex: none; }
+.cardFoot > .tipHost:has(> .btn) { flex: 1 1 auto; min-width: 0; }
+.cardFoot > .tipHost > .btn { width: 100%; justify-content: center; }
 .card:has(> .cardFoot) > .cardFoot { margin-top: auto; }
 .card:has(> .cardFoot) > :nth-last-child(2) { margin-bottom: var(--s1); }
 .table td.actionsCell { width: 1%; white-space: nowrap; }
+/* Centered columns. controlCell also keeps its control (role select...) compact instead of stretching. */
+.table th.centered, .table td.centered, .table th.controlCell, .table td.controlCell { text-align: center; }
+.table td.controlCell > .selectWrap { width: min(180px, 100%); text-align: start; }
+/* Even grid: every data column gets the same width; the actions column keeps a fixed width for its buttons. */
+.table.evenColumns { table-layout: fixed; }
+.table.evenColumns col.colActions { width: 176px; }
+.table.evenColumns td { overflow: hidden; text-overflow: ellipsis; }
+.table .centeredRow { justify-content: center; }
 .table td.actionsCell > .row { justify-content: flex-end; flex-wrap: nowrap; }
 /* Tile: icon + title + hint choice button (step palette, starter prompts). */
 .tile {
@@ -68,7 +82,10 @@
 .listItem:hover .listItemActions, .listItem:focus-within .listItemActions, .listItem.active .listItemActions { opacity: 1; }
 
 .cardHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s2); }
-.fp { word-break: break-all; }
+.fp { display: grid; gap: 2px; justify-items: start; line-height: 1.5; }
+.fp bdi { display: block; }
+.fp .fpHash { font-family: var(--font-mono); font-size: 11.5px; overflow-wrap: anywhere; }
+.lastTest { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s1); }
 
 .list { display: grid; gap: var(--s2); }
 .list.tight { gap: 2px; }
@@ -134,6 +151,7 @@
   padding: 2px 7px; font-size: 12.5px; direction: ltr; unicode-bidi: isolate; text-align: left; word-break: break-all;
 }
 .output { display: grid; gap: var(--s1); }
+.outputHead { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); min-height: 20px; }
 .outputLabel { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 650; }
 .output pre {
   margin: 0; background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -155,3 +173,33 @@
 /* Hosts a tooltip for a disabled control, which cannot receive pointer events itself. */
 .tipHost { display: inline-flex; border-radius: var(--radius-sm); }
 .tipHost > :disabled { pointer-events: none; }
+
+/* Avatar: a person's initial in a tinted rounded square, with an optional presence dot. */
+.avatar {
+  position: relative; flex: none; display: grid; place-items: center; border-radius: 30%;
+  font-weight: 700; color: var(--primary); background: var(--primary-soft);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+}
+.avatarStatus {
+  position: absolute; inset-block-end: -2px; inset-inline-end: -2px; width: 10px; height: 10px;
+  border-radius: var(--radius-pill); border: 2px solid var(--sidebar, var(--bg));
+}
+.avatarStatus.online { background: var(--ok); }
+
+/* File pill (FileChip): attachments in the composer and in sent messages. */
+.fileChip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 260px; height: 28px; padding-inline: 10px 6px;
+  border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface-2); font-size: 12.5px;
+}
+.fileChip > svg { color: var(--primary); flex: none; }
+.fileChip small { color: var(--muted); flex: none; }
+.fileChip.busy { opacity: .6; padding-inline-end: 10px; }
+.fileChipName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fileChipRemove {
+  display: grid; place-items: center; width: 18px; height: 18px; flex: none; border: 0; border-radius: var(--radius-pill);
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.fileChipRemove:hover { color: var(--bad); background: var(--bad-soft); }
+
+.card h3 { display: flex; align-items: center; gap: var(--s2); min-width: 0; overflow-wrap: anywhere; }
+.card h3 > svg { flex: none; }

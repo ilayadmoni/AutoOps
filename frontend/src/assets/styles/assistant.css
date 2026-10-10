@@ -147,32 +147,49 @@
 .composerWrap { padding: 0 var(--s5) var(--s4); }
 .split .composerWrap { padding-inline: var(--s4); }
 .composer {
-  width: 100%; max-width: 760px; margin-inline: auto; display: grid; gap: var(--s2);
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-  padding: var(--s3) var(--s3) var(--s2) var(--s4); box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--text) 25%, transparent), var(--inset-top);
+  width: 100%; max-width: 760px; margin-inline: auto; display: grid; gap: 0 var(--s2);
+  grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center;
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: 26px;
+  padding: var(--s2); box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 6%, transparent), 0 10px 28px -14px color-mix(in srgb, var(--text) 22%, transparent);
   transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
 }
-.composer:focus-within { border-color: color-mix(in srgb, var(--primary) 60%, var(--border)); box-shadow: 0 0 0 var(--ring-w) var(--primary-soft); }
-.composer textarea {
-  border: 0; background: transparent; padding: 0; min-height: 24px; max-height: 192px;
-  resize: none; line-height: 1.55; box-shadow: none; font-size: 14.5px;
+.composer:focus-within { border-color: color-mix(in srgb, var(--primary) 70%, var(--border-strong)); box-shadow: 0 0 0 4px var(--primary-soft), 0 10px 28px -14px color-mix(in srgb, var(--text) 22%, transparent); }
+.mentionEditor {
+  grid-row: 2; grid-column: 2; min-height: 26px; padding-inline: var(--s2); max-height: 192px; overflow-y: auto; outline: none; white-space: pre-wrap; overflow-wrap: anywhere;
+  line-height: 1.7; font-size: 14.5px; caret-color: var(--primary); position: relative;
 }
-.composer textarea:hover, .composer textarea:focus { outline: none; box-shadow: none; border: 0; }
-.composer textarea:disabled { background: transparent; }
-.composerBar { display: flex; align-items: center; gap: var(--s2); }
-.composerHint { font-size: 11px; color: var(--muted); }
-.composerHint kbd {
-  font: inherit; font-family: var(--font-mono); background: var(--surface-2);
-  border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 0 4px;
+.mentionEditor[data-empty]::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; position: absolute; inset-inline-start: 0; }
+.mentionEditor[aria-disabled='true'] { opacity: .6; }
+/* Inline resource tags, shared by the composer and sent messages. */
+.mentionTag {
+  display: inline-flex; align-items: center; gap: 0; vertical-align: baseline; max-width: 100%;
+  padding: 0 6px; margin-inline: 1px; border-radius: var(--radius-xs); line-height: 1.5; font-size: .94em;
+  background: var(--primary-soft); color: var(--primary); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  user-select: all; cursor: default; white-space: nowrap;
 }
+.mentionTag.isFile { background: color-mix(in srgb, var(--info) 14%, transparent); color: var(--info); }
+.mentionTag > span { overflow: hidden; text-overflow: ellipsis; max-width: 28ch; display: inline-flex; }
+.mentionTag button {
+  border: 0; background: transparent; color: inherit; padding: 0 2px; margin-inline-start: 4px; cursor: pointer; font-size: 1.1em; line-height: 1; opacity: .7;
+}
+.mentionTag button:hover, .mentionTag button:focus-visible { opacity: 1; }
+.composerBar { display: contents; }
+.composer > .composerFiles { grid-row: 1; grid-column: 1 / -1; padding: var(--s1, 4px) var(--s2) var(--s2); }
+.composerBar > .composerAttach, .composerBar > .tipHost:has(> .composerAttach) { grid-row: 2; grid-column: 1; }
+.composerBar .composerCount { grid-row: 2; grid-column: 3; }
+.composerBar .composerSend, .composerBar .tipHost:has(> .composerSend) { grid-row: 2; grid-column: 4; }
+.composerAttach { color: var(--muted); width: 34px; height: 34px; border: 1px solid var(--border); border-radius: var(--radius-pill); }
+.composerAttach:hover:not(:disabled), .composerAttach[aria-expanded='true'] { border-color: var(--border-strong); background: var(--surface-2); color: var(--text); }
+.composerFiles { display: flex; flex-wrap: wrap; gap: var(--s2); padding-bottom: var(--s2); }
+.composerUploading { display: inline-flex; align-items: center; gap: var(--s2); }
+.bubbleFiles { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--s2); }
 .composerCount { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .icon.composerSend {
-  margin-inline-start: auto; width: var(--control-h); height: var(--control-h); border-radius: var(--radius-sm);
+  width: 34px; height: 34px; border-radius: var(--radius-pill);
   background: var(--primary); color: var(--primary-ink);
 }
 .icon.composerSend:hover:not(:disabled) { background: color-mix(in srgb, var(--primary) 88%, var(--text)); color: var(--primary-ink); }
 .icon.composerSend:disabled { opacity: 1; background: var(--surface-2); color: var(--muted); }
-.tipHost:has(> .composerSend) { margin-inline-start: auto; }
 
 /* ---------- Split canvas pane ---------- */
 .previewPane {
@@ -218,3 +235,7 @@
 .ghostLine { width: 96px; height: 8px; border-radius: var(--radius-pill); background: var(--border); }
 .ghostLine.short { width: 60px; }
 @keyframes ghostPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
+/* Clarifying question: answers stacked, free-text answer underneath. */
+.questionOther { display: flex; gap: var(--s2); align-items: center; }
+.questionOther > input, .questionOther > .inputWrap { flex: 1; min-width: 0; }

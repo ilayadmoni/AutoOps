@@ -73,6 +73,16 @@ public class StoredFileService {
         } catch (Exception e) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "UPLOAD_FAILED", "Unable to read the uploaded file");
         }
+        // The same bytes under the same name are already stored: reuse that file instead of keeping a second copy.
+        var existing = repo.findFirstByOriginalFilenameAndChecksumAndDeletedAtIsNullOrderByIdAsc(filename, checksum);
+        if (existing.isPresent()) {
+            try {
+                storage.delete(key);
+            } catch (RuntimeException cleanup) {
+                log.warn("Could not remove duplicate object {}", key);
+            }
+            return view(existing.get());
+        }
         try {
             StoredFile stored = new StoredFile();
             stored.setOriginalFilename(filename);
@@ -96,7 +106,21 @@ public class StoredFileService {
 
     @Transactional(readOnly = true)
     public List<FileView> list(Long userId) {
-        return repo.findByCreatedByAndDeletedAtIsNullOrderByIdDesc(userId).stream().map(this::view).toList();
+        // Collapse copies of the same file (name + content): prefer one a workflow uses, else the newest.
+        Map<String, FileView> unique = new java.util.LinkedHashMap<>();
+        for (StoredFile f : repo.findByDeletedAtIsNullOrderByIdDesc()) {
+            String key = f.getOriginalFilename() + "|" + f.getChecksum();
+            FileView current = unique.get(key);
+            if (current == null) {
+                unique.put(key, view(f));
+            } else if (current.referencedBy().isEmpty()) {
+                FileView candidate = view(f);
+                if (!candidate.referencedBy().isEmpty()) {
+                    unique.put(key, candidate);
+                }
+            }
+        }
+        return List.copyOf(unique.values());
     }
 
     @Transactional(readOnly = true)
@@ -110,7 +134,7 @@ public class StoredFileService {
         if (id == null) {
             throw ApiException.validation("A stored file must be selected");
         }
-        return repo.findByIdAndCreatedByAndDeletedAtIsNull(id, userId).orElseThrow(() -> ApiException.notFound("File"));
+        return repo.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> ApiException.notFound("File"));
     }
 
     public InputStream open(StoredFile f) {

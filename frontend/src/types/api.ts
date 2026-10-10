@@ -23,7 +23,7 @@ export interface Discovery {
 
 export interface MachineTest {
   ssh: string; hostVerification: string; authentication: string; os: string; sudo: string;
-  osName?: string; osVersion?: string; rhelFamily: boolean; message: string;
+  osName?: string; osVersion?: string; osFamily?: string | null; message: string;
 }
 
 export type ParamType = 'STRING' | 'INTEGER' | 'PATH' | 'SERVICE' | 'PACKAGE' | 'HOSTNAME' | 'ENUM';
@@ -123,7 +123,7 @@ export interface StoredFile { id: number; filename: string; size: number; checks
 
 export interface MissingField { nodeKey?: string | null; field: string; message: string }
 
-export interface AIOperation { type: 'REPLACE_WORKFLOW_DRAFT' | 'PROPOSE_COMMAND_RUN'; payload: Record<string, unknown>; missingFields: MissingField[] }
+export interface AIOperation { type: 'REPLACE_WORKFLOW_DRAFT' | 'PROPOSE_COMMAND_RUN' | 'PROPOSE_NEW_COMMAND' | 'PROPOSE_MACHINE' | 'ASK_USER'; payload: Record<string, unknown>; missingFields: MissingField[] }
 
 export interface ChatReply {
   conversationId: number; messageId: number; message: string; operations: AIOperation[];
@@ -138,8 +138,8 @@ export interface ConversationView extends ConversationSummary { messages: Conver
 
 export interface DatasetView {
   id: number; filename: string; status: string; sizeBytes?: number; checksum?: string; totalRecords: number;
-  candidateRecords: number; invalidRecords: number; nonRhelRecords: number; duplicateRecords: number;
-  processedRecords: number; addedRecords: number; failedRecords: number; errorMessage?: string; approveUpTo?: string;
+  candidateRecords: number; invalidRecords: number; nonLinuxRecords: number; duplicateRecords: number;
+  processedRecords: number; addedRecords: number; failedRecords: number; errorMessage?: string;
   embeddingProvider?: string; embeddingModel?: string; uploadedBy: number; reviewedBy?: number; reviewedAt?: string;
   createdAt: string; startedAt?: string; finishedAt?: string;
   analysis?: {

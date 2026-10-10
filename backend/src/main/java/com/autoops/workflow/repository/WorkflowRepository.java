@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WorkflowRepository extends JpaRepository<Workflow, Long> {
-    List<Workflow> findByCreatedByAndDeletedAtIsNullOrderByUpdatedAtDesc(Long userId);
+    List<Workflow> findByDeletedAtIsNullOrderByUpdatedAtDesc();
 
-    Optional<Workflow> findByIdAndCreatedByAndDeletedAtIsNull(Long id, Long userId);
+    Optional<Workflow> findByIdAndDeletedAtIsNull(Long id);
 }

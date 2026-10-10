@@ -35,7 +35,7 @@ public class MachineTestService {
     }
 
     public record TestResult(String ssh, String hostVerification, String authentication, String os, String sudo,
-                             String osName, String osVersion, boolean rhelFamily, String message) {
+                             String osName, String osVersion, String osFamily, String message) {
     }
 
     public TestResult test(Long userId, Long machineId, Long credentialId, boolean checkSudo) {
@@ -75,16 +75,17 @@ public class MachineTestService {
                 }
             }
             String message = ("SUCCESS".equals(osStatus)
-                    ? "Connected to " + info.display() + (info.rhelFamily() ? "" : " (not a RHEL-family system)")
+                    ? "Connected to " + info.display()
                     : "Connected, but the operating system could not be detected") + sudoDetail;
             return new TestResult("SUCCESS", "SUCCESS", "SUCCESS", osStatus, sudo,
-                    info.known() ? info.name() : null, info.known() ? info.versionId() : null, info.rhelFamily(), message);
+                    info.known() ? info.name() : null, info.known() ? info.versionId() : null,
+                    info.family().map(Enum::name).orElse(null), message);
         } catch (RemoteException e) {
             return switch (e.kind()) {
-                case UNTRUSTED_HOST -> new TestResult("NOT_CHECKED", "UNTRUSTED", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", null, null, false, e.getMessage());
-                case HOST_KEY_MISMATCH -> new TestResult("SUCCESS", "MISMATCH", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", null, null, false, e.getMessage());
-                case AUTHENTICATION_FAILED -> new TestResult("SUCCESS", "SUCCESS", "FAILED", "NOT_CHECKED", "NOT_CHECKED", null, null, false, e.getMessage());
-                default -> new TestResult("FAILED", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", null, null, false, e.getMessage());
+                case UNTRUSTED_HOST -> new TestResult("NOT_CHECKED", "UNTRUSTED", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", null, null, null, e.getMessage());
+                case HOST_KEY_MISMATCH -> new TestResult("SUCCESS", "MISMATCH", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", null, null, null, e.getMessage());
+                case AUTHENTICATION_FAILED -> new TestResult("SUCCESS", "SUCCESS", "FAILED", "NOT_CHECKED", "NOT_CHECKED", null, null, null, e.getMessage());
+                default -> new TestResult("FAILED", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", "NOT_CHECKED", null, null, null, e.getMessage());
             };
         }
     }

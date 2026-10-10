@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MachineRepository extends JpaRepository<Machine, Long> {
-    List<Machine> findByCreatedByAndDeletedAtIsNullOrderByNameAsc(Long userId);
+    List<Machine> findByDeletedAtIsNullOrderByNameAsc();
 
-    Optional<Machine> findByIdAndCreatedByAndDeletedAtIsNull(Long id, Long userId);
+    Optional<Machine> findByIdAndDeletedAtIsNull(Long id);
 }

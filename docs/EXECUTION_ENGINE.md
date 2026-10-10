@@ -13,8 +13,9 @@ parameters are validated against the command's schema and quoted, files must bel
 ## Phases
 
 1. **Preflight (hard gate)** for every machine, at most `concurrency` in parallel: machine/credential eligibility,
-   parameters, files, trusted host key, SSH + authentication (pinned key), RHEL family (`EXECUTION_REQUIRE_RHEL`),
-   sudo when any step needs it. A failed preflight marks the machine FAILED; no real step runs there.
+   parameters, files, trusted host key, SSH + authentication (pinned key), OS family (every step must support the
+   machine's distribution family, see below; `EXECUTION_REQUIRE_RHEL=true` additionally restricts to RHEL), sudo when
+   any step needs it. A failed preflight marks the machine FAILED; no real step runs there.
    With `STOP_NEW_MACHINES`, any preflight failure stops the whole execution before real work starts.
 2. **Approval gate** before the first real operation: MANUAL mode always pauses (explicit Run); AUTOMATIC mode
    pauses only for HIGH risk. HIGH risk approval requires `highRiskAcknowledged`. Workflow steps flagged
@@ -46,3 +47,13 @@ stdout/stderr are bounded (`EXECUTION_MAX_OUTPUT_BYTES`, head + tail kept) and p
 
 In-flight executions cannot survive a restart. On startup `ExecutionRecovery` marks them FAILED (or CANCELLED if a
 stop was requested) with "Interrupted by server restart" and expires pending approvals.
+
+## Linux distribution families
+
+Any Linux machine can run commands. Each command stores the families it supports (`supported_os`): `LINUX` (any
+distribution, the default) or one or more of `RHEL` (RHEL, CentOS, Rocky, Alma, Oracle, Fedora, Amazon), `DEBIAN`
+(Debian, Ubuntu, Mint), `SUSE`, `ARCH`, `ALPINE`. The machine's family comes from `/etc/os-release` (`ID`, then
+`ID_LIKE`). Preflight fails a machine when a step needs a family it is not, e.g. a `dnf` command on Ubuntu; a
+family-specific step on an unrecognized distribution also fails. Seeded and imported commands get their family from
+the dataset's `os` value, narrowed by the tool (`dnf`/`rpm`/`firewall-cmd`/SELinux tools: RHEL; `apt`/`dpkg`/`ufw`:
+DEBIAN; `zypper`: SUSE; `pacman`: ARCH; `apk`: ALPINE).

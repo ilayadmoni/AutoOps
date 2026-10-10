@@ -13,6 +13,7 @@ import com.autoops.execution.plan.ResolvedStep;
 import com.autoops.execution.plan.StepResolver;
 import com.autoops.execution.realtime.ExecutionEventPublisher;
 import com.autoops.infrastructure.remote.ExecResult;
+import com.autoops.infrastructure.remote.OsFamily;
 import com.autoops.infrastructure.remote.OsInfo;
 import com.autoops.infrastructure.remote.RemoteException;
 import com.autoops.infrastructure.remote.RemoteSession;
@@ -27,10 +28,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Per-machine preflight. It is a hard gate: a machine whose preflight fails never runs a real step.
- * Checks eligibility, credential, parameters/commands, files, host trust, authentication, OS and sudo.
+ * Checks eligibility, credential, parameters/commands, files, host trust, authentication, OS family and sudo.
  */
 @Component
 public class PreflightRunner {
@@ -44,7 +47,7 @@ public class PreflightRunner {
 
     public PreflightRunner(ExecutionStore store, MachineRepository machines, CredentialRepository credentials, StepResolver resolver,
                            MachineConnectionService connections, ExecutionEventPublisher events,
-                           @Value("${autoops.execution.require-rhel:true}") boolean requireRhel) {
+                           @Value("${autoops.execution.require-rhel:false}") boolean requireRhel) {
         this.store = store;
         this.machines = machines;
         this.credentials = credentials;
@@ -129,16 +132,13 @@ public class PreflightRunner {
                 p.setSudoStatus("NOT_CHECKED");
                 return "Could not detect the operating system";
             }
-            if (!info.rhelFamily()) {
-                if (requireRhel) {
-                    p.setOsStatus("FAILED");
-                    p.setSudoStatus("NOT_CHECKED");
-                    return "Unsupported operating system: " + info.display() + " (RHEL family required)";
-                }
-                p.setOsStatus("WARNING");
-            } else {
-                p.setOsStatus("SUCCESS");
+            String osProblem = osProblem(info, resolved);
+            if (osProblem != null) {
+                p.setOsStatus("FAILED");
+                p.setSudoStatus("NOT_CHECKED");
+                return osProblem;
             }
+            p.setOsStatus("SUCCESS");
             if (needsSudo) {
                 ExecResult sudo = session.exec(ShellCommands.SUDO_CHECK, connections.sudoPassword(credential), 20, () -> false, null);
                 p.setSudoStatus(sudo.success() ? "SUCCESS" : "FAILED");
@@ -172,6 +172,22 @@ public class PreflightRunner {
             }
             return ex.getMessage();
         }
+    }
+
+    /** Any Linux is accepted unless RHEL is required; each step must support the machine's distribution family. */
+    private String osProblem(OsInfo info, List<ResolvedStep> resolved) {
+        if (requireRhel && !info.rhelFamily()) {
+            return "Unsupported operating system: " + info.display() + " (RHEL family required by configuration)";
+        }
+        Optional<OsFamily> family = info.family();
+        for (ResolvedStep step : resolved) {
+            if (!OsFamily.compatible(step.supportedOs(), family)) {
+                String needs = step.supportedOs().stream().map(Enum::name).sorted().collect(Collectors.joining(" or "));
+                return "Step '" + step.step().name() + "' runs only on " + needs + " family systems; this machine is "
+                        + info.display() + family.map(f -> " (" + f.name() + " family)").orElse(" (unknown family)");
+            }
+        }
+        return null;
     }
 
     private static String details(ApiException ex) {

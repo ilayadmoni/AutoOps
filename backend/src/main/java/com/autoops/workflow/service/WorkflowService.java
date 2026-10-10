@@ -42,7 +42,7 @@ public class WorkflowService {
 
     @Transactional(readOnly = true)
     public List<WorkflowDtos.Summary> list(Long userId) {
-        return workflows.findByCreatedByAndDeletedAtIsNullOrderByUpdatedAtDesc(userId).stream()
+        return workflows.findByDeletedAtIsNullOrderByUpdatedAtDesc().stream()
                 .map(w -> new WorkflowDtos.Summary(w.getId(), w.getName(), w.getDescription(), w.getStatus(),
                         steps.findByWorkflowIdAndRetiredAtIsNullOrderByPositionAsc(w.getId()).size(), w.getVersion(), w.getUpdatedAt()))
                 .toList();
@@ -55,7 +55,7 @@ public class WorkflowService {
 
     @Transactional(readOnly = true)
     public Workflow requireOwned(Long userId, Long id) {
-        return workflows.findByIdAndCreatedByAndDeletedAtIsNull(id, userId).orElseThrow(() -> ApiException.notFound("Workflow"));
+        return workflows.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> ApiException.notFound("Workflow"));
     }
 
     @Transactional(readOnly = true)

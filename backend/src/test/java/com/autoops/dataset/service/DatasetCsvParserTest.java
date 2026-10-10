@@ -1,10 +1,12 @@
 package com.autoops.dataset.service;
 
+import com.autoops.infrastructure.remote.OsFamily;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,10 +41,15 @@ class DatasetCsvParserTest {
     }
 
     @Test
-    void rhelApplicability() {
-        assertTrue(DatasetEvaluator.rhelApplicable("rhel 9"));
-        assertTrue(DatasetEvaluator.rhelApplicable("el8"));
-        assertFalse(DatasetEvaluator.rhelApplicable("solaris"));
-        assertFalse(DatasetEvaluator.rhelApplicable("ubuntu linux"));
+    void linuxApplicabilityAndFamilies() {
+        assertEquals(EnumSet.of(OsFamily.RHEL), DatasetEvaluator.supportedFamilies("rhel 9, centos", "ls").orElseThrow());
+        assertEquals(EnumSet.of(OsFamily.RHEL), DatasetEvaluator.supportedFamilies("el8", "ls").orElseThrow());
+        assertEquals(EnumSet.of(OsFamily.DEBIAN), DatasetEvaluator.supportedFamilies("ubuntu linux", "ls").orElseThrow());
+        assertEquals(EnumSet.of(OsFamily.LINUX), DatasetEvaluator.supportedFamilies("", "df -h").orElseThrow());
+        assertEquals(EnumSet.of(OsFamily.LINUX), DatasetEvaluator.supportedFamilies("linux, macos", "df -h").orElseThrow());
+        // A generic row is narrowed by its tool, so apt never lands as "any Linux".
+        assertEquals(EnumSet.of(OsFamily.DEBIAN), DatasetEvaluator.supportedFamilies("linux", "apt install {{package}}").orElseThrow());
+        assertTrue(DatasetEvaluator.supportedFamilies("solaris", "ls").isEmpty());
+        assertTrue(DatasetEvaluator.supportedFamilies("windows; macOS", "dir").isEmpty());
     }
 }

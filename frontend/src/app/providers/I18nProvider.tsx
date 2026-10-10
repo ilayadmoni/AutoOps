@@ -40,7 +40,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, []);
   const t = useCallback((key: string, vars?: Vars, fallback?: string) => {
-    let s = DICTS[lang][key] ?? en[key as keyof typeof en] ?? fallback ?? key;
+    // A `<key>.one` entry, when present, is the singular form used for n === 1.
+    const one = vars?.n === 1 ? DICTS[lang][key + '.one'] ?? en[(key + '.one') as keyof typeof en] : undefined;
+    let s = one ?? DICTS[lang][key] ?? en[key as keyof typeof en] ?? fallback ?? key;
     if (vars) for (const [k, v] of Object.entries(vars)) s = s.split('{' + k + '}').join(String(v));
     return s;
   }, [lang]);

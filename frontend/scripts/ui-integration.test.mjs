@@ -52,7 +52,7 @@ test('the workflow canvas lives in the components folder and the assistant split
   ]);
   assert.match(canvas, /@xyflow\/react/);
   assert.match(builder, /components\/ui\/flow/);
-  assert.match(assistant, /WorkflowPreview/);
+  assert.match(assistant, /WorkflowWorkspace/);
   assert.match(assistant, /split/);
 });
 

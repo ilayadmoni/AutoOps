@@ -9,5 +9,8 @@
 @import './domain.css';
 @import './login.css';
 @import './assistant.css';
+@import './chat-mentions.css';
+@import './workspace.css';
 @import './flow.css';
+@import './execution-pipeline.css';
 @import './responsive.css';

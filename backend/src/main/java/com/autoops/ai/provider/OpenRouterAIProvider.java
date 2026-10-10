@@ -77,7 +77,10 @@ public class OpenRouterAIProvider implements AIProvider {
         if (msg == null) {
             throw new AIUnavailableException("The AI provider returned an empty response");
         }
-        String content = Objects.toString(msg.get("content"), "");
+        String content = extractContent(msg.get("content"));
+        if (content.isBlank() && msg.get("refusal") instanceof String refusal) {
+            content = refusal;
+        }
         List<ToolCall> calls = new ArrayList<>();
         if (msg.get("tool_calls") instanceof List<?> list) {
             for (Object o : list) {
@@ -87,7 +90,28 @@ public class OpenRouterAIProvider implements AIProvider {
                 }
             }
         }
+        if (content.isBlank() && calls.isEmpty()) {
+            Object reason = ((Map<String, Object>) choices.get(0)).get("finish_reason");
+            log.warn("AI provider returned neither text nor tool calls (finish_reason={})", reason);
+        }
         return new AIResponse(content, calls);
+    }
+
+    /** Chat content is a string, or on some gateways a list of typed parts; only text parts are answer text. */
+    static String extractContent(Object content) {
+        if (content instanceof String text) {
+            return text;
+        }
+        if (content instanceof List<?> parts) {
+            StringBuilder out = new StringBuilder();
+            for (Object part : parts) {
+                if (part instanceof Map<?, ?> p && p.get("text") instanceof String text) {
+                    out.append(text);
+                }
+            }
+            return out.toString();
+        }
+        return "";
     }
 
     private static Map<String, Object> wire(Message m) {

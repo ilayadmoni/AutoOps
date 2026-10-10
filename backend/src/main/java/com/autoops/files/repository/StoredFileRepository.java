@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface StoredFileRepository extends JpaRepository<StoredFile, Long> {
-    List<StoredFile> findByCreatedByAndDeletedAtIsNullOrderByIdDesc(Long userId);
+    List<StoredFile> findByDeletedAtIsNullOrderByIdDesc();
 
-    Optional<StoredFile> findByIdAndCreatedByAndDeletedAtIsNull(Long id, Long userId);
+    Optional<StoredFile> findByIdAndDeletedAtIsNull(Long id);
+
+    Optional<StoredFile> findFirstByOriginalFilenameAndChecksumAndDeletedAtIsNullOrderByIdAsc(String originalFilename, String checksum);
 
     /** Orphans past retention that no workflow step references at all (not even deleted workflows' history). */
     @Query(value = """

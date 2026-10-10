@@ -38,13 +38,14 @@ export default function UsersAdminPage() {
       <PageHeader title={t('users.title')} subtitle={t('users.subtitle')} />
       <Fab label={t('users.create')} onClick={() => setCreating(true)} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} /> : !q.data?.length ? <EmptyState title={t('users.empty')} /> : (
-        <table className="table">
-          <thead><tr><th>{t('login.username')}</th><th>{t('users.role')}</th><th>{t('common.status')}</th><th>{t('users.created')}</th><th /></tr></thead>
+        <table className="table evenColumns">
+          <colgroup><col /><col /><col /><col /><col className="colActions" /></colgroup>
+          <thead><tr><th className="centered">{t('login.username')}</th><th className="controlCell">{t('users.role')}</th><th className="centered">{t('common.status')}</th><th className="centered">{t('users.created')}</th><th /></tr></thead>
           <tbody>
             {q.data.map((u) => (
               <tr key={u.id}>
-                <td dir="ltr">{u.username}{u.id === me?.id && <span className="badge info">{t('users.you')}</span>}</td>
-                <td>
+                <td className="centered"><span className="row centeredRow"><bdi dir="ltr">{u.username}</bdi>{u.id === me?.id && <span className="badge info">{t('users.you')}</span>}</span></td>
+                <td className="controlCell">
                   <Select
                     aria-label={t('users.role')} value={u.role}
                     onChange={(e) => role.mutate({ id: u.id, role: e.target.value as Role })}
@@ -54,8 +55,8 @@ export default function UsersAdminPage() {
                     ]}
                   />
                 </td>
-                <td><StatusBadge status={u.status} /></td>
-                <td>{formatDate(u.createdAt, lang)}</td>
+                <td className="centered"><StatusBadge status={u.status} /></td>
+                <td className="centered">{formatDate(u.createdAt, lang)}</td>
                 <td className="actionsCell"><div className="row gap">
                   <Button small onClick={() => status.mutate({ id: u.id, status: u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE' })}>
                     {u.status === 'ACTIVE' ? t('users.disable') : t('users.enable')}

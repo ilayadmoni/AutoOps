@@ -51,8 +51,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .aoRing, .bootProgress span, .bootCommand i, .skeletonBlock, .spin { animation-duration: 3s !important; animation-iteration-count: infinite !important; }
+  .aoRing, .bootProgress span, .progress.indeterminate span, .bootCommand i, .skeletonBlock, .spin { animation-duration: 3s !important; animation-iteration-count: infinite !important; }
 }
+
+/* Long-running job panel (ProgressPanel). The bar sweeps until the job's size is known. */
+.progressPanel { display: grid; justify-items: center; gap: var(--s2); padding: var(--s7) var(--s5); text-align: center; }
+.progressPanel > strong { font-size: 15px; margin-top: var(--s2); }
+.progressPanel > .progress { width: min(360px, 100%); margin-top: var(--s2); }
+.progressPanel > small { font-size: 12px; }
+.progress.indeterminate span { width: 40%; animation: aoSweep 1.4s var(--ease) infinite; }
 
 /* Shared determinate progress. */
 .progress { width: 100%; height: 7px; overflow: hidden; border-radius: var(--radius-pill); background: var(--surface-2); border: 1px solid var(--border); }

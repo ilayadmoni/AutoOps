@@ -33,6 +33,8 @@ public class CommandDefinition {
     private String parametersSchema;
     @Column(name = "supported_os")
     private String supportedOs;
+    @Column(name = "dataset_import_id")
+    private Long datasetImportId;
     @Column(name = "risk_level", nullable = false)
     private String riskLevel = "LOW";
     @Column(name = "requires_approval", nullable = false)
@@ -93,6 +95,8 @@ public class CommandDefinition {
     public void setParametersSchema(String v) { parametersSchema = v; }
     public String getSupportedOs() { return supportedOs; }
     public void setSupportedOs(String v) { supportedOs = v; }
+    public Long getDatasetImportId() { return datasetImportId; }
+    public void setDatasetImportId(Long v) { datasetImportId = v; }
     public String getRiskLevel() { return riskLevel; }
     public void setRiskLevel(String v) { riskLevel = v; }
     public boolean isRequiresApproval() { return requiresApproval; }

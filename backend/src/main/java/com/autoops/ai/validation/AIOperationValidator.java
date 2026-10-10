@@ -1,16 +1,24 @@
 package com.autoops.ai.validation;
 
 import com.autoops.ai.dto.AIOperation;
+import com.autoops.command.entity.CommandDefinition;
+import com.autoops.command.repository.CommandDefinitionRepository;
+import com.autoops.command.service.CommandService;
+import com.autoops.command.service.CommandTemplateService;
+import com.autoops.command.service.ParameterSpec;
 import com.autoops.common.error.ApiException;
 import com.autoops.common.security.AuthenticatedUser;
-import com.autoops.command.service.CommandService;
+import com.autoops.machine.dto.MachineDtos;
 import com.autoops.machine.service.MachineService;
 import com.autoops.workflow.dto.WorkflowDtos;
 import com.autoops.workflow.service.WorkflowService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Java-side validation of every AI operation before the frontend treats it as actionable. Unknown operation types are
@@ -18,17 +26,23 @@ import java.util.*;
  */
 @Service
 public class AIOperationValidator {
-    public static final Set<String> SUPPORTED = Set.of("REPLACE_WORKFLOW_DRAFT", "PROPOSE_COMMAND_RUN");
+    public static final Set<String> SUPPORTED = Set.of("REPLACE_WORKFLOW_DRAFT", "PROPOSE_COMMAND_RUN", "PROPOSE_NEW_COMMAND", "PROPOSE_MACHINE", "ASK_USER");
+    private static final Pattern HOST = Pattern.compile(MachineDtos.HOST_PATTERN);
     private final WorkflowService workflows;
     private final CommandService commands;
     private final MachineService machines;
     private final ObjectMapper json;
+    private final CommandTemplateService templates;
+    private final CommandDefinitionRepository commandRepo;
 
-    public AIOperationValidator(WorkflowService workflows, CommandService commands, MachineService machines, ObjectMapper json) {
+    public AIOperationValidator(WorkflowService workflows, CommandService commands, MachineService machines, ObjectMapper json,
+                                CommandTemplateService templates, CommandDefinitionRepository commandRepo) {
         this.workflows = workflows;
         this.commands = commands;
         this.machines = machines;
         this.json = json;
+        this.templates = templates;
+        this.commandRepo = commandRepo;
     }
 
     /** Returns the validated operation, or empty when it must not be offered to the user at all. */
@@ -82,6 +96,30 @@ public class AIOperationValidator {
                 if (ids.isEmpty()) {
                     missing.add(new AIOperation.MissingField(null, "machineIds", "Select at least one machine"));
                 }
+            }
+            case "PROPOSE_NEW_COMMAND" -> {
+                String template = Objects.toString(payload.get("commandTemplate"), "");
+                try {
+                    List<ParameterSpec> specs = json.convertValue(payload.getOrDefault("parameters", List.of()), new TypeReference<List<ParameterSpec>>() {});
+                    templates.validateTemplate(template, specs);
+                } catch (RuntimeException e) {
+                    return Optional.empty();
+                }
+                if (Objects.toString(payload.get("name"), "").isBlank() || commandRepo.existsByNormalizedTemplate(CommandDefinition.normalize(template))) {
+                    return Optional.empty();
+                }
+            }
+            case "PROPOSE_MACHINE" -> {
+                if (!HOST.matcher(Objects.toString(payload.get("hostname"), "")).matches()) {
+                    return Optional.empty();
+                }
+            }
+            case "ASK_USER" -> {
+                Optional<Map<String, Object>> question = QuestionPayload.normalize(payload);
+                if (question.isEmpty()) {
+                    return Optional.empty();
+                }
+                payload = new LinkedHashMap<>(question.get());
             }
             default -> {
                 return Optional.empty();

@@ -72,48 +72,14 @@ public class CommandService {
         c.setRequiresApproval(r == CommandRiskAnalyzer.Risk.HIGH);
         c.setCreatedBy(user.id());
         c.setSource(user.isAdmin() ? "ADMIN" : "USER");
-        if (user.isAdmin()) {
-            // An administrator is the approver of the Command Bank; their own commands need no second review.
-            c.setStatus(CommandDefinition.APPROVED);
-            c.setApprovedBy(user.id());
-            c.setApprovedAt(Instant.now());
-        } else {
-            c.setStatus(CommandDefinition.PENDING);
-        }
+        // New commands are usable immediately; HIGH-risk ones still require approval on every run (requiresApproval).
+        c.setStatus(CommandDefinition.APPROVED);
+        c.setApprovedBy(user.id());
+        c.setApprovedAt(Instant.now());
         c = repo.save(c);
         embeddings.index(c);
         audit.record(user.id(), "COMMAND_CREATED", "COMMAND", c.getId(), Map.of("name", c.getName(), "risk", c.getRiskLevel(), "status", c.getStatus()));
         return view(c, user.id());
-    }
-
-    @Transactional
-    public CommandDtos.CommandView approve(AuthenticatedUser admin, Long id) {
-        var c = repo.findById(id).orElseThrow(() -> ApiException.notFound("Command"));
-        if (c.isApproved()) {
-            throw ApiException.conflict("ALREADY_APPROVED", "Command is already approved");
-        }
-        c.setStatus(CommandDefinition.APPROVED);
-        c.setApprovedBy(admin.id());
-        c.setApprovedAt(Instant.now());
-        c.setRejectionReason(null);
-        c = repo.save(c);
-        audit.record(admin.id(), "COMMAND_APPROVED", "COMMAND", c.getId(), Map.of("name", c.getName(), "risk", c.getRiskLevel()));
-        return view(c, admin.id());
-    }
-
-    @Transactional
-    public CommandDtos.CommandView reject(AuthenticatedUser admin, Long id, String reason) {
-        var c = repo.findById(id).orElseThrow(() -> ApiException.notFound("Command"));
-        if (CommandDefinition.REJECTED.equals(c.getStatus())) {
-            throw ApiException.conflict("ALREADY_REJECTED", "Command is already rejected");
-        }
-        c.setStatus(CommandDefinition.REJECTED);
-        c.setRejectionReason(blankToNull(reason));
-        c.setApprovedBy(null);
-        c.setApprovedAt(null);
-        c = repo.save(c);
-        audit.record(admin.id(), "COMMAND_REJECTED", "COMMAND", c.getId(), Map.of("name", c.getName(), "reason", String.valueOf(reason)));
-        return view(c, admin.id());
     }
 
     @Transactional(readOnly = true)

@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { Octagon, RotateCcw, Radio, ChevronDown, ChevronRight } from 'lucide-react';
+import { Octagon, Radio } from 'lucide-react';
 import { get, post, streamEvents } from '../../services/client';
-import type { ExecutionDetail, MachineRunView, StepRunView } from '../../types/api';
+import type { ExecutionDetail } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { useAuth } from '../../app/providers/AuthProvider';
 import {
-  Button, Code, ConfirmDialog, ErrorAlert, Loading, Output, PageHeader, RiskBadge, StatusBadge, errorMessage,
+  Button, Code, ConfirmDialog, ErrorAlert, Loading, PageHeader, RiskBadge, StatusBadge, errorMessage,
 } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { duration, formatDate, isTerminal } from '../../utils/format';
+import ExecutionPipeline from '../../features/executions/ExecutionPipeline';
 import { ApprovalCard } from '../../features/executions/ApprovalCard';
 
 export default function ExecutionDetailPage() {
@@ -106,9 +107,7 @@ export default function ExecutionDetailPage() {
         <div className="paramsLine">{t('commands.parameters')}: {Object.entries(q.data.parameters).map(([k, v]) => <Code key={k}>{k}={v}</Code>)}{q.data.runWithSudo && <span className="badge warn">sudo</span>}</div>
       )}
       {owner && pending.map((a) => <ApprovalCard key={a.id} approval={a} />)}
-      <div className="stack">
-        {machines.map((m) => <MachineRun key={m.id} run={m} liveOutput={liveOutput} executionId={executionId} />)}
-      </div>
+      <ExecutionPipeline machines={machines} liveOutput={liveOutput} executionId={executionId} />
       {approvals.filter((a) => a.status !== 'PENDING').length > 0 && (
         <details className="card">
           <summary>{t('execution.approvalHistory')}</summary>
@@ -123,88 +122,5 @@ export default function ExecutionDetailPage() {
       {confirmStop && <ConfirmDialog danger title={t('execution.stopTitle')} message={t('execution.stopSemantics')} confirmLabel={t('execution.stop')}
         busy={stop.isPending} onCancel={() => setConfirmStop(false)} onConfirm={() => stop.mutate()} />}
     </section>
-  );
-}
-
-const PREFLIGHT_KEYS = ['parametersStatus', 'filesStatus', 'hostVerificationStatus', 'sshStatus', 'authenticationStatus', 'osStatus', 'sudoStatus'] as const;
-
-function MachineRun({ run, liveOutput, executionId }: { run: MachineRunView; liveOutput: Record<number, string>; executionId: number }) {
-  const { t } = useI18n();
-  const p = run.preflight;
-  return (
-    <article className="card machineRun">
-      <div className="row spread wrap">
-        <div>
-          <h3>{run.machineName} <small className="muted" dir="ltr">{run.hostname}</small></h3>
-          {run.credentialName && <small className="muted">{t('run.credential')}: {run.credentialName}</small>}
-        </div>
-        <div className="row gap"><StatusBadge status={run.status} /><small className="muted">{duration(run.startedAt, run.finishedAt)}</small></div>
-      </div>
-      {run.failureReason && <div className={'alert small ' + (run.status === 'FAILED' ? 'danger' : 'warn')}>{run.failureReason}</div>}
-      {p && (
-        <div className="preflight">
-          <span className="muted small">{t('preflight.title')} <StatusBadge status={p.status} /></span>
-          <div className="checks">
-            {PREFLIGHT_KEYS.map((k) => <div key={k} className="checkItem"><span>{t('preflight.' + k)}</span><StatusBadge status={p[k] ?? null} /></div>)}
-          </div>
-          {p.failureReason && <small className="fieldError">{p.failureReason}</small>}
-        </div>
-      )}
-      <ol className="timeline">
-        {run.steps.map((s) => <StepItem key={s.id} step={s} live={liveOutput[s.id]} executionId={executionId} />)}
-        {run.steps.length === 0 && <li className="muted small">{t('execution.noSteps')}</li>}
-      </ol>
-    </article>
-  );
-}
-
-function StepItem({ step, live, executionId }: { step: StepRunView; live?: string; executionId: number }) {
-  const { t } = useI18n();
-  const qc = useQueryClient();
-  const toast = useToast();
-  const [open, setOpen] = useState(step.status === 'FAILED');
-  const [confirm, setConfirm] = useState(false);
-  useEffect(() => {
-    if (step.status === 'FAILED') setOpen(true);
-  }, [step.status]);
-  const retry = useMutation({
-    mutationFn: () => post<ExecutionDetail>(`/executions/steps/${step.id}/retry`, { highRiskAcknowledged: step.riskLevel === 'HIGH' }),
-    onSuccess: (d) => { setConfirm(false); qc.setQueryData(['execution', executionId], d); toast.success(t('execution.retryStarted')); },
-    onError: (e) => { setConfirm(false); toast.error(errorMessage(e)); },
-  });
-  const running = step.status === 'RUNNING';
-  return (
-    <li className={'step ' + step.status.toLowerCase()}>
-      <div className="row spread wrap">
-        <Button
-          small className="ghost" aria-expanded={open} onClick={() => setOpen(!open)}
-          icon={open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        >
-          <b>{step.stepName}</b>
-          {step.attemptNumber > 1 && <span className="badge info">{t('execution.attempt', { n: step.attemptNumber })}</span>}
-        </Button>
-        <div className="row gap wrap">
-          <small className="muted">{t('steps.' + (step.stepType ?? 'COMMAND'))}</small>
-          {step.riskLevel && <RiskBadge risk={step.riskLevel} />}
-          {step.runWithSudo && <span className="badge warn">sudo</span>}
-          {step.exitCode != null && <span className="badge muted" dir="ltr">exit {step.exitCode}</span>}
-          <StatusBadge status={step.status} />
-          <small className="muted">{duration(step.startedAt, step.finishedAt)}</small>
-          {step.retryable && <Button small icon={<RotateCcw size={14} />} onClick={() => setConfirm(true)}>{t('execution.retry')}</Button>}
-        </div>
-      </div>
-      {step.failureReason && <small className="fieldError">{step.failureReason}</small>}
-      {(open || running) && (
-        <div className="stepBody">
-          {step.resolvedCommand && <Code>{step.resolvedCommand}</Code>}
-          {running && live && <Output label={t('execution.liveOutput')} text={live} />}
-          <Output label="stdout" text={step.stdout} />
-          <Output label="stderr" text={step.stderr} tone="err" />
-        </div>
-      )}
-      {confirm && <ConfirmDialog danger={step.riskLevel === 'HIGH'} title={t('execution.retryTitle')} message={t('execution.retryMessage', { name: step.stepName ?? '' })}
-        acknowledge={step.riskLevel === 'HIGH' ? t('approvals.ack') : undefined} confirmLabel={t('execution.retry')} busy={retry.isPending}
-        onCancel={() => setConfirm(false)} onConfirm={() => retry.mutate()} />}
-    </li>
   );
 }

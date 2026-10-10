@@ -3,21 +3,19 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Bot, CheckCircle2, Play, Save } from 'lucide-react';
 import { ApiError, get, post, put } from '../../services/client';
-import type { Command, NodeType, ValidationResult, WorkflowDraft, WorkflowNode, WorkflowView } from '../../types/api';
+import type { Command, ValidationResult, WorkflowDraft, WorkflowNode, WorkflowView } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { Button, ErrorAlert, Loading, PageHeader, TextInput } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { cleanParams } from '../../features/commands/ParameterInputs';
 import { filesQuery } from '../files/FilesPage';
 import RunWorkflowModal from '../../features/workflows/RunWorkflowModal';
-import { setCurrentDraft, takeAiDraft } from '../../features/workflows/draftStore';
-import { FlowCanvas, type Branch } from '../../components/ui/flow';
+import { takeAiDraft } from '../../features/workflows/draftStore';
+import { FlowCanvas } from '../../components/ui/flow';
 import NodePalette from '../../features/workflows/builder/NodePalette';
 import NodeInspector from '../../features/workflows/builder/NodeInspector';
-import { fromFieldErrors, groupErrors, newNode, normalize, type Errors } from '../../features/workflows/builder/model';
-
-/** Matches `.inspector` in flow.css. The canvas shifts by half of it so the edited step stays visible. */
-const INSPECTOR_WIDTH = 352;
+import { useNodeEditing } from '../../features/workflows/builder/useNodeEditing';
+import { fromFieldErrors, groupErrors, INSPECTOR_WIDTH, normalize, type Errors } from '../../features/workflows/builder/model';
 
 export default function WorkflowBuilderPage() {
   const { id } = useParams();
@@ -34,7 +32,6 @@ export default function WorkflowBuilderPage() {
   const [fromAi, setFromAi] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [valid, setValid] = useState<boolean | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const loaded = useRef(false);
 
@@ -73,10 +70,6 @@ export default function WorkflowBuilderPage() {
   }), [name, description, nodes, version]);
 
   useEffect(() => {
-    setCurrentDraft(nodes.length ? draft : null);
-  }, [draft, nodes.length]);
-
-  useEffect(() => {
     if (!dirty) return;
     const h = (e: BeforeUnloadEvent) => { e.preventDefault(); };
     window.addEventListener('beforeunload', h);
@@ -89,41 +82,7 @@ export default function WorkflowBuilderPage() {
     setValid(null);
   }, []);
 
-  const update = useCallback((key: string, patch: Partial<WorkflowNode>) => {
-    change((list) => list.map((n) => (n.key === key ? { ...n, ...patch } : n)));
-  }, [change]);
-
-  const add = (type: NodeType) => change((list) => {
-    const node = newNode(type, list);
-    const last = list[list.length - 1];
-    const linked = last && !last.successNext ? list.map((n) => (n.key === last.key ? { ...n, successNext: node.key } : n)) : list;
-    setSelected(node.key);
-    return [...linked, node];
-  });
-
-  const remove = (key: string) => {
-    if (selected === key) setSelected(null);
-    change((list) => list.filter((n) => n.key !== key).map((n) => ({
-      ...n,
-      successNext: n.successNext === key ? null : n.successNext,
-      failureNext: n.failureNext === key ? null : n.failureNext,
-    })));
-  };
-
-  /** n8n-style "+" on an output: the new step arrives already wired to that branch. */
-  const addAfter = useCallback((source: string, branch: Branch, type: NodeType) => change((list) => {
-    const node = newNode(type, list);
-    setSelected(node.key);
-    return [...list.map((n) => (n.key === source ? { ...n, [branch === 'success' ? 'successNext' : 'failureNext']: node.key } : n)), node];
-  }), [change]);
-
-  const connect = useCallback((source: string, branch: Branch, target: string) => {
-    update(source, branch === 'success' ? { successNext: target } : { failureNext: target });
-  }, [update]);
-
-  const disconnect = useCallback((source: string, branch: Branch) => {
-    update(source, branch === 'success' ? { successNext: null } : { failureNext: null });
-  }, [update]);
+  const { selected, setSelected, update, add, remove, addAfter, connect, disconnect } = useNodeEditing(nodes, change);
 
   /** Canvas subtitle: the concrete thing a step will do, not just its type. */
   const subtitleFor = useCallback((node: WorkflowNode) => {

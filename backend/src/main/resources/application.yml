@@ -66,8 +66,9 @@ autoops:
     max-active-executions: ${EXECUTION_MAX_ACTIVE:64}
     approval-timeout-minutes: ${EXECUTION_APPROVAL_TIMEOUT_MINUTES:1440}
     max-output-bytes: ${EXECUTION_MAX_OUTPUT_BYTES:65536}
-    # V1 targets RHEL-family machines; disable only for lab environments.
-    require-rhel: ${EXECUTION_REQUIRE_RHEL:true}
+    # Any Linux runs by default; each command declares the distribution families it supports.
+    # Set true to restrict execution to RHEL-family machines only.
+    require-rhel: ${EXECUTION_REQUIRE_RHEL:false}
   files:
     orphan-retention-days: ${FILES_ORPHAN_RETENTION_DAYS:7}
   embedding:

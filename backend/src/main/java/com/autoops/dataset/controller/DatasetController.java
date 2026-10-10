@@ -40,8 +40,13 @@ public class DatasetController {
 
     @PostMapping("/{id}/confirm")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public DatasetDtos.DatasetView confirm(@PathVariable Long id, @Valid @RequestBody(required = false) DatasetDtos.Confirm r) {
-        return datasets.confirm(current.id(), id, r == null ? null : r.approveUpTo());
+    public DatasetDtos.DatasetView confirm(@PathVariable Long id) {
+        return datasets.confirm(current.id(), id);
+    }
+
+    @DeleteMapping("/{id}")
+    public DatasetDtos.DeleteResult delete(@PathVariable Long id) {
+        return datasets.delete(current.id(), id);
     }
 
     @PostMapping("/{id}/reject")

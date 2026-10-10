@@ -94,7 +94,7 @@ with type-specific fields (`commandDefinitionId`, `parameters`, `runWithSudo`; `
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/ai/status` | `{configured}` |
-| POST | `/ai/chat` | `{conversationId?, message, draftSummary?}` → `{conversationId, message, operations[], missingFields[], toolsUsed[]}` |
+| POST | `/ai/chat` | `{conversationId?, message, draftSummary?, fileIds?: number[], machineIds?: number[]}` → `{conversationId, message, operations[], missingFields[], toolsUsed[]}` |
 | GET/DELETE | `/ai/conversations`, `/ai/conversations/{id}` | Per-user history |
 
 ## Administration
@@ -103,3 +103,14 @@ with type-specific fields (`commandDefinitionId`, `parameters`, `runWithSudo`; `
 `/admin/summary`, `/admin/audit?userId=&action=&entityType=&page=&size=`, `/admin/embeddings` and
 `/admin/embeddings/reindex`, `/admin/files/cleanup`, `/admin/datasets` (`POST /upload`, `GET /{id}`,
 `POST /{id}/confirm {approveUpTo: NONE|LOW|MEDIUM}`, `POST /{id}/reject {reason}`).
+
+Dataset uploads are `.csv` (header row) or `.json`. JSON is an array of objects, or an object holding that array under
+`commands`, `items` or `data`. Columns/keys are case-insensitive with aliases: `name` (`title`), `command`
+(`template`, `command_template`), `description`, `category`, `action`, `resource_type`, `os` and `parameters` (JSON
+array of parameter specs). `name` and `command` are required. `os` is a string or array of distributions or families
+(`linux` = any, `rhel`/`centos`, `ubuntu`/`debian`, `suse`...); rows naming only non-Linux systems are skipped.
+
+```json
+{"commands": [{"name": "Restart a service", "command": "systemctl restart {{service}}", "os": ["linux"],
+  "parameters": [{"name": "service", "type": "SERVICE", "required": true}]}]}
+```

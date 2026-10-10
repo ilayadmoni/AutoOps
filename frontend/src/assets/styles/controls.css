@@ -74,3 +74,20 @@
 .segmented > button:hover { color: var(--text); }
 .segmented > button[aria-pressed='true'] { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm), var(--inset-top); }
 .segmented > button[aria-pressed='true'] > svg { color: var(--primary); }
+
+/* Choice list: stacked answers picked with one click (clarifying question options). */
+.choiceList { display: grid; gap: 6px; }
+.choice {
+  display: flex; align-items: center; gap: var(--s2); width: 100%; text-align: start; cursor: pointer;
+  padding: var(--s2) var(--s3); min-height: var(--control-h-sm);
+  background: var(--surface); color: var(--text); font: inherit;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease);
+}
+.choice:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-soft); }
+.choice:disabled { cursor: default; color: var(--muted); }
+.choice[aria-pressed='true'] { border-color: var(--primary); background: var(--primary-soft); color: var(--text); }
+.choice > svg { color: var(--primary); flex: none; margin-inline-start: auto; }
+.choiceText { display: grid; gap: 2px; min-width: 0; }
+.choiceLabel { font-weight: 600; font-size: 13px; }
+.choiceText > small { color: var(--muted); font-size: 12px; }

@@ -1,0 +1,30 @@
+.composer { position: relative; }
+.mentionPicker {
+  position: absolute; inset-inline: 0; bottom: calc(100% + 8px); z-index: var(--z-popover);
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-pop); overflow: hidden; text-align: start;
+}
+.mentionHead { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.mentionHead > svg { color: var(--primary); flex: none; }
+.mentionHead small { flex: 1; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mentionOptions { max-height: min(260px, 35dvh); overflow-y: auto; padding: 4px; }
+.mentionOption {
+  display: flex; gap: 10px; align-items: center; width: 100%; padding: 10px;
+  font: inherit; color: var(--text); background: transparent; border: 0;
+  border-radius: var(--radius-sm); text-align: start; cursor: pointer;
+}
+.mentionOption > svg { color: var(--muted); flex: none; }
+.mentionOption > span:not(.mentionSelected) { display: grid; gap: 3px; min-width: 0; flex: 1; }
+.mentionOption strong { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.mentionOption small { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.mentionOption.active { background: var(--primary-soft); }
+.mentionOption[aria-disabled='true'] { cursor: default; }
+.mentionSelected { color: var(--ok); font-size: 11px; display: flex; align-items: center; gap: 4px; }
+.mentionNotice { padding: 12px; margin: 0; color: var(--muted); font-size: 13px; }
+.mentionPicker footer { padding: 8px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+.mentionPicker .alert { margin: 8px; }
+.serverChip > svg { color: var(--info); }
+@media (max-width: 600px) {
+  .composerBar { gap: 4px; }
+  .mentionPicker footer { display: none; }
+}

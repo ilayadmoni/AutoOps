@@ -21,8 +21,8 @@ keeps the boot loader up until they are loaded, then mounts the app.
   dialog. When a workflow is being drafted the page splits: chat on the inline-start side (right in Hebrew), and a
   read-only pipeline canvas of the current proposal on the other side, updated with each revision.
 - **Admin**: overview and maintenance, users, command reviews, dataset imports, audit log.
-- **Settings**: theme (system/light/dark) and language (English/Hebrew), stored per device. Hebrew sets `dir=rtl`;
-  commands, paths and addresses stay LTR.
+- **Preferences**: theme (light/dark) and language (English/Hebrew) are the two buttons in the top corner pill,
+  stored per device; there is no separate Settings page. Hebrew sets `dir=rtl`; commands, paths and addresses stay LTR.
 
 ## Folder structure
 
@@ -54,3 +54,20 @@ their own buttons, inputs or floating layers.
   outputs, "+" stubs that add a wired next step, and selectable connections with a remove button. The canvas always
   lays out left to right because columns are execution order.
 - Scrollbars, z-index layers, canvas and tooltip colours are tokens in `assets/styles/tokens.css`.
+
+## AI assistant composer and workflow workspace
+
+- The composer (`features/ai-assistant/editor`) is a small contenteditable editor over an explicit document model
+  (`mentionDoc.ts`): text parts and resource tags that carry the exact server or stored-file id. Tags are inline and atomic.
+  Sending serializes tags as `@[Name](server:8)` / `#[file.sh](file:31)`; `fileIds` and `machineIds` are derived from the tags, so
+  deleting the last tag of a resource removes it from the request. Sent messages and reopened conversations parse the same tokens;
+  older messages with a trailing "[Attached ...]" block still render as chips.
+- The workspace (`features/ai-assistant/workspace`) holds one authoritative draft per conversation (name, steps, missing fields,
+  referenced servers and files, revision, saved version). It is stored in `localStorage` per conversation, separately from saved
+  workflows, and is sent with every chat request, manual edits included. A reply based on an older revision is offered, not applied;
+  a reply for another conversation only updates that conversation's stored draft. Step editing reuses `FlowCanvas`, `NodeInspector`
+  and `useNodeEditing`, shared with the standalone builder.
+- Save validates and then creates or updates through the workflow API; Run opens the usual run dialog with the conversation's servers
+  preselected and is enabled only for a saved, unmodified revision. Nothing here is triggered by an assistant reply.
+- A failed request keeps the user's message in the thread (marked "Not sent"), the draft untouched, and offers Retry with the same
+  request. The backend answers an unusable empty reply with `502 AI_EMPTY_RESPONSE` and stores nothing for a failed request.

@@ -4,6 +4,7 @@ import com.autoops.command.entity.CommandDefinition;
 import com.autoops.command.repository.CommandDefinitionRepository;
 import com.autoops.command.risk.CommandRiskAnalyzer;
 import com.autoops.embedding.EmbeddingService;
+import com.autoops.infrastructure.remote.OsFamily;
 import com.autoops.user.entity.User;
 import com.autoops.user.repository.UserRepository;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
-/** Seeds a small set of approved, common RHEL operations once an administrator exists. Idempotent. */
+/** Seeds a small set of approved, common Linux operations once an administrator exists. Idempotent. */
 @Component
 @Order(20)
 public class CommandSeeder implements ApplicationRunner {
@@ -93,7 +94,7 @@ public class CommandSeeder implements ApplicationRunner {
             c.setRiskLevel(r.name());
             c.setRequiresApproval(r == CommandRiskAnalyzer.Risk.HIGH);
             c.setSource("SYSTEM");
-            c.setSupportedOs("RHEL");
+            c.setSupportedOs(OsFamily.format(OsFamily.ofTemplate(s.template())));
             c.setStatus(CommandDefinition.APPROVED);
             c.setCreatedBy(admin.get().getId());
             c.setApprovedBy(admin.get().getId());
@@ -101,6 +102,6 @@ public class CommandSeeder implements ApplicationRunner {
             embeddings.index(repo.save(c));
             created++;
         }
-        log.info("Seeded {} built-in RHEL commands", created);
+        log.info("Seeded {} built-in commands", created);
     }
 }

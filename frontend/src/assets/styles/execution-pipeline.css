@@ -1,0 +1,87 @@
+/* Machine columns keep actual execution order vertical, including retries and failure paths. */
+.executionPipelines {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 360px);
+  align-items: start; gap: 20px; overflow-x: auto; padding: 4px 4px 20px;
+  margin-bottom: var(--s4); max-width: 100%;
+}
+.executionColumn {
+  min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+  background: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1px) 0 0 / 18px 18px var(--canvas-bg);
+}
+.executionColumnHead {
+  display: grid; gap: 8px; padding: 16px; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.executionColumnHead h3 { margin: 0; overflow-wrap: anywhere; }
+.executionColumnHead small { overflow-wrap: anywhere; }
+.executionNodes { list-style: none; margin: 0; padding: 28px 16px; display: grid; gap: 44px; }
+.executionNode {
+  --node-color: var(--muted); --node-fill: var(--surface-2);
+  position: relative; min-width: 0; display: grid; justify-items: center; gap: 12px;
+}
+.executionNode.success { --node-color: var(--ok); --node-fill: var(--ok-soft); }
+.executionNode.failed { --node-color: var(--bad); --node-fill: var(--bad-soft); }
+.executionNode.running, .executionNode.preflight { --node-color: var(--info); --node-fill: var(--info-soft); }
+.executionNode.waiting_approval { --node-color: var(--warn); --node-fill: var(--warn-soft); }
+.executionNode:not(:last-child)::after {
+  content: ''; position: absolute; left: calc(50% - 1px); bottom: -38px; height: 32px;
+  width: 2px; background: var(--node-color); opacity: .7;
+}
+.executionNode:not(:last-child)::before {
+  content: ''; position: absolute; left: calc(50% - 4px); bottom: -39px;
+  width: 6px; height: 6px; border-right: 2px solid var(--node-color); border-bottom: 2px solid var(--node-color);
+  transform: rotate(45deg);
+}
+.executionNodeButton {
+  appearance: none; border: 0; background: transparent; color: var(--text); font: inherit;
+  padding: 0 6px; display: flex; flex-direction: column; align-items: center; gap: 7px;
+  cursor: pointer; max-width: 100%; min-width: 120px; border-radius: var(--radius-sm);
+}
+.executionTile {
+  position: relative; display: grid; place-items: center; width: 88px; height: 88px;
+  border: 2px solid var(--node-color); border-radius: 18px; color: var(--node-color);
+  background: linear-gradient(var(--node-fill), var(--node-fill)), var(--surface);
+  box-shadow: var(--shadow-sm); margin-bottom: 6px;
+  transition: box-shadow var(--fast), transform var(--fast), border-color var(--base);
+}
+.executionNodeButton:hover .executionTile { transform: translateY(-2px); box-shadow: 0 0 0 4px var(--node-fill); }
+.executionNodeButton[aria-expanded='true'] .executionTile { box-shadow: 0 0 0 4px var(--node-fill); }
+.executionTypeIcon { width: 32px; height: 32px; stroke-width: 1.5; }
+.executionIndex { position: absolute; top: 5px; left: 8px; font: 10px var(--font-mono); }
+.executionPort {
+  position: absolute; left: calc(50% - 5px); width: 10px; height: 10px;
+  background: var(--surface); border: 2px solid var(--node-color); border-radius: 50%;
+}
+.executionPort.input { top: -6px; }
+.executionPort.output { bottom: -6px; }
+.executionNodes > :first-child .executionPort.input { display: none; }
+.executionState {
+  position: absolute; right: -9px; bottom: 8px; display: grid; place-items: center;
+  width: 23px; height: 23px; border: 2px solid var(--node-color); border-radius: 50%; background: var(--surface);
+}
+.executionState svg { width: 13px; height: 13px; stroke-width: 3; }
+.executionNodeName { font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; max-width: 100%; }
+.executionNodeSubtitle { color: var(--muted); font-size: 12px; }
+.executionNodeStatus { display: flex; align-items: center; gap: 5px; }
+.executionNodeStatus > svg { color: var(--muted); transition: transform var(--fast); }
+.executionNodeButton[aria-expanded='true'] .executionNodeStatus > svg { transform: rotate(180deg); }
+.executionNodeDetails {
+  display: grid; gap: 10px; width: 100%; min-width: 0; padding: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+.executionNodeDetails[hidden] { display: none; }
+.executionNodeDetails > * { min-width: 0; max-width: 100%; }
+.executionNodeDetails .checkItem { flex-wrap: wrap; }
+.executionEmpty { text-align: center; padding: 0 16px 20px; }
+.executionNode.running .executionState svg, .executionNode.preflight .executionState svg {
+  animation: executionSpin 1.5s linear infinite;
+}
+@keyframes executionSpin { to { transform: rotate(360deg); } }
+@media (max-width: 600px) {
+  .executionPipelines { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr); grid-auto-columns: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .executionNode.running .executionState svg, .executionNode.preflight .executionState svg { animation: none; }
+  .executionTile, .executionNodeStatus > svg { transition: none; }
+  .executionNodeButton:hover .executionTile { transform: none; }
+}

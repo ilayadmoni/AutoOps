@@ -6,9 +6,11 @@ import com.autoops.command.service.CommandService;
 import com.autoops.command.service.CommandTemplateService;
 import com.autoops.common.error.ApiException;
 import com.autoops.files.service.StoredFileService;
+import com.autoops.infrastructure.remote.OsFamily;
 import com.autoops.infrastructure.remote.ShellCommands;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -30,6 +32,8 @@ public class StepResolver {
         this.files = files;
     }
 
+    private static final Set<OsFamily> ANY_LINUX = Set.of(OsFamily.LINUX);
+
     public ResolvedStep resolve(PlanStep step, Long ownerId) {
         return switch (step.definition()) {
             case StepDefinition.Command c -> {
@@ -37,7 +41,7 @@ public class StepResolver {
                 String resolved = templates.resolve(def.getCommandTemplate(), commands.specs(def), c.parameters());
                 var r = CommandRiskAnalyzer.withSudo(CommandRiskAnalyzer.Risk.valueOf(def.getRiskLevel()), c.runWithSudo());
                 yield new ResolvedStep(step, "COMMAND", def.getCommandTemplate(), resolved, r.name(), c.runWithSudo(),
-                        bounded(c.timeoutSeconds(), 1, 3600, 300), null, null);
+                        bounded(c.timeoutSeconds(), 1, 3600, 300), null, null, OsFamily.parseStored(def.getSupportedOs()));
             }
             case StepDefinition.FileTransfer f -> {
                 var stored = files.requireUsable(ownerId, f.storedFileId());
@@ -46,7 +50,7 @@ public class StepResolver {
                 yield new ResolvedStep(step, "FILE_TRANSFER", "transfer " + stored.getOriginalFilename(), "transfer -> " + dest,
                         r.name(), f.useSudo(), bounded(f.timeoutSeconds(), 1, 3600, 300),
                         new ResolvedStep.FileSource(stored.getId(), stored.getObjectKey(), stored.getSize(), stored.getChecksum(), stored.getOriginalFilename()),
-                        dest);
+                        dest, ANY_LINUX);
             }
             case StepDefinition.WaitUntil w -> resolveWait(step, w);
         };
@@ -57,6 +61,7 @@ public class StepResolver {
         String original;
         String resolved;
         CommandRiskAnalyzer.Risk r;
+        Set<OsFamily> supported = ANY_LINUX;
         switch (w.checkType() == null ? "" : w.checkType()) {
             case "OUTPUT_CONTAINS", "EXIT_CODE" -> {
                 if (w.commandDefinitionId() == null) {
@@ -69,6 +74,7 @@ public class StepResolver {
                 original = def.getCommandTemplate();
                 resolved = templates.resolve(def.getCommandTemplate(), commands.specs(def), w.parameters());
                 r = CommandRiskAnalyzer.Risk.valueOf(def.getRiskLevel());
+                supported = OsFamily.parseStored(def.getSupportedOs());
             }
             case "FILE_EXISTS" -> {
                 String path = absolutePath(w.target(), "Wait step '" + step.name() + "'");
@@ -90,7 +96,7 @@ public class StepResolver {
             throw ApiException.validation("Wait step '" + step.name() + "' must use a read-only (LOW risk) check command");
         }
         r = CommandRiskAnalyzer.withSudo(r, w.runWithSudo());
-        return new ResolvedStep(step, "WAIT_UNTIL", original, resolved, r.name(), w.runWithSudo(), timeout, null, null);
+        return new ResolvedStep(step, "WAIT_UNTIL", original, resolved, r.name(), w.runWithSudo(), timeout, null, null, supported);
     }
 
     /** Validates an absolute destination; a trailing slash means "into this directory" and appends the file name. */

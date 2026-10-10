@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Trash2 } from 'lucide-react';
 
-import { get, post, upload } from '../../services/client';
+import { api, get, post, upload } from '../../services/client';
 import type { DatasetView } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import {
-  Button, Code, EmptyState, ErrorAlert, errorMessage, Fab, Field, FilePicker, Loading, Modal, PageHeader, Progress, RiskBadge, Select, StatusBadge, TextInput,
+  Button, Code, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, FilePicker, IconButton, Loading, Modal, PageHeader, ProgressPanel, RiskBadge, StatusBadge, TextInput,
 } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { formatBytes, formatDate } from '../../utils/format';
@@ -17,6 +18,7 @@ export default function DatasetsAdminPage() {
   const qc = useQueryClient();
   const toast = useToast();
   const [openId, setOpenId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<DatasetView | null>(null);
   const q = useQuery({
     queryKey: ['admin', 'datasets'], queryFn: () => get<DatasetView[]>('/admin/datasets'),
     refetchInterval: (query) => (query.state.data?.some((d) => BUSY.includes(d.status)) ? 2000 : false),
@@ -25,10 +27,22 @@ export default function DatasetsAdminPage() {
     mutationFn: (f: File) => upload<DatasetView>('/admin/datasets/upload', f),
     onSuccess: (d) => { toast.success(t('datasets.uploaded')); qc.invalidateQueries({ queryKey: ['admin', 'datasets'] }); setOpenId(d.id); },
   });
+  const remove = useMutation({
+    mutationFn: (id: number) => api<{ deletedCommands: number; keptCommands: number }>('/admin/datasets/' + id, { method: 'DELETE' }),
+    onSuccess: (r) => {
+      toast.success(r.keptCommands
+        ? t('datasets.deletedKept', { n: r.deletedCommands, kept: r.keptCommands })
+        : t('datasets.deleted', { n: r.deletedCommands }));
+      setDeleting(null);
+      qc.invalidateQueries({ queryKey: ['admin', 'datasets'] });
+      qc.invalidateQueries({ queryKey: ['commands'] });
+    },
+    onError: (e) => { toast.error(errorMessage(e)); setDeleting(null); },
+  });
   return (
     <section>
       <PageHeader title={t('datasets.title')} subtitle={t('datasets.subtitle')} />
-      <FilePicker accept=".csv,text/csv" onPick={(file) => { if (file) up.mutate(file); }}>
+      <FilePicker accept=".csv,.json,text/csv,application/json" onPick={(file) => { if (file) up.mutate(file); }}>
         {(open) => <Fab label={t('datasets.upload')} busy={up.isPending} onClick={open} />}
       </FilePicker>
       <p className="muted small">{t('datasets.format')} <Code>name, description, category, command, os, parameters</Code></p>
@@ -41,12 +55,19 @@ export default function DatasetsAdminPage() {
               <tr key={d.id}>
                 <td>{d.id}</td><td dir="ltr">{d.filename}</td><td><StatusBadge status={d.status} /></td><td>{d.totalRecords}</td>
                 <td>{d.candidateRecords}</td><td>{d.addedRecords}</td><td>{formatDate(d.createdAt, lang)}</td>
-                <td><Button small onClick={() => setOpenId(d.id)}>{d.status === 'READY_FOR_REVIEW' ? t('datasets.review') : t('admin.open')}</Button></td>
+                <td><div className="row">
+                  <Button small onClick={() => setOpenId(d.id)}>{d.status === 'READY_FOR_REVIEW' ? t('datasets.review') : t('admin.open')}</Button>
+                  <IconButton danger label={t('common.delete')} disabled={BUSY.includes(d.status)} onClick={() => setDeleting(d)}><Trash2 size={14} /></IconButton>
+                </div></td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+      {deleting && <ConfirmDialog danger title={t('datasets.deleteTitle')} message={deleting.addedRecords
+        ? t('datasets.deleteMessage', { name: deleting.filename, n: deleting.addedRecords })
+        : t('datasets.deleteMessageEmpty', { name: deleting.filename })}
+        confirmLabel={t('common.delete')} busy={remove.isPending} onCancel={() => setDeleting(null)} onConfirm={() => remove.mutate(deleting.id)} />}
       {openId != null && <DatasetDetail id={openId} onClose={() => setOpenId(null)} onError={(e) => toast.error(errorMessage(e))} />}
     </section>
   );
@@ -55,14 +76,13 @@ export default function DatasetsAdminPage() {
 function DatasetDetail({ id, onClose, onError }: { id: number; onClose: () => void; onError: (e: unknown) => void }) {
   const { t } = useI18n();
   const qc = useQueryClient();
-  const [approveUpTo, setApproveUpTo] = useState('LOW');
   const [reason, setReason] = useState('');
   const q = useQuery({
     queryKey: ['admin', 'dataset', id], queryFn: () => get<DatasetView>('/admin/datasets/' + id),
     refetchInterval: (query) => (query.state.data && BUSY.includes(query.state.data.status) ? 1500 : false),
   });
   const refresh = () => { qc.invalidateQueries({ queryKey: ['admin', 'dataset', id] }); qc.invalidateQueries({ queryKey: ['admin', 'datasets'] }); };
-  const confirm = useMutation({ mutationFn: () => post<DatasetView>(`/admin/datasets/${id}/confirm`, { approveUpTo }), onSuccess: refresh, onError });
+  const confirm = useMutation({ mutationFn: () => post<DatasetView>(`/admin/datasets/${id}/confirm`), onSuccess: refresh, onError });
   const reject = useMutation({ mutationFn: () => post<DatasetView>(`/admin/datasets/${id}/reject`, { reason }), onSuccess: refresh, onError });
   const d = q.data;
   return (
@@ -73,28 +93,23 @@ function DatasetDetail({ id, onClose, onError }: { id: number; onClose: () => vo
         <Button variant="primary" busy={confirm.isPending} disabled={!d.candidateRecords} onClick={() => confirm.mutate()}>{t('datasets.confirm', { n: d.candidateRecords })}</Button>
       </>
     )}>
-      {!d ? <Loading /> : (
+      {!d ? <Loading /> : d.status === 'UPLOADED' || d.status === 'ANALYZING' ? (
+        <ProgressPanel title={t('datasets.analyzing')} detail={t('datasets.analyzingHint')} note={t('datasets.backgroundNote')} />
+      ) : d.status === 'IMPORTING' ? (
+        <ProgressPanel
+          title={t('datasets.importing')} value={d.processedRecords} max={d.candidateRecords}
+          detail={t('datasets.importingProgress', { done: d.processedRecords, total: d.candidateRecords, added: d.addedRecords })}
+          note={t('datasets.backgroundNote')}
+        />
+      ) : (
         <div className="stack">
           <div className="row gap wrap"><StatusBadge status={d.status} /><span className="muted small">{formatBytes(d.sizeBytes)} · SHA-256 <Code>{d.checksum?.slice(0, 16)}</Code></span></div>
           {d.errorMessage && <div className={'alert ' + (d.status === 'FAILED' ? 'danger' : 'warn')}>{d.errorMessage}</div>}
           <div className="summaryGrid">
-            {(['totalRecords', 'candidateRecords', 'invalidRecords', 'nonRhelRecords', 'duplicateRecords', 'processedRecords', 'addedRecords', 'failedRecords'] as const).map((k) => (
+            {(['totalRecords', 'candidateRecords', 'invalidRecords', 'nonLinuxRecords', 'duplicateRecords', 'processedRecords', 'addedRecords', 'failedRecords'] as const).map((k) => (
               <div key={k}><span className="muted">{t('datasets.' + k)}</span><strong>{d[k]}</strong></div>
             ))}
           </div>
-          {d.status === 'IMPORTING' && <Progress max={d.candidateRecords || 1} value={d.processedRecords} />}
-          {d.status === 'READY_FOR_REVIEW' && (
-            <Field label={t('datasets.approveUpTo')} hint={t('datasets.approveHint')}>
-              <Select
-                block value={approveUpTo} onChange={(e) => setApproveUpTo(e.target.value)}
-                options={[
-                  { value: 'NONE', label: t('datasets.approveNone') },
-                  { value: 'LOW', label: t('risk.LOW') },
-                  { value: 'MEDIUM', label: t('datasets.approveMedium') },
-                ]}
-              />
-            </Field>
-          )}
           {d.analysis && (
             <>
               <div className="row gap wrap">{Object.entries(d.analysis.riskCounts).map(([r, n]) => <span key={r}><RiskBadge risk={r} /> {n}</span>)}</div>

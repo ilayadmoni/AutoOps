@@ -5,7 +5,7 @@ import { del, get, post, put } from '../../services/client';
 import type { Credential } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import {
-  Button, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Field, Loading, Modal, PageHeader, TextInput,
+  Button, Card, Code, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Field, IconButton, Loading, Modal, NoMatches, PageHeader, SearchToolbar, TextInput, useCollectionSearch,
 } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { formatDate } from '../../utils/format';
@@ -19,6 +19,7 @@ export default function CredentialsPage() {
   const toast = useToast();
   const [editing, setEditing] = useState<Credential | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Credential | null>(null);
+  const { query, setQuery, filtered } = useCollectionSearch(q.data, (c) => [c.name, c.username, c.authType]);
   const remove = useMutation({
     mutationFn: (id: number) => del('/credentials/' + id),
     onSuccess: () => {
@@ -35,21 +36,27 @@ export default function CredentialsPage() {
     <section>
       <PageHeader title={t('credentials.title')} subtitle={t('credentials.subtitle')} />
       <Fab label={t('credentials.add')} onClick={() => setEditing('new')} />
+      {!!q.data?.length && <SearchToolbar value={query} onChange={setQuery} placeholder={t('credentials.searchPlaceholder')} />}
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('credentials.empty')} hint={t('credentials.emptyHint')} />
+      ) : !filtered.length ? (
+        <NoMatches title={t('credentials.noMatch')} hint={t('credentials.noMatchHint')} />
       ) : (
-        <div className="list">
-          {q.data.map((c) => (
-            <article className="row" key={c.id}>
-              <KeyRound size={18} className="muted" />
-              <div className="grow">
-                <b>{c.name}</b>
-                <small className="muted"><span dir="ltr">{c.username}</span> · {t('credentials.updated')} {formatDate(c.updatedAt, lang)}</small>
+        <div className="cards">
+          {filtered.map((c) => (
+            <Card key={c.id}>
+              <div className="row spread">
+                <h3 dir="auto"><KeyRound size={16} className="muted" /> {c.name}</h3>
+                <span className="badge muted">{c.authType}</span>
               </div>
-              <span className="badge muted">{c.authType}</span>
-              <Button small icon={<Pencil size={14} />} onClick={() => setEditing(c)}>{t('common.edit')}</Button>
-              <Button small variant="danger" className="ghost" icon={<Trash2 size={14} />} onClick={() => setDeleting(c)}>{t('common.delete')}</Button>
-            </article>
+              <div><Code>{c.username}</Code></div>
+              <small className="muted">{t('credentials.updated')} <bdi>{formatDate(c.updatedAt, lang)}</bdi></small>
+              <div className="cardFoot">
+                <Button small icon={<Pencil size={14} />} onClick={() => setEditing(c)}>{t('common.edit')}</Button>
+                <span className="grow" />
+                <IconButton danger label={t('common.delete')} onClick={() => setDeleting(c)}><Trash2 size={14} /></IconButton>
+              </div>
+            </Card>
           ))}
         </div>
       )}

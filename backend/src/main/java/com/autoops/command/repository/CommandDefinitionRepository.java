@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CommandDefinitionRepository extends JpaRepository<CommandDefinition, Long> {
@@ -18,6 +19,14 @@ public interface CommandDefinitionRepository extends JpaRepository<CommandDefini
     boolean existsByNormalizedTemplate(String normalizedTemplate);
 
     boolean existsBySource(String source);
+
+    List<CommandDefinition> findByDatasetImportId(Long datasetImportId);
+
+    /** Ids among {@code ids} that a workflow step, wait step or past execution references; those cannot be deleted. */
+    @Query(value = "SELECT command_definition_id FROM command_steps WHERE command_definition_id IN (:ids) "
+            + "UNION SELECT command_definition_id FROM wait_until_steps WHERE command_definition_id IN (:ids) "
+            + "UNION SELECT command_definition_id FROM executions WHERE command_definition_id IN (:ids)", nativeQuery = true)
+    List<Long> findReferencedIds(@Param("ids") Collection<Long> ids);
 
     @Query("select c.id from CommandDefinition c")
     List<Long> findAllIds();

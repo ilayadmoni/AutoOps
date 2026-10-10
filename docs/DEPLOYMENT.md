@@ -13,7 +13,7 @@ ordered by health checks: Postgres `pg_isready`, MinIO `/minio/health/live`, bac
 Compose refuses to start when a required secret is missing.
 
 Flyway migrates the database on backend startup. On first start the Admin from `AUTOOPS_ADMIN_*` is created and a set
-of approved RHEL commands is seeded.
+of approved Linux commands is seeded.
 
 ## Configuration reference
 
@@ -35,7 +35,7 @@ of approved RHEL commands is seeded.
 | | `EXECUTION_WORKER_THREADS` | `24` | total concurrent machine jobs |
 | | `EXECUTION_APPROVAL_TIMEOUT_MINUTES` | `1440` | pending approvals expire afterwards |
 | | `EXECUTION_MAX_OUTPUT_BYTES` | `65536` | per stream, head + tail kept |
-| | `EXECUTION_REQUIRE_RHEL` | `true` | preflight requires a RHEL-family OS |
+| | `EXECUTION_REQUIRE_RHEL` | `false` | `true` restricts execution to RHEL-family machines; by default any Linux runs |
 
 ## Reverse proxy
 
@@ -60,6 +60,6 @@ Terminate TLS in front of Nginx in production so the `Secure` refresh cookie is 
 7. Build Command → Wait → File workflow, save, reload, edit, run; failure branches are followed; all steps appear.
 8. Upload a file; it is used by a file-transfer step with checksum verification; another user cannot access it.
 9. Ask the assistant for a command and for a workflow; review the proposal in the builder; nothing runs on its own.
-10. As Admin upload a quoted CSV dataset, review the preview, confirm; commands appear with source DATASET.
+10. As Admin upload a CSV or JSON dataset, review the preview, confirm; commands appear with source DATASET.
 11. Stop a running workflow during a wait: it ends CANCELLED; retry a failed step: a new attempt runs.
 12. As a USER, `/api/admin/**` returns 403 and other users' resources return 404.

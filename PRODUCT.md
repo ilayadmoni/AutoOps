@@ -6,7 +6,7 @@ product
 
 ## Users
 
-AutoOps serves system administrators and operations engineers managing RHEL fleets. They use it during focused operational work, often while validating machines, reviewing risk, approving commands, and monitoring live executions. The interface must keep critical state legible and make safe actions fast in both English and Hebrew.
+AutoOps serves system administrators and operations engineers managing Linux fleets. They use it during focused operational work, often while validating machines, reviewing risk, approving commands, and monitoring live executions. The interface must keep critical state legible and make safe actions fast in both English and Hebrew.
 
 ## Product Purpose
 

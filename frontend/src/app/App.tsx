@@ -15,10 +15,8 @@ const ExecutionsPage = lazy(() => import('../pages/executions/ExecutionsPage'));
 const ExecutionDetailPage = lazy(() => import('../pages/executions/ExecutionDetailPage'));
 const ApprovalsPage = lazy(() => import('../pages/approvals/ApprovalsPage'));
 const FilesPage = lazy(() => import('../pages/files/FilesPage'));
-const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'));
 const AdminPage = lazy(() => import('../pages/admin/AdminPage'));
 const UsersAdminPage = lazy(() => import('../pages/admin/UsersAdminPage'));
-const CommandApprovalsPage = lazy(() => import('../pages/admin/CommandApprovalsPage'));
 const DatasetsAdminPage = lazy(() => import('../pages/admin/DatasetsAdminPage'));
 const AuditPage = lazy(() => import('../pages/admin/AuditPage'));
 
@@ -46,10 +44,8 @@ export default function App() {
           <Route path="/executions/:id" element={<ExecutionDetailPage />} />
           <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/files" element={<FilesPage />} />
-          <Route path="/settings" element={<RequireAdmin><SettingsPage /></RequireAdmin>} />
           <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
           <Route path="/admin/users" element={<RequireAdmin><UsersAdminPage /></RequireAdmin>} />
-          <Route path="/admin/commands" element={<RequireAdmin><CommandApprovalsPage /></RequireAdmin>} />
           <Route path="/admin/datasets" element={<RequireAdmin><DatasetsAdminPage /></RequireAdmin>} />
           <Route path="/admin/audit" element={<RequireAdmin><AuditPage /></RequireAdmin>} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -32,7 +32,7 @@ public class MachineService {
 
     @Transactional(readOnly = true)
     public List<MachineDtos.Response> list(Long userId) {
-        return repo.findByCreatedByAndDeletedAtIsNullOrderByNameAsc(userId).stream().map(MachineDtos.Response::from).toList();
+        return repo.findByDeletedAtIsNullOrderByNameAsc().stream().map(MachineDtos.Response::from).toList();
     }
 
     @Transactional(readOnly = true)
@@ -86,7 +86,7 @@ public class MachineService {
     /** Returns an owned, non-deleted machine or 404. */
     @Transactional(readOnly = true)
     public Machine requireOwned(Long userId, Long id) {
-        return repo.findByIdAndCreatedByAndDeletedAtIsNull(id, userId).orElseThrow(() -> ApiException.notFound("Machine"));
+        return repo.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> ApiException.notFound("Machine"));
     }
 
     private void apply(Long userId, Machine m, MachineDtos.Upsert x) {

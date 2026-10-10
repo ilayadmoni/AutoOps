@@ -2,6 +2,7 @@ import { cloneElement, isValidElement, useId, type ReactNode } from 'react';
 import { AlertCircle, AlertTriangle, Inbox } from 'lucide-react';
 import { ApiError } from '../../services/client';
 import Button from './Button';
+import CopyButton from './CopyButton';
 import { useI18n } from '../../app/providers/I18nProvider';
 
 export function EmptyState({ title, hint, action }: { title: ReactNode; hint?: ReactNode; action?: ReactNode }) {
@@ -84,11 +85,17 @@ export function Code({ children }: { children: ReactNode }) {
   return <code className="code" dir="ltr">{children}</code>;
 }
 
-export function Output({ label, text, tone }: { label: string; text?: string | null; tone?: 'err' }) {
+/** Block of technical text (command output, a command to run). `copyable` adds a copy action to the label row. */
+export function Output({ label, text, tone, copyable }: {
+  label: string; text?: string | null; tone?: 'err'; copyable?: boolean;
+}) {
   if (!text) return null;
   return (
     <div className="output">
-      <span className="outputLabel">{label}</span>
+      <span className="outputHead">
+        <span className="outputLabel">{label}</span>
+        {copyable && <CopyButton text={text} />}
+      </span>
       <pre dir="ltr" className={tone === 'err' ? 'err' : ''}>{text}</pre>
     </div>
   );

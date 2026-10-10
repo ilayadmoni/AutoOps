@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CredentialRepository extends JpaRepository<Credential, Long> {
-    List<Credential> findByCreatedByAndDeletedAtIsNullOrderByNameAsc(Long userId);
+    List<Credential> findByDeletedAtIsNullOrderByNameAsc();
 
-    Optional<Credential> findByIdAndCreatedByAndDeletedAtIsNull(Long id, Long userId);
+    Optional<Credential> findByIdAndDeletedAtIsNull(Long id);
 }

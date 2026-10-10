@@ -24,7 +24,6 @@ public class AdminController {
         out.put("activeUsers", count("select count(*) from users where status = 'ACTIVE'"));
         out.put("machines", count("select count(*) from machines where deleted_at is null"));
         out.put("approvedCommands", count("select count(*) from command_definitions where status = 'APPROVED'"));
-        out.put("pendingCommands", count("select count(*) from command_definitions where status = 'PENDING'"));
         out.put("executions", count("select count(*) from executions"));
         out.put("activeExecutions", count("select count(*) from executions where status in ('PENDING','RUNNING','WAITING_APPROVAL')"));
         out.put("datasetsAwaitingReview", count("select count(*) from dataset_imports where status = 'READY_FOR_REVIEW'"));

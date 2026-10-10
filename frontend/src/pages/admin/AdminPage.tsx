@@ -40,7 +40,6 @@ export default function AdminPage() {
       {summary.isLoading ? <Loading /> : (
         <div className="cards">
           {card('activeUsers', '/admin/users')}
-          {card('pendingCommands', '/admin/commands')}
           {card('datasetsAwaitingReview', '/admin/datasets')}
           {card('activeExecutions', '/executions')}
           {card('machines')}

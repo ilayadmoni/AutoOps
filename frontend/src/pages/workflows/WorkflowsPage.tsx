@@ -6,7 +6,7 @@ import { del, get, post } from '../../services/client';
 import type { WorkflowSummary, WorkflowView } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import {
-  Button, ButtonLink, Card, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, IconButton, Loading, PageHeader,
+  Button, ButtonLink, Card, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, IconButton, Loading, NoMatches, PageHeader, SearchToolbar, useCollectionSearch,
 } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { formatDate } from '../../utils/format';
@@ -18,6 +18,7 @@ export default function WorkflowsPage() {
   const qc = useQueryClient();
   const toast = useToast();
   const q = useQuery({ queryKey: ['workflows'], queryFn: () => get<WorkflowSummary[]>('/workflows') });
+  const { query, setQuery, filtered } = useCollectionSearch(q.data, (w) => [w.name, w.description]);
   const [running, setRunning] = useState<WorkflowSummary | null>(null);
   const [deleting, setDeleting] = useState<WorkflowSummary | null>(null);
   const remove = useMutation({
@@ -34,15 +35,18 @@ export default function WorkflowsPage() {
     <section>
       <PageHeader title={t('workflows.title')} subtitle={t('workflows.subtitle')} />
       <Fab to="/workflows/new" label={t('workflows.create')} />
+      {!!q.data?.length && <SearchToolbar value={query} onChange={setQuery} placeholder={t('workflows.searchPlaceholder')} />}
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('workflows.empty')} hint={t('workflows.emptyHint')} action={<ButtonLink variant="primary" to="/workflows/new">{t('workflows.create')}</ButtonLink>} />
+      ) : !filtered.length ? (
+        <NoMatches title={t('workflows.noMatch')} hint={t('workflows.noMatchHint')} />
       ) : (
         <div className="cards">
-          {q.data.map((w) => (
+          {filtered.map((w) => (
             <Card key={w.id}>
-              <h3 dir="auto">{w.name}</h3>
+              <div className="row spread"><h3 dir="auto">{w.name}</h3></div>
               {w.description && <p className="muted">{w.description}</p>}
-              <small className="muted">{t('workflows.steps', { n: w.stepCount })} · {t('workflows.updated')} {formatDate(w.updatedAt, lang)}</small>
+              <small className="muted">{t('workflows.steps', { n: w.stepCount })} · {t('workflows.updated')} <bdi>{formatDate(w.updatedAt, lang)}</bdi></small>
               <div className="cardFoot">
                 <Button small variant="primary" icon={<Play size={14} />} onClick={() => setRunning(w)}>{t('workflows.run')}</Button>
                 <ButtonLink small to={`/workflows/${w.id}/edit`} icon={<Pencil size={14} />}>{t('common.edit')}</ButtonLink>

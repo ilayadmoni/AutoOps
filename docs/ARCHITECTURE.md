@@ -12,7 +12,7 @@ Browser (React) ──HTTPS──> Nginx ──> Spring Boot API
                                        ├──> PostgreSQL + pgvector (state, history, embeddings)
                                        ├──> MinIO (uploaded files, dataset originals)
                                        ├──> AI provider (read / validate / propose tools only, no secrets)
-                                       └──> Execution engine ──SSH/SFTP (pinned host key)──> registered RHEL machines
+                                       └──> Execution engine ──SSH/SFTP (pinned host key)──> registered Linux machines
 ```
 
 ## Principles

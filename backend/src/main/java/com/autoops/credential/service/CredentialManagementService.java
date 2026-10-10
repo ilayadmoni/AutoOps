@@ -31,7 +31,7 @@ public class CredentialManagementService {
 
     @Transactional(readOnly = true)
     public List<CredentialDtos.CredentialView> list(Long user) {
-        return repo.findByCreatedByAndDeletedAtIsNullOrderByNameAsc(user).stream().map(CredentialDtos.CredentialView::from).toList();
+        return repo.findByDeletedAtIsNullOrderByNameAsc().stream().map(CredentialDtos.CredentialView::from).toList();
     }
 
     @Transactional(readOnly = true)
@@ -101,7 +101,7 @@ public class CredentialManagementService {
     /** Returns an owned, non-deleted credential or 404 (never reveals other users' credentials). */
     @Transactional(readOnly = true)
     public Credential requireOwned(Long user, Long id) {
-        return repo.findByIdAndCreatedByAndDeletedAtIsNull(id, user).orElseThrow(() -> ApiException.notFound("Credential"));
+        return repo.findByIdAndDeletedAtIsNull(id).orElseThrow(() -> ApiException.notFound("Credential"));
     }
 
     private void setSecret(Credential c, String password) {

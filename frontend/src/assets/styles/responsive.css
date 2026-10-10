@@ -1,7 +1,7 @@
 /* Breakpoints: 1100px stacks the assistant's canvas over the chat, 900px collapses split panes,
    760px switches the shell to a drawer. */
 @media (max-width: 1100px) {
-  .assistant.split, .assistant.split.withRail { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(260px, 42%) minmax(0, 1fr); }
+  .assistant.split, .assistant.split.withRail { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(360px, 58%) minmax(0, 1fr); }
   .assistant.split .convRail { display: none; }
   .assistant.split .previewPane { grid-row: 1; border-inline-start: 0; border-bottom: 1px solid var(--border); }
   .assistant.split .chat { grid-row: 2; }
@@ -50,7 +50,7 @@
   .mainBody:has(> .builderPage) { overflow-y: auto; }
   .builderPage { flex: none; padding: var(--s4); }
   .builderShell { flex: none; height: 72dvh; }
-  .previewHead .badge, .previewTitle small { display: none; }
+  .previewHead:not(.workspaceHead) .badge, .previewTitle small { display: none; }
   .previewFoot { display: none; }
   .chatScroll, .composerWrap, .split .chatScroll, .split .composerWrap { padding-inline: var(--s3); }
   .list > .row { flex-wrap: wrap; }

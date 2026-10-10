@@ -80,6 +80,18 @@ input[type='number']::-webkit-inner-spin-button { appearance: none; margin: 0; }
   color: var(--text); cursor: pointer; text-align: start; font-size: 13.5px;
 }
 .selectOption { justify-content: space-between; }
+.selectSearch {
+  position: sticky; top: calc(-1 * var(--s1)); z-index: 1; display: flex; align-items: center; gap: var(--s2);
+  margin: calc(-1 * var(--s1)) calc(-1 * var(--s1)) var(--s1); padding: var(--s2) var(--s3);
+  background: var(--surface); border-bottom: 1px solid var(--border); color: var(--muted);
+}
+.selectSearch svg { flex: none; }
+.selectSearch input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text);
+  font: inherit; font-size: 13.5px; padding: 0; box-shadow: none; height: auto; min-height: 0;
+}
+.selectSearch input::placeholder { color: var(--muted); }
+.selectEmpty { padding: var(--s3); text-align: center; color: var(--muted); font-size: 13px; }
 .selectOption.active, .menuItem:hover, .menuItem:focus-visible { outline: none; background: var(--surface-2); }
 .selectOption[aria-selected='true'] { color: var(--primary); font-weight: 600; }
 .selectOption[aria-selected='true'] > svg { color: var(--primary); flex: none; }
