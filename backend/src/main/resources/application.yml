@@ -1,6 +1,9 @@
 spring:
   application:
     name: autoops
+  output:
+    ansi:
+      enabled: ALWAYS
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/autoops}
     username: ${DATABASE_USERNAME:autoops}
