@@ -40,7 +40,7 @@ public class StepRunner {
     public StepResult run(Machine machine, Credential credential, ResolvedStep step, BooleanSupplier cancelled, OutputListener listener) {
         try {
             return switch (step.type()) {
-                case "COMMAND" -> command(machine, credential, step, listener);
+                case "COMMAND" -> command(machine, credential, step, cancelled, listener);
                 case "WAIT_UNTIL" -> waitUntil(machine, credential, step, cancelled);
                 case "FILE_TRANSFER" -> transfer(machine, credential, step);
                 default -> StepResult.failed("Unsupported step type " + step.type());
@@ -52,10 +52,13 @@ public class StepRunner {
         }
     }
 
-    /** Commands run to completion (bounded by their timeout); Stop takes effect at the next step boundary. */
-    private StepResult command(Machine machine, Credential credential, ResolvedStep step, OutputListener listener) {
+    /**
+     * Runs a command until it exits, times out or the user presses Stop. A long-running command (e.g. `docker compose up`
+     * without -d) is interrupted on Stop instead of holding the execution until its timeout.
+     */
+    private StepResult command(Machine machine, Credential credential, ResolvedStep step, BooleanSupplier cancelled, OutputListener listener) {
         try (RemoteSession session = connections.connect(machine, credential)) {
-            ExecResult r = exec(session, credential, step.resolvedCommand(), step.runWithSudo(), step.timeoutSeconds(), () -> false, listener);
+            ExecResult r = exec(session, credential, step.resolvedCommand(), step.runWithSudo(), step.timeoutSeconds(), cancelled, listener);
             return fromExec(r, step.timeoutSeconds());
         }
     }

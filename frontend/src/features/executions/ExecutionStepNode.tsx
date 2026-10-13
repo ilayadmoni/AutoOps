@@ -30,10 +30,18 @@ export default function ExecutionStepNode({ step, index, live, executionId }: {
     onError: (error) => { setConfirm(false); toast.error(errorMessage(error)); },
   });
   const type = step.stepType ?? 'COMMAND';
+  const running = step.status === 'RUNNING';
+  // Re-render every second while the step runs, so its elapsed time counts up live.
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!running) return;
+    const id = window.setInterval(() => tick((n) => n + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [running]);
   return (
     <PipelineNode status={step.status} name={step.stepName ?? t('steps.' + type)} index={index}
       icon={ICONS[type as keyof typeof ICONS] ?? TerminalSquare} open={open} onToggle={() => setOpen(!open)}
-      subtitle={<>{t('steps.' + type)}{step.attemptNumber > 1 && <> · {t('execution.attempt', { n: step.attemptNumber })}</>}</>}>
+      subtitle={<>{t('steps.' + type)}{step.attemptNumber > 1 && <> · {t('execution.attempt', { n: step.attemptNumber })}</>}{running && step.startedAt && <> · <span className="tabular">{duration(step.startedAt)}</span></>}</>}>
       <div className="row gap wrap">
         {step.riskLevel && <RiskBadge risk={step.riskLevel} />}
         {step.runWithSudo && <span className="badge warn">sudo</span>}

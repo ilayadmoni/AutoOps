@@ -104,6 +104,8 @@ export interface WorkflowNode {
   timeoutSeconds?: number | null; storedFileId?: number | null; destinationPath?: string | null;
   overwrite?: boolean | null; useSudo?: boolean | null; checkType?: CheckType | null; expectedOutput?: string | null;
   expectedExitCode?: number | null; target?: string | null; intervalSeconds?: number | null;
+  /** COMMAND only: the exact shell command, used instead of a Command Bank entry. */
+  customCommand?: string | null;
 }
 
 export interface WorkflowView {

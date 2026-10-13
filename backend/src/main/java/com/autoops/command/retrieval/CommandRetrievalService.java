@@ -71,6 +71,36 @@ public class CommandRetrievalService {
         return new Result("MATCH", scored);
     }
 
+    /**
+     * Approved commands that run the same program and subcommand as {@code template} (e.g. every "docker compose ..."),
+     * so a near-duplicate is not proposed when an existing command already does the job under a different name.
+     */
+    @Transactional(readOnly = true)
+    public List<Match> sameProgram(String template, int limit) {
+        String head = head(template);
+        if (head.isEmpty()) {
+            return List.of();
+        }
+        return repo.findByStatusOrderByNameAsc(CommandDefinition.APPROVED).stream()
+                .filter(c -> head.equals(head(c.getCommandTemplate())))
+                .limit(limit)
+                .map(c -> new Match(c.getId(), c.getName(), c.getDescription(), c.getCategory(), c.getCommandTemplate(),
+                        c.getRiskLevel(), 0, 0, 0))
+                .toList();
+    }
+
+    /** The program and its subcommand: up to two leading words, stopping at flags, placeholders, paths and assignments. */
+    static String head(String template) {
+        List<String> words = new ArrayList<>();
+        for (String w : Objects.toString(template, "").trim().toLowerCase(Locale.ROOT).split("\\s+")) {
+            if (w.isEmpty() || w.startsWith("-") || w.contains("{{") || w.contains("/") || w.contains("=") || words.size() == 2) {
+                break;
+            }
+            words.add(w);
+        }
+        return String.join(" ", words);
+    }
+
     static Set<String> tokens(String text) {
         return Arrays.stream(text.toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))
                 .filter(w -> w.length() > 2 && !STOP.contains(w))

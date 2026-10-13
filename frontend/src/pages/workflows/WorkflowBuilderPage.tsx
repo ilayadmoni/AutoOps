@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, Bot, CheckCircle2, Play, Save } from 'lucide-react';
 import { ApiError, get, post, put } from '../../services/client';
 import type { Command, ValidationResult, WorkflowDraft, WorkflowNode, WorkflowView } from '../../types/api';
@@ -11,6 +11,8 @@ import { cleanParams } from '../../features/commands/ParameterInputs';
 import { filesQuery } from '../files/FilesPage';
 import RunWorkflowModal from '../../features/workflows/RunWorkflowModal';
 import { takeAiDraft } from '../../features/workflows/draftStore';
+import { loadWorkspace, saveWorkspace } from '../../features/ai-assistant/workspace/store';
+import { initialState } from '../../features/ai-assistant/workspace/model';
 import { FlowCanvas } from '../../components/ui/flow';
 import NodePalette from '../../features/workflows/builder/NodePalette';
 import NodeInspector from '../../features/workflows/builder/NodeInspector';
@@ -20,6 +22,9 @@ import { fromFieldErrors, groupErrors, INSPECTOR_WIDTH, normalize, type Errors }
 export default function WorkflowBuilderPage() {
   const { id } = useParams();
   const workflowId = id ? Number(id) : null;
+  // Set when the builder was opened from an assistant conversation; "back" then returns to that chat and its workspace.
+  const [params] = useSearchParams();
+  const chat = Number(params.get('chat')) || null;
   const { t } = useI18n();
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -86,7 +91,7 @@ export default function WorkflowBuilderPage() {
 
   /** Canvas subtitle: the concrete thing a step will do, not just its type. */
   const subtitleFor = useCallback((node: WorkflowNode) => {
-    if (node.type === 'COMMAND') return commands.data?.find((c) => c.id === node.commandDefinitionId)?.name;
+    if (node.type === 'COMMAND') return node.customCommand || commands.data?.find((c) => c.id === node.commandDefinitionId)?.name;
     if (node.type === 'FILE_TRANSFER') return node.destinationPath ?? undefined;
     if (node.type === 'WAIT_UNTIL') return node.target || (node.checkType ? t('checks.' + node.checkType) : undefined);
     return undefined;
@@ -108,10 +113,21 @@ export default function WorkflowBuilderPage() {
       toast.success(t('workflows.saved'));
       qc.invalidateQueries({ queryKey: ['workflows'] });
       qc.setQueryData(['workflow', w.id], w);
-      if (workflowId == null) nav(`/workflows/${w.id}/edit`, { replace: true });
+      if (workflowId == null) nav(`/workflows/${w.id}/edit${chat ? `?chat=${chat}` : ''}`, { replace: true });
     },
     onError: (e) => { if (e instanceof ApiError) setErrors(fromFieldErrors(e.fieldErrors)); },
   });
+
+  /** Hands the builder's current workflow back to the conversation's workspace, so the chat continues from these edits. */
+  const returnToChat = () => {
+    if (!chat) return;
+    const ws = loadWorkspace(chat) ?? initialState();
+    const revision = ws.revision + 1;
+    saveWorkspace(chat, {
+      ...ws, started: true, name, description, nodes, missing: [], revision,
+      workflowId: workflowId ?? ws.workflowId, version: version ?? ws.version, savedRevision: dirty ? ws.savedRevision : revision,
+    });
+  };
 
   if (workflowId != null && existing.isLoading) return <Loading />;
   if (workflowId != null && existing.error) return <section><ErrorAlert error={existing.error} /></section>;
@@ -122,7 +138,11 @@ export default function WorkflowBuilderPage() {
   return (
     <section className="builderPage fillPage">
       <PageHeader
-        back={{
+        back={chat ? {
+          to: `/?conversation=${chat}`,
+          label: t('workflows.backToChat'),
+          onClick: returnToChat,
+        } : {
           to: '/workflows',
           label: t('nav.workflows'),
           onClick: (e) => { if (dirty && !window.confirm(t('workflows.discardConfirm'))) e.preventDefault(); },

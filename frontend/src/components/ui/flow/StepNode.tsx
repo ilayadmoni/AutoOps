@@ -30,10 +30,10 @@ export const STEP_TYPES: NodeType[] = ['COMMAND', 'FILE_TRANSFER', 'WAIT_UNTIL']
  * An unwired output, drawn as n8n draws it: a short stub ending in a "+" that adds the next step
  * already connected to this branch. Sits outside the node box, beside its handle.
  */
-function OutputStub({ branch, onAdd, top }: { branch: Branch; onAdd: (type: NodeType) => void; top: string }) {
+function OutputStub({ branch, onAdd, left }: { branch: Branch; onAdd: (type: NodeType) => void; left: string }) {
   const { t } = useI18n();
   return (
-    <div className={'flowStub ' + branch} style={{ top }}>
+    <div className={'flowStub ' + branch} style={{ left }}>
       <span className="flowStubLine" />
       <Menu
         label={t('workflows.addStep')}
@@ -51,20 +51,20 @@ function OutputStub({ branch, onAdd, top }: { branch: Branch; onAdd: (type: Node
   );
 }
 
-function Output({ id, label, top }: { id: Branch; label: ReactNode; top: string }) {
+function Output({ id, label, left }: { id: Branch; label: ReactNode; left: string }) {
   return (
     <>
-      <Handle id={id} type="source" position={Position.Right} className={'flowHandle out ' + id} style={{ top }} />
-      <span className={'flowOutLabel ' + id} style={{ top }}>{label}</span>
+      <Handle id={id} type="source" position={Position.Bottom} className={'flowHandle out ' + id} style={{ left }} />
+      <span className={'flowOutLabel ' + id} style={{ left }}>{label}</span>
     </>
   );
 }
 
 /**
  * A workflow step on the canvas, in the n8n idiom: a square tile carrying the type icon, the
- * name and detail set beneath it, one input on the leading edge and the success and failure
- * outputs on the trailing edge. The canvas always runs left to right, whatever the UI direction,
- * because it describes execution order rather than reading order.
+ * name and detail beside it, one input on the top edge and the success and failure outputs on the
+ * bottom edge. The canvas always runs top to bottom, whatever the UI direction, because it
+ * describes execution order rather than reading order.
  */
 function StepNode({ data, selected }: NodeProps) {
   const { t } = useI18n();
@@ -80,7 +80,7 @@ function StepNode({ data, selected }: NodeProps) {
   return (
     <div className={classes} style={{ '--i': index } as React.CSSProperties}>
       <div className="flowBox">
-        <Handle type="target" position={Position.Left} className="flowHandle in" />
+        <Handle type="target" position={Position.Top} className="flowHandle in" />
         <span className="flowIcon"><Icon /></span>
         <span className="flowIndex">{index + 1}</span>
         {(node.requiresApproval || errorCount > 0) && (
@@ -97,10 +97,10 @@ function StepNode({ data, selected }: NodeProps) {
             )}
           </span>
         )}
-        <Output id="success" label={t('workflows.ok')} top="34%" />
-        <Output id="failure" label={t('workflows.fail')} top="70%" />
+        <Output id="success" label={t('workflows.ok')} left="34%" />
+        <Output id="failure" label={t('workflows.fail')} left="70%" />
         {!readOnly && onAddAfter && !node.successNext && (
-          <OutputStub branch="success" top="34%" onAdd={(type) => onAddAfter(node.key, 'success', type)} />
+          <OutputStub branch="success" left="34%" onAdd={(type) => onAddAfter(node.key, 'success', type)} />
         )}
       </div>
       <div className="flowLabel">
@@ -114,7 +114,7 @@ function StepNode({ data, selected }: NodeProps) {
 export default memo(StepNode);
 
 /**
- * The engine's own preflight gate, drawn as n8n draws a trigger: rounded on its leading side,
+ * The engine's own preflight gate, drawn as n8n draws a trigger: rounded on its top side,
  * output only. It is fixed and unconnectable so its place at the head of every run is obvious.
  */
 export const PreflightNode = memo(function PreflightNode() {
@@ -123,7 +123,7 @@ export const PreflightNode = memo(function PreflightNode() {
     <div className="flowNode trigger">
       <div className="flowBox">
         <span className="flowIcon"><ShieldCheck /></span>
-        <Handle id="success" type="source" position={Position.Right} className="flowHandle out success" isConnectable={false} />
+        <Handle id="success" type="source" position={Position.Bottom} className="flowHandle out success" isConnectable={false} />
       </div>
       <div className="flowLabel">
         <strong>{t('workflows.preflight')}</strong>

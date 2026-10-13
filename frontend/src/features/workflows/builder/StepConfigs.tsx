@@ -1,10 +1,13 @@
-import { FileUp } from 'lucide-react';
+import { useState } from 'react';
+import { FileUp, Plus } from 'lucide-react';
 import type { Command, StoredFile, WorkflowNode } from '../../../types/api';
 import {
-  Button, Checkbox, Code, Field, FilePicker, NumberInput, RiskBadge, Select, StatusBadge, TextInput,
+  Button, Checkbox, Field, FilePicker, NumberInput, Segmented, Select, Textarea, TextInput,
 } from '../../../components/ui';
 import { useToast } from '../../../components/ui/Toast';
 import { ParameterInputs } from '../../commands/ParameterInputs';
+import CreateCommandModal from '../../commands/CreateCommandModal';
+import CommandSearch from '../../commands/CommandSearch';
 import { useUpload } from '../../../pages/files/FilesPage';
 import { useI18n } from '../../../app/providers/I18nProvider';
 
@@ -18,28 +21,12 @@ export function CommandSelect({ value, onChange, commands, lowOnly, error }: {
   value?: number | null; onChange: (id: number | null) => void; commands: Command[]; lowOnly?: boolean; error?: string;
 }) {
   const { t } = useI18n();
-  const usable = commands.filter((c) => c.status !== 'REJECTED' && (!lowOnly || c.riskLevel === 'LOW'));
-  const selected = commands.find((c) => c.id === value);
+  const [creating, setCreating] = useState(false);
   return (
     <>
-      <Field label={t('run.command')} error={error}>
-        <Select
-          block placeholder={t('run.selectCommand')}
-          value={value ?? ''}
-          onChange={(x) => onChange(x.target.value ? Number(x.target.value) : null)}
-          options={usable.map((c) => ({
-            value: c.id,
-            label: `${c.name} [${t('risk.' + c.riskLevel)}]${c.status !== 'APPROVED' ? ' - ' + t('status.' + c.status) : ''}`,
-          }))}
-        />
-      </Field>
-      {selected && (
-        <div className="row gap wrap">
-          <Code>{selected.commandTemplate}</Code>
-          <RiskBadge risk={selected.riskLevel} />
-          {selected.status !== 'APPROVED' && <StatusBadge status={selected.status} />}
-        </div>
-      )}
+      <CommandSearch commands={commands} value={value} onChange={onChange} error={error} lowOnly={lowOnly} />
+      <Button small variant="ghost" icon={<Plus size={14} />} className="selfStart" onClick={() => setCreating(true)}>{t('commands.create')}</Button>
+      {creating && <CreateCommandModal onClose={() => setCreating(false)} onCreated={(c) => onChange(c.id)} />}
     </>
   );
 }
@@ -49,15 +36,37 @@ export function CommandConfig({ node, onChange, commands, errors, paramErrors }:
 }) {
   const { t } = useI18n();
   const cmd = commands.find((c) => c.id === node.commandDefinitionId);
+  // A step runs either a Command Bank entry or its own command; `customCommand !== null/undefined` selects the latter.
+  const custom = node.customCommand != null;
   return (
     <>
-      <CommandSelect
-        value={node.commandDefinitionId}
-        onChange={(id) => onChange({ commandDefinitionId: id, parameters: {} })}
-        commands={commands}
-        error={errors.commandDefinitionId}
+      <Segmented
+        label={t('run.command')}
+        value={custom ? 'custom' : 'bank'}
+        options={[{ value: 'bank', label: t('workflows.fromBank') }, { value: 'custom', label: t('workflows.customCommand') }]}
+        onChange={(mode) => onChange(mode === 'custom'
+          ? { customCommand: cmd?.commandTemplate.includes('{{') ? '' : cmd?.commandTemplate ?? '', commandDefinitionId: null, parameters: {} }
+          : { customCommand: null })}
       />
-      {cmd && <ParameterInputs specs={cmd.parameters} values={node.parameters ?? {}} onChange={(p) => onChange({ parameters: p })} errors={paramErrors} />}
+      {custom ? (
+        <Field label={t('workflows.customCommand')} error={errors.customCommand} hint={t('workflows.customCommandHint')}>
+          <Textarea
+            dir="ltr" className="mono" rows={3} maxLength={4000} spellCheck={false}
+            placeholder="docker compose down" value={node.customCommand ?? ''}
+            onChange={(e) => onChange({ customCommand: e.target.value })}
+          />
+        </Field>
+      ) : (
+        <>
+          <CommandSelect
+            value={node.commandDefinitionId}
+            onChange={(id) => onChange({ commandDefinitionId: id, parameters: {} })}
+            commands={commands}
+            error={errors.commandDefinitionId}
+          />
+          {cmd && <ParameterInputs specs={cmd.parameters} values={node.parameters ?? {}} onChange={(p) => onChange({ parameters: p })} errors={paramErrors} />}
+        </>
+      )}
       <Checkbox checked={!!node.runWithSudo} onChange={(x) => onChange({ runWithSudo: x.target.checked })} label={t('run.sudo')} />
     </>
   );

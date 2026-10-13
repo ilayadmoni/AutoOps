@@ -8,7 +8,7 @@ import { Checkbox, Field, Loading, Segmented, Select } from '../../components/ui
 export const machinesQuery = { queryKey: ['machines'], queryFn: () => get<Machine[]>('/machines') };
 
 export const defaultRunOptions = (machineIds: number[] = []): RunOptions => ({
-  machineIds, credentialId: null, mode: 'MANUAL', concurrency: 1, failurePolicy: 'STOP_NEW_MACHINES',
+  machineIds, credentialId: null, mode: 'AUTOMATIC', concurrency: 1, failurePolicy: 'STOP_NEW_MACHINES',
 });
 
 /** Machine/credential/mode/concurrency selection shared by command and workflow runs. */

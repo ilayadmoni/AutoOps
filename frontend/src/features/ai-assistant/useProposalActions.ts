@@ -10,7 +10,7 @@ import { setAiDraft } from '../workflows/draftStore';
 import type { RunCommandInitial } from '../commands/RunCommandModal';
 import type { ProposalActions } from './ChatMessage';
 
-export function useProposalActions(submit: (text: string) => void, pending: boolean) {
+export function useProposalActions(submit: (text: string) => void, pending: boolean, conversationId: number | null) {
   const { t } = useI18n();
   const qc = useQueryClient();
   const nav = useNavigate();
@@ -35,7 +35,7 @@ export function useProposalActions(submit: (text: string) => void, pending: bool
   const reviewWorkflow = (op: AIOperation) => {
     const p = op.payload as { name?: string; description?: string; nodes?: WorkflowNode[] };
     setAiDraft({ name: p.name ?? 'AI draft', description: p.description ?? '', nodes: p.nodes ?? [] });
-    nav('/workflows/new');
+    nav('/workflows/new' + (conversationId != null ? `?chat=${conversationId}` : ''));
   };
   const actions: ProposalActions = {
     onWorkflow: reviewWorkflow,

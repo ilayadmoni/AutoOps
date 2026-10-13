@@ -36,6 +36,12 @@ public class StepResolver {
 
     public ResolvedStep resolve(PlanStep step, Long ownerId) {
         return switch (step.definition()) {
+            case StepDefinition.Command c when c.customCommand() != null -> {
+                // A step's own command: run exactly as written; risk comes from the text, so HIGH still gates the run.
+                var r = CommandRiskAnalyzer.withSudo(risk.analyze(c.customCommand()), c.runWithSudo());
+                yield new ResolvedStep(step, "COMMAND", c.customCommand(), c.customCommand(), r.name(), c.runWithSudo(),
+                        bounded(c.timeoutSeconds(), 1, 3600, 300), null, null, ANY_LINUX);
+            }
             case StepDefinition.Command c -> {
                 CommandDefinition def = commands.requireRunnable(c.commandDefinitionId());
                 String resolved = templates.resolve(def.getCommandTemplate(), commands.specs(def), c.parameters());

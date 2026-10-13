@@ -3,7 +3,7 @@ import type { NodeType, ValidationError, WorkflowNode } from '../../../types/api
 export type Errors = Record<string, Record<string, string>>;
 
 /** Matches `.inspector` in flow.css. The canvas shifts by half of it so the edited step stays visible. */
-export const INSPECTOR_WIDTH = 352;
+export const INSPECTOR_WIDTH = 400;
 
 /** Creates a step with the defaults the engine expects, and a key that is free in this draft. */
 export function newNode(type: NodeType, existing: WorkflowNode[]): WorkflowNode {
@@ -27,6 +27,8 @@ export function normalize(nodes: WorkflowNode[]): WorkflowNode[] {
     parameters: n.parameters ?? {},
     timeoutSeconds: n.timeoutSeconds ?? (n.type === 'WAIT_UNTIL' ? 120 : 300),
     intervalSeconds: n.type === 'WAIT_UNTIL' ? n.intervalSeconds ?? 5 : n.intervalSeconds,
+    // Older proposals carried a `true` flag here instead of the command text; never show or run that as a command.
+    customCommand: n.customCommand == null ? n.customCommand : typeof n.customCommand === 'string' ? n.customCommand : '',
   }));
 }
 

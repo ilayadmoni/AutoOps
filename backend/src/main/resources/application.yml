@@ -19,6 +19,9 @@ spring:
   mvc:
     async:
       request-timeout: -1
+logging:
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %msg%n'
 management:
   endpoints:
     web:

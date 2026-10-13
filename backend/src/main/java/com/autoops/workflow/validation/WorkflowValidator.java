@@ -158,6 +158,20 @@ public class WorkflowValidator {
     }
 
     private void validateCommand(WorkflowDtos.Node n, Long userId, List<WorkflowDtos.ValidationError> errors) {
+        if (n.customCommand() != null) {
+            String cmd = n.customCommand().strip();
+            if (cmd.isEmpty()) {
+                errors.add(new WorkflowDtos.ValidationError(n.key(), "customCommand", "Enter the command to run"));
+            } else if (cmd.length() > 4000) {
+                errors.add(new WorkflowDtos.ValidationError(n.key(), "customCommand", "Command is too long (max 4000 characters)"));
+            } else if (cmd.indexOf('\0') >= 0) {
+                errors.add(new WorkflowDtos.ValidationError(n.key(), "customCommand", "Command contains invalid characters"));
+            } else if (cmd.matches("(?s)^sudo(\\s.*)?$")) {
+                errors.add(new WorkflowDtos.ValidationError(n.key(), "customCommand", "Do not include sudo; use \"Run with sudo\" instead"));
+            }
+            timeout(n, n.timeoutSeconds(), errors);
+            return;
+        }
         CommandDefinition c = visibleCommand(n, userId, errors);
         if (c != null) {
             parameters(n, c, errors);

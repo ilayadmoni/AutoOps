@@ -50,8 +50,8 @@ public class ExecutionControlService {
     }
 
     /**
-     * Persists the cancellation request, stops all further scheduling, releases pending approvals and lets the
-     * currently running remote operation (if any) finish; the engine then records a deterministic CANCELLED state.
+     * Persists the cancellation request, stops all further scheduling, releases pending approvals and interrupts the
+     * currently running remote command (if any); the engine then records a deterministic CANCELLED state.
      */
     public ExecutionDtos.Detail stop(AuthenticatedUser user, Long id) {
         Execution e = queries.requireVisible(user, id);

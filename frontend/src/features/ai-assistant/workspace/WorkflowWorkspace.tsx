@@ -30,7 +30,7 @@ function nodeErrors(state: WorkspaceState): Errors {
  * The editable workflow beside the chat. The assistant proposes into it and the user edits it directly with the same
  * canvas, inspector and step helpers as the builder; saving and executing are explicit buttons here and nowhere else.
  */
-export default function WorkflowWorkspace({ state, dispatch, change, building, canRetry, onRetry, onClose }: {
+export default function WorkflowWorkspace({ state, dispatch, change, building, canRetry, onRetry, onClose, conversationId }: {
   state: WorkspaceState;
   dispatch: (action: Action) => void;
   change: (update: (nodes: WorkflowNode[]) => WorkflowNode[]) => void;
@@ -39,6 +39,8 @@ export default function WorkflowWorkspace({ state, dispatch, change, building, c
   canRetry: boolean;
   onRetry: () => void;
   onClose: () => void;
+  /** The conversation this draft belongs to; the builder links back to it. */
+  conversationId: number | null;
 }) {
   const { t } = useI18n();
   const nav = useNavigate();
@@ -50,16 +52,17 @@ export default function WorkflowWorkspace({ state, dispatch, change, building, c
   const selectedNode = state.nodes.find((n) => n.key === edit.selected) ?? null;
 
   const subtitleFor = useCallback((node: WorkflowNode) => {
-    if (node.type === 'COMMAND') return commands.data?.find((c) => c.id === node.commandDefinitionId)?.name;
+    if (node.type === 'COMMAND') return node.customCommand || commands.data?.find((c) => c.id === node.commandDefinitionId)?.name;
     if (node.type === 'FILE_TRANSFER') return node.destinationPath ?? undefined;
     if (node.type === 'WAIT_UNTIL') return node.target || (node.checkType ? t('checks.' + node.checkType) : undefined);
     return undefined;
   }, [commands.data, t]);
 
   const openBuilder = () => {
-    if (state.workflowId != null && state.savedRevision === state.revision) return nav(`/workflows/${state.workflowId}/edit`);
+    const chat = conversationId != null ? `?chat=${conversationId}` : '';
+    if (state.workflowId != null && state.savedRevision === state.revision) return nav(`/workflows/${state.workflowId}/edit${chat}`);
     setAiDraft({ name: state.name || 'AI draft', description: state.description, nodes: state.nodes });
-    nav('/workflows/new');
+    nav('/workflows/new' + chat);
   };
 
   return (
@@ -78,6 +81,7 @@ export default function WorkflowWorkspace({ state, dispatch, change, building, c
       <div className="previewBody">
         {state.nodes.length > 0 ? (
           <FlowCanvas
+            key={conversationId ?? 'new'} storageId={conversationId != null ? `chat-${conversationId}` : undefined}
             nodes={state.nodes} errors={errors} selected={edit.selected} overlayWidth={selectedNode ? INSPECTOR_WIDTH : 0}
             onSelect={edit.setSelected} onConnect={edit.connect} onDisconnect={edit.disconnect} onAddAfter={edit.addAfter}
             subtitleFor={subtitleFor}
