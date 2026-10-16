@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 420" width="1280" height="420" role="img" aria-labelledby="t d">
   <title id="t">AutoOps</title>
-  <desc id="d">AutoOps — secure, AI-assisted automation for RHEL fleets.</desc>
+  <desc id="d">AutoOps — secure, AI-assisted automation for Linux fleets.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#07090d"/>
@@ -57,7 +57,7 @@
 
   <!-- Wordmark + pitch -->
   <text x="72" y="262" class="sans" font-size="84" font-weight="800" fill="#ffffff" letter-spacing="-2">Auto<tspan fill="url(#green)">Ops</tspan></text>
-  <text x="76" y="308" class="sans" font-size="26" fill="#c9d4cc">Secure, AI-assisted automation for RHEL fleets.</text>
+  <text x="76" y="308" class="sans" font-size="26" fill="#c9d4cc">Secure, AI-assisted automation for Linux fleets.</text>
   <text x="76" y="342" class="sans" font-size="18" fill="#7f9186">Command Bank · typed workflows · pinned SSH keys · approvals</text>
 
   <!-- Tech chips -->
@@ -81,7 +81,7 @@
       <text class="line l2" x="22" y="110"><tspan fill="#5fd38a">▸</tspan><tspan fill="#c9d4cc"> risk     </tspan><tspan fill="#febc2e">HIGH</tspan><tspan fill="#7f9186"> → approval required</tspan></text>
       <text class="line l3" x="22" y="142"><tspan fill="#5fd38a">✓</tspan><tspan fill="#c9d4cc"> approved </tspan><tspan fill="#7f9186">by admin · acknowledged</tspan></text>
       <text class="line l4" x="22" y="174"><tspan fill="#5fd38a">✓</tspan><tspan fill="#c9d4cc"> preflight</tspan><tspan fill="#7f9186"> host key SHA256 pinned · sudo ok</tspan></text>
-      <text class="line l5" x="22" y="206"><tspan fill="#5fd38a">✓</tspan><tspan fill="#c9d4cc"> run      </tspan><tspan fill="#7f9186">rhel-web-01  rhel-web-02  rhel-db-01</tspan></text>
+      <text class="line l5" x="22" y="206"><tspan fill="#5fd38a">✓</tspan><tspan fill="#c9d4cc"> run      </tspan><tspan fill="#7f9186">linux-web-01  linux-web-02  linux-db-01</tspan></text>
       <text class="line l6" x="22" y="238"><tspan fill="#5fd38a">●</tspan><tspan fill="#ffffff" font-weight="700"> SUCCESS  </tspan><tspan fill="#7f9186">3/3 machines · saved to history</tspan></text>
       <text x="22" y="270" fill="#5fd38a">$ <tspan class="cursor">▍</tspan></text>
     </g>

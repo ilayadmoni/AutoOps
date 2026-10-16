@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/banner.svg" alt="AutoOps — secure, AI-assisted automation for RHEL fleets" width="100%"/>
+<img src=".github/assets/banner.svg" alt="AutoOps — secure, AI-assisted automation for Linux fleets" width="100%"/>
 
 <br/>
 
@@ -19,7 +19,7 @@
 
 ## The problem
 
-Operations teams that look after fleets of RHEL servers often work by SSH-ing into each box and pasting commands
+Operations teams that look after fleets of Linux servers often work by SSH-ing into each box and pasting commands
 from a wiki. Nothing checks those commands first, nobody signs off on risky ones, and nothing records what ran where.
 
 **AutoOps replaces that with one controlled path.** Commands come from an approved **Command Bank**. They can be
@@ -98,13 +98,13 @@ sequenceDiagram
     participant UI as React SPA
     participant API as Spring Boot API
     participant DB as PostgreSQL
-    participant Host as RHEL machines
+    participant Host as Linux machines
 
     Op->>UI: Pick an approved command and target machines
     UI->>API: POST /api/executions (command id + params, no shell text)
     API->>API: Resolve and quote params · classify risk
     API->>DB: Persist Execution, MachineRuns, StepRuns
-    API->>Host: Preflight over SSH (pinned host key, auth, RHEL, sudo)
+    API->>Host: Preflight over SSH (pinned host key, auth, Linux, sudo)
     alt HIGH risk or manual mode
         API-->>UI: ApprovalRequest pending
         Op->>UI: Approve (acknowledge risk)
@@ -135,7 +135,7 @@ graph LR
     A --> PG[(PostgreSQL 16<br/>+ pgvector)]
     A --> S3[(MinIO · S3)]
     AI -.->|no secrets| LLM[OpenRouter / OpenAI-compatible]
-    ENG ==>|SSH / SFTP<br/>pinned host key| R[🖥️ RHEL fleet]
+    ENG ==>|SSH / SFTP<br/>pinned host key| R[🖥️ Linux fleet]
 
     style A fill:#0d1410,stroke:#3ee27a,color:#fff
     style R fill:#16c062,color:#fff
@@ -205,7 +205,7 @@ Checks: `cd backend && mvn test` and `cd frontend && npm run build` (includes an
 <div align="center">
 
 **Built by [Ilay Admoni](https://github.com/ilayadmoni)**: Computer Science student and software engineer.<br/>
-AutoOps grew out of years of hands-on work running RHEL and VMware infrastructure.
+AutoOps grew out of years of hands-on work running Linux and VMware infrastructure.
 
 [![GitHub](https://img.shields.io/badge/GitHub-ilayadmoni-181717?style=flat-square&logo=github)](https://github.com/ilayadmoni)
 [![Email](https://img.shields.io/badge/Email-ilayadmoni9%40gmail.com-EA4335?style=flat-square&logo=gmail&logoColor=white)](mailto:ilayadmoni9@gmail.com)
