@@ -1,12 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Bot, Server, Workflow, TerminalSquare, History, Shield, KeyRound, FileUp, Menu, CheckSquare, Users, Database, ScrollText } from 'lucide-react';
+import { Bot, Server, Workflow, TerminalSquare, History, Shield, KeyRound, FileUp, Menu, Users, Database, ScrollText } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { useI18n } from '../providers/I18nProvider';
 import { Brand, IconButton, PageIconContext } from '../../components/ui';
-import { get } from '../../services/client';
-import type { ApprovalView } from '../../types/api';
 import SidebarFooter from './SidebarFooter';
 import AppControls from '../../components/AppControls';
 
@@ -15,7 +12,7 @@ const SECTION_ICONS: [string, ReactNode][] = [
   ['/admin/users', <Users />], ['/admin/datasets', <Database />],
   ['/admin/audit', <ScrollText />], ['/admin', <Shield />], ['/workflows', <Workflow />], ['/commands', <TerminalSquare />],
   ['/machines', <Server />], ['/credentials', <KeyRound />], ['/files', <FileUp />], ['/executions', <History />],
-  ['/approvals', <CheckSquare />], ['/', <Bot />],
+  ['/', <Bot />],
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -24,10 +21,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const sectionIcon = SECTION_ICONS.find(([p]) => p === '/' ? pathname === '/' : pathname.startsWith(p))?.[1] ?? null;
-  const pending = useQuery({ queryKey: ['approvals', 'pending', false], queryFn: () => get<ApprovalView[]>('/approvals/pending'), refetchInterval: 15000 });
-  const link = (to: string, icon: ReactNode, label: string, badge?: number) => (
+  const link = (to: string, icon: ReactNode, label: string) => (
     <NavLink to={to} end={to === '/' || to === '/admin'} onClick={() => setOpen(false)}>
-      {icon}<span>{label}</span>{badge ? <span className="navBadge">{badge}</span> : null}
+      {icon}<span>{label}</span>
     </NavLink>
   );
   return (
@@ -47,7 +43,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           {link('/credentials', <KeyRound />, t('nav.credentials'))}
           {link('/files', <FileUp />, t('nav.files'))}
           {link('/executions', <History />, t('nav.executions'))}
-          {link('/approvals', <CheckSquare />, t('nav.approvals'), pending.data?.length)}
           {isAdmin && (<>
             <div className="navSection">{t('nav.admin')}</div>
             {link('/admin', <Shield />, t('nav.adminOverview'))}

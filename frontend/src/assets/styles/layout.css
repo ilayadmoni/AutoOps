@@ -32,10 +32,6 @@ nav svg { width: 18px; height: 18px; flex: none; }
   color: var(--muted); margin: var(--s4) 10px var(--s1);
 }
 nav > .navSection:first-child { margin-top: 0; }
-.navBadge {
-  margin-inline-start: auto; background: var(--warn); color: #000; border-radius: var(--radius-pill);
-  font-size: 11px; padding: 0 7px; font-weight: 700; font-variant-numeric: tabular-nums;
-}
 
 .sidebarFooter { margin-top: auto; padding-top: var(--s3); border-top: 1px solid var(--border); }
 /* Signed-in user: one quiet card. Name over a role chip, sign-out at the far edge turning red on hover. */

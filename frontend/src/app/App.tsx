@@ -13,7 +13,6 @@ const WorkflowsPage = lazy(() => import('../pages/workflows/WorkflowsPage'));
 const WorkflowBuilderPage = lazy(() => import('../pages/workflows/WorkflowBuilderPage'));
 const ExecutionsPage = lazy(() => import('../pages/executions/ExecutionsPage'));
 const ExecutionDetailPage = lazy(() => import('../pages/executions/ExecutionDetailPage'));
-const ApprovalsPage = lazy(() => import('../pages/approvals/ApprovalsPage'));
 const FilesPage = lazy(() => import('../pages/files/FilesPage'));
 const AdminPage = lazy(() => import('../pages/admin/AdminPage'));
 const UsersAdminPage = lazy(() => import('../pages/admin/UsersAdminPage'));
@@ -42,7 +41,6 @@ export default function App() {
           <Route path="/workflows/:id/edit" element={<WorkflowBuilderPage />} />
           <Route path="/executions" element={<ExecutionsPage />} />
           <Route path="/executions/:id" element={<ExecutionDetailPage />} />
-          <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/files" element={<FilesPage />} />
           <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
           <Route path="/admin/users" element={<RequireAdmin><UsersAdminPage /></RequireAdmin>} />
