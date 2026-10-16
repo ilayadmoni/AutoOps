@@ -23,7 +23,7 @@ public final class DatasetDtos {
                               Instant startedAt, Instant finishedAt, Object analysis) {
         public static DatasetView from(DatasetImport d, Object analysis) {
             return new DatasetView(d.getId(), d.getFilename(), d.getStatus(), d.getSizeBytes(), d.getChecksum(), n(d.getTotalRecords()),
-                    n(d.getCandidateRecords()), n(d.getInvalidRecords()), n(d.getNonRhelRecords()), n(d.getDuplicateRecords()),
+                    n(d.getCandidateRecords()), n(d.getInvalidRecords()), n(d.getNonLinuxRecords()), n(d.getDuplicateRecords()),
                     n(d.getProcessedRecords()), n(d.getAddedRecords()), n(d.getFailedRecords()), d.getErrorMessage(),
                     d.getEmbeddingProvider(), d.getEmbeddingModel(), d.getUploadedBy(), d.getReviewedBy(), d.getReviewedAt(),
                     d.getCreatedAt(), d.getStartedAt(), d.getFinishedAt(), analysis);

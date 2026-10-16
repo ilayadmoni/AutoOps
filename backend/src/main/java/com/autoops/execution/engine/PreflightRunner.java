@@ -12,24 +12,14 @@ import com.autoops.execution.plan.PlanStep;
 import com.autoops.execution.plan.ResolvedStep;
 import com.autoops.execution.plan.StepResolver;
 import com.autoops.execution.realtime.ExecutionEventPublisher;
-import com.autoops.infrastructure.remote.ExecResult;
-import com.autoops.infrastructure.remote.OsFamily;
-import com.autoops.infrastructure.remote.OsInfo;
-import com.autoops.infrastructure.remote.RemoteException;
-import com.autoops.infrastructure.remote.RemoteSession;
-import com.autoops.infrastructure.remote.ShellCommands;
 import com.autoops.machine.entity.Machine;
 import com.autoops.machine.repository.MachineRepository;
-import com.autoops.machine.service.MachineConnectionService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Per-machine preflight. It is a hard gate: a machine whose preflight fails never runs a real step.
@@ -41,20 +31,17 @@ public class PreflightRunner {
     private final MachineRepository machines;
     private final CredentialRepository credentials;
     private final StepResolver resolver;
-    private final MachineConnectionService connections;
+    private final RemotePreflightChecks remote;
     private final ExecutionEventPublisher events;
-    private final boolean requireRhel;
 
     public PreflightRunner(ExecutionStore store, MachineRepository machines, CredentialRepository credentials, StepResolver resolver,
-                           MachineConnectionService connections, ExecutionEventPublisher events,
-                           @Value("${autoops.execution.require-rhel:false}") boolean requireRhel) {
+                           RemotePreflightChecks remote, ExecutionEventPublisher events) {
         this.store = store;
         this.machines = machines;
         this.credentials = credentials;
         this.resolver = resolver;
-        this.connections = connections;
+        this.remote = remote;
         this.events = events;
-        this.requireRhel = requireRhel;
     }
 
     public boolean run(Execution e, ExecutionPlan plan, MachineRun mr) {
@@ -111,7 +98,6 @@ public class PreflightRunner {
                 return "Step '" + step.name() + "': " + ex.getMessage() + details(ex);
             }
         }
-        boolean needsSudo = resolved.stream().anyMatch(ResolvedStep::runWithSudo);
 
         if (!machine.isTrusted()) {
             p.setHostVerificationStatus("UNTRUSTED");
@@ -121,73 +107,7 @@ public class PreflightRunner {
             p.setSudoStatus("NOT_CHECKED");
             return "SSH host key is not trusted. Discover and confirm the machine's fingerprint first.";
         }
-        try (RemoteSession session = connections.connect(machine, credential)) {
-            p.setSshStatus("SUCCESS");
-            p.setHostVerificationStatus("SUCCESS");
-            p.setAuthenticationStatus("SUCCESS");
-            ExecResult os = session.exec(ShellCommands.OS_RELEASE, 15);
-            OsInfo info = OsInfo.parse(os.stdout());
-            if (!os.success() || !info.known()) {
-                p.setOsStatus("FAILED");
-                p.setSudoStatus("NOT_CHECKED");
-                return "Could not detect the operating system";
-            }
-            String osProblem = osProblem(info, resolved);
-            if (osProblem != null) {
-                p.setOsStatus("FAILED");
-                p.setSudoStatus("NOT_CHECKED");
-                return osProblem;
-            }
-            p.setOsStatus("SUCCESS");
-            if (needsSudo) {
-                ExecResult sudo = session.exec(ShellCommands.SUDO_CHECK, connections.sudoPassword(credential), 20, () -> false, null);
-                p.setSudoStatus(sudo.success() ? "SUCCESS" : "FAILED");
-                if (!sudo.success()) {
-                    return "Privilege escalation (sudo) is not available with this credential";
-                }
-            } else {
-                p.setSudoStatus("NOT_REQUIRED");
-            }
-            return null;
-        } catch (RemoteException ex) {
-            switch (ex.kind()) {
-                case HOST_KEY_MISMATCH -> {
-                    p.setSshStatus("SUCCESS");
-                    p.setHostVerificationStatus("MISMATCH");
-                    p.setAuthenticationStatus("NOT_CHECKED");
-                }
-                case UNTRUSTED_HOST -> p.setHostVerificationStatus("UNTRUSTED");
-                case AUTHENTICATION_FAILED -> {
-                    p.setSshStatus("SUCCESS");
-                    p.setHostVerificationStatus("SUCCESS");
-                    p.setAuthenticationStatus("FAILED");
-                }
-                default -> p.setSshStatus("FAILED");
-            }
-            if (p.getOsStatus() == null) {
-                p.setOsStatus("NOT_CHECKED");
-            }
-            if (p.getSudoStatus() == null) {
-                p.setSudoStatus("NOT_CHECKED");
-            }
-            return ex.getMessage();
-        }
-    }
-
-    /** Any Linux is accepted unless RHEL is required; each step must support the machine's distribution family. */
-    private String osProblem(OsInfo info, List<ResolvedStep> resolved) {
-        if (requireRhel && !info.rhelFamily()) {
-            return "Unsupported operating system: " + info.display() + " (RHEL family required by configuration)";
-        }
-        Optional<OsFamily> family = info.family();
-        for (ResolvedStep step : resolved) {
-            if (!OsFamily.compatible(step.supportedOs(), family)) {
-                String needs = step.supportedOs().stream().map(Enum::name).sorted().collect(Collectors.joining(" or "));
-                return "Step '" + step.step().name() + "' runs only on " + needs + " family systems; this machine is "
-                        + info.display() + family.map(f -> " (" + f.name() + " family)").orElse(" (unknown family)");
-            }
-        }
-        return null;
+        return remote.check(machine, credential, resolved, p);
     }
 
     private static String details(ApiException ex) {

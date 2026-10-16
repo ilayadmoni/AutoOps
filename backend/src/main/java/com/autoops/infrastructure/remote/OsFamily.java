@@ -8,11 +8,11 @@ import java.util.regex.Pattern;
  * Families are what matter for compatibility (package manager, firewall and security tooling), not exact distros.
  */
 public enum OsFamily {
-    LINUX, RHEL, DEBIAN, SUSE, ARCH, ALPINE;
+    LINUX, RPM, DEBIAN, SUSE, ARCH, ALPINE;
 
     private static final Map<String, OsFamily> IDS = Map.ofEntries(
-            Map.entry("rhel", RHEL), Map.entry("centos", RHEL), Map.entry("rocky", RHEL), Map.entry("almalinux", RHEL),
-            Map.entry("ol", RHEL), Map.entry("fedora", RHEL), Map.entry("amzn", RHEL),
+            Map.entry("rhel", RPM), Map.entry("centos", RPM), Map.entry("rocky", RPM), Map.entry("almalinux", RPM),
+            Map.entry("ol", RPM), Map.entry("fedora", RPM), Map.entry("amzn", RPM),
             Map.entry("debian", DEBIAN), Map.entry("ubuntu", DEBIAN), Map.entry("linuxmint", DEBIAN), Map.entry("raspbian", DEBIAN),
             Map.entry("pop", DEBIAN), Map.entry("kali", DEBIAN),
             Map.entry("suse", SUSE), Map.entry("sles", SUSE), Map.entry("opensuse", SUSE), Map.entry("opensuse-leap", SUSE),
@@ -20,7 +20,7 @@ public enum OsFamily {
             Map.entry("arch", ARCH), Map.entry("manjaro", ARCH), Map.entry("alpine", ALPINE));
     /** Free-text OS names in datasets, matched as whole words. Order matters: specific families before plain "linux". */
     private static final List<Map.Entry<Pattern, OsFamily>> NAMES = List.of(
-            Map.entry(word("rhel\\d*|red ?hat|redhat|centos|rocky|alma(linux)?|oracle linux|el\\d+|fedora|amazon linux"), RHEL),
+            Map.entry(word("rhel\\d*|red ?hat|redhat|centos|rocky|alma(linux)?|oracle linux|el\\d+|fedora|amazon linux"), RPM),
             Map.entry(word("debian|ubuntu|mint|raspbian|kali"), DEBIAN),
             Map.entry(word("suse|sles|opensuse"), SUSE),
             Map.entry(word("arch|manjaro"), ARCH),
@@ -30,9 +30,9 @@ public enum OsFamily {
 
     /** Tools that exist only in one family; a template starting with one of them needs that family. */
     private static final Map<String, OsFamily> FAMILY_TOOLS = Map.ofEntries(
-            Map.entry("dnf", RHEL), Map.entry("yum", RHEL), Map.entry("rpm", RHEL), Map.entry("firewall-cmd", RHEL),
-            Map.entry("getenforce", RHEL), Map.entry("setenforce", RHEL), Map.entry("sestatus", RHEL),
-            Map.entry("semanage", RHEL), Map.entry("restorecon", RHEL), Map.entry("subscription-manager", RHEL),
+            Map.entry("dnf", RPM), Map.entry("yum", RPM), Map.entry("rpm", RPM), Map.entry("firewall-cmd", RPM),
+            Map.entry("getenforce", RPM), Map.entry("setenforce", RPM), Map.entry("sestatus", RPM),
+            Map.entry("semanage", RPM), Map.entry("restorecon", RPM), Map.entry("subscription-manager", RPM),
             Map.entry("apt", DEBIAN), Map.entry("apt-get", DEBIAN), Map.entry("apt-cache", DEBIAN), Map.entry("dpkg", DEBIAN),
             Map.entry("ufw", DEBIAN), Map.entry("zypper", SUSE), Map.entry("pacman", ARCH), Map.entry("apk", ALPINE));
 
@@ -58,7 +58,7 @@ public enum OsFamily {
     }
 
     /**
-     * Families named by a dataset's free-text OS value ("rhel, centos", "ubuntu", "linux"). Empty when the value only
+     * Families named by a dataset's free-text OS value ("fedora, centos", "ubuntu", "linux"). Empty when the value only
      * names non-Linux systems; blank or unrecognized Linux values mean any Linux.
      */
     public static Optional<Set<OsFamily>> ofDatasetValue(String value) {
@@ -85,13 +85,14 @@ public enum OsFamily {
         return Optional.of(found.contains(LINUX) ? EnumSet.of(LINUX) : found);
     }
 
-    /** Parses a stored supported-OS value ("LINUX", "RHEL,DEBIAN"); blank, legacy or unknown values mean any Linux. */
+    /** Parses a stored supported-OS value ("LINUX", "RPM,DEBIAN"); blank, legacy or unknown values mean any Linux. */
     public static Set<OsFamily> parseStored(String stored) {
         Set<OsFamily> out = EnumSet.noneOf(OsFamily.class);
         if (stored != null) {
             for (String part : stored.split(",")) {
                 try {
-                    out.add(valueOf(part.strip().toUpperCase(Locale.ROOT)));
+                    String token = part.strip().toUpperCase(Locale.ROOT);
+                    out.add(valueOf("rhel".equalsIgnoreCase(token) ? "RPM" : token));
                 } catch (IllegalArgumentException ignored) {
                     // Unknown token: ignore it.
                 }

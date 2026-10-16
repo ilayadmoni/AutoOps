@@ -20,7 +20,7 @@ Repository: `ilayadmoni/AutoOps`, branch `main`.
 10. Remote operations are only against machines explicitly registered/configured by the AutoOps user. Preserve host-key verification and human approval boundaries.
 11. Do not trust client-supplied resolved shell commands. Resolve approved command definitions and parameters on the server.
 12. Do not silently overwrite an SSH host key after a mismatch.
-13. Keep V1 focused on RHEL/Linux.
+13. Keep V1 focused on Linux.
 14. Preserve manual operation paths. Every AI-assisted operation should also be possible without AI.
 15. When a requirement conflicts with current code, fix the architecture rather than adding another bypass.
 
@@ -99,7 +99,7 @@ Spring Boot API
 Execution Engine
       |
       v
-Registered RHEL machine over verified SSH/SFTP
+Registered Linux machine over verified SSH/SFTP
 ```
 
 The AI provider must never receive raw credentials and must never directly execute SSH.
@@ -287,7 +287,7 @@ Add a user-facing endpoint that:
 - verifies trusted host key;
 - uses selected/preferred credential;
 - attempts authentication;
-- detects RHEL/basic OS information using a safe fixed read-only command;
+- detects Linux/basic OS information using a safe fixed read-only command;
 - returns structured statuses, not raw exceptions.
 
 Suggested response:
@@ -358,7 +358,7 @@ Preflight should check:
 - credential exists/allowed;
 - SSH host trust;
 - authentication;
-- RHEL;
+- Linux;
 - sudo availability when required;
 - file prerequisites for file-transfer workflows;
 - validated parameters.
@@ -685,7 +685,7 @@ Produce:
 - accepted candidate rows
 - invalid rows
 - duplicates
-- non-RHEL rows
+- non-Linux rows
 - sample preview
 - warnings/errors
 

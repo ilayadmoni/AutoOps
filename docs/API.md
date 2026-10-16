@@ -108,7 +108,7 @@ Dataset uploads are `.csv` (header row) or `.json`. JSON is an array of objects,
 `commands`, `items` or `data`. Columns/keys are case-insensitive with aliases: `name` (`title`), `command`
 (`template`, `command_template`), `description`, `category`, `action`, `resource_type`, `os` and `parameters` (JSON
 array of parameter specs). `name` and `command` are required. `os` is a string or array of distributions or families
-(`linux` = any, `rhel`/`centos`, `ubuntu`/`debian`, `suse`...); rows naming only non-Linux systems are skipped.
+(`linux` = any, `fedora`/`centos`, `ubuntu`/`debian`, `suse`...); rows naming only non-Linux systems are skipped.
 
 ```json
 {"commands": [{"name": "Restart a service", "command": "systemctl restart {{service}}", "os": ["linux"],

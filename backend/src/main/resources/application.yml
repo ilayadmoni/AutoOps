@@ -75,8 +75,6 @@ autoops:
     approval-timeout-minutes: ${EXECUTION_APPROVAL_TIMEOUT_MINUTES:1440}
     max-output-bytes: ${EXECUTION_MAX_OUTPUT_BYTES:65536}
     # Any Linux runs by default; each command declares the distribution families it supports.
-    # Set true to restrict execution to RHEL-family machines only.
-    require-rhel: ${EXECUTION_REQUIRE_RHEL:false}
   files:
     orphan-retention-days: ${FILES_ORPHAN_RETENTION_DAYS:7}
   embedding:

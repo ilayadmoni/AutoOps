@@ -42,8 +42,8 @@ class DatasetCsvParserTest {
 
     @Test
     void linuxApplicabilityAndFamilies() {
-        assertEquals(EnumSet.of(OsFamily.RHEL), DatasetEvaluator.supportedFamilies("rhel 9, centos", "ls").orElseThrow());
-        assertEquals(EnumSet.of(OsFamily.RHEL), DatasetEvaluator.supportedFamilies("el8", "ls").orElseThrow());
+        assertEquals(EnumSet.of(OsFamily.RPM), DatasetEvaluator.supportedFamilies("fedora, centos", "ls").orElseThrow());
+        assertEquals(EnumSet.of(OsFamily.RPM), DatasetEvaluator.supportedFamilies("el8", "ls").orElseThrow());
         assertEquals(EnumSet.of(OsFamily.DEBIAN), DatasetEvaluator.supportedFamilies("ubuntu linux", "ls").orElseThrow());
         assertEquals(EnumSet.of(OsFamily.LINUX), DatasetEvaluator.supportedFamilies("", "df -h").orElseThrow());
         assertEquals(EnumSet.of(OsFamily.LINUX), DatasetEvaluator.supportedFamilies("linux, macos", "df -h").orElseThrow());
