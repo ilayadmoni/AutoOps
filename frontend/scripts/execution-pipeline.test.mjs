@@ -47,6 +47,11 @@ test('execution pipelines are vertical, update status, preserve output and fit m
     const columns = page.locator('.executionColumn');
     await columns.first().waitFor();
     assert.equal(await columns.count(), 2);
+    const sharedWidth = await columns.evaluateAll(items => {
+      const parent = items[0].parentElement.getBoundingClientRect();
+      return items.at(-1).getBoundingClientRect().right - items[0].getBoundingClientRect().left - parent.width;
+    });
+    assert.ok(Math.abs(sharedWidth) < 2, 'machine columns share the full available desktop width');
     const first = columns.first();
     const nodes = first.locator('.executionNode');
     assert.equal(await nodes.count(), 3);
@@ -58,10 +63,22 @@ test('execution pipelines are vertical, update status, preserve output and fit m
     assert.ok((await columns.nth(1).boundingBox()).x > (await first.boundingBox()).x);
     await first.getByRole('button', { name: /Step 10/ }).click();
     assert.ok(await first.getByText('Services ready', { exact: true }).isVisible());
+    const successNode = first.locator('.executionNode.success').last();
+    await successNode.getByRole('button', { name: 'Collapse details', exact: true }).click();
+    assert.equal(await successNode.locator('.executionNodeDetails').isVisible(), false);
+    assert.ok(await successNode.locator('.executionNodeButton').evaluate(button => button === document.activeElement));
+    await successNode.locator('.executionNodeButton').press('Enter');
+    assert.ok(await successNode.getByText('Services ready', { exact: true }).isVisible());
     data.machines[0].steps[1] = step(11, 'FAILED', { failureReason: 'Transfer refused', retryable: true });
     await first.locator('.executionNode.failed').waitFor();
     assert.ok(await first.getByText('Transfer refused', { exact: true }).isVisible());
     assert.ok(await first.getByRole('button', { name: 'Retry', exact: true }).isVisible());
+    const failedNode = first.locator('.executionNode.failed');
+    await failedNode.getByRole('button', { name: 'Collapse details', exact: true }).click();
+    await page.waitForResponse(response => new URL(response.url()).pathname === '/api/executions/42');
+    assert.equal(await failedNode.locator('.executionNodeDetails').isVisible(), false, 'polling preserves manual collapse');
+    await failedNode.locator('.executionNodeButton').press('Space');
+    assert.ok(await failedNode.getByText('Transfer refused', { exact: true }).isVisible());
     assert.equal(await first.locator('.executionNode.success').count(), 2);
     await page.screenshot({ path: join(tmpdir(), 'execution-pipeline-desktop.png'), fullPage: true });
     await first.getByRole('button', { name: 'Retry', exact: true }).click();
@@ -77,6 +94,8 @@ test('execution pipelines are vertical, update status, preserve output and fit m
     await page.reload();
     await page.locator('.executionColumn').first().waitFor();
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
+    await page.locator('.executionNode.failed').getByRole('button', { name: 'כיווץ פרטים', exact: true }).click();
+    assert.equal(await page.locator('.executionNode.failed .executionNodeDetails').isVisible(), false);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
     await page.screenshot({ path: join(tmpdir(), 'execution-pipeline-mobile.png'), fullPage: true });
     await page.evaluate(() => localStorage.setItem('autoops.theme', 'dark'));
@@ -102,6 +121,18 @@ test('execution pipelines are vertical, update status, preserve output and fit m
     for (const status of states) {
       assert.ok(await page.locator('.executionColumn').nth(1).locator(`.executionNode.${status.toLowerCase()}`).count() > 0);
     }
+    data.machines = data.machines.slice(0, 1);
+    data.summary.machineCount = 1;
+    await page.setViewportSize({ width: 1694, height: 900 });
+    await page.reload();
+    await page.locator('.executionColumn').first().waitFor();
+    const singleWidth = await page.locator('.executionColumn').evaluate(item => ({
+      column: item.getBoundingClientRect().width,
+      available: item.parentElement.getBoundingClientRect().width,
+    }));
+    assert.ok(Math.abs(singleWidth.column - singleWidth.available) < 2, 'a single machine fills the pipeline width');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    await page.screenshot({ path: join(tmpdir(), 'execution-pipeline-fullwidth.png'), fullPage: true });
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

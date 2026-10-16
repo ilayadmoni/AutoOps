@@ -1,8 +1,8 @@
 /* Machine columns keep actual execution order vertical, including retries and failure paths. */
 .executionPipelines {
-  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 360px);
-  align-items: start; gap: 20px; overflow-x: auto; padding: 4px 4px 20px;
-  margin-bottom: var(--s4); max-width: 100%;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 1fr);
+  align-items: start; gap: 20px; overflow-x: auto; padding: 4px 0 20px;
+  margin-bottom: var(--s4); width: 100%; max-width: 100%;
 }
 .executionColumn {
   min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
@@ -70,6 +70,7 @@
   overflow-wrap: anywhere;
 }
 .executionNodeDetails[hidden] { display: none; }
+.executionDetailsActions { display: flex; justify-content: flex-end; }
 .executionNodeDetails > * { min-width: 0; max-width: 100%; }
 .executionNodeDetails .checkItem { flex-wrap: wrap; }
 .executionEmpty { text-align: center; padding: 0 16px 20px; }
