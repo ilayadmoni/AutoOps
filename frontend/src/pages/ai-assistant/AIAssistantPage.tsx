@@ -98,7 +98,7 @@ export default function AIAssistantPage() {
         <div className="chatScroll" ref={scroller}>
           <div className={'chatInner' + (messages.length === 0 ? ' isEmpty' : '')}>
             {notConfigured && <div className="alert info">{t('ai.notConfigured')}</div>}
-            {messages.length === 0 && !notConfigured && <ChatHero />}
+            {messages.length === 0 && !notConfigured && <ChatHero onChoose={submit} disabled={!status.data?.configured || send.isPending || attach.isPending} />}
             {messages.map((m, i) => (
               <ChatMessage
                 key={i}

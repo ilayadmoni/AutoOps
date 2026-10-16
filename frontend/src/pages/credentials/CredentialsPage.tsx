@@ -1,14 +1,15 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { KeyRound, Pencil, Trash2 } from 'lucide-react';
-import { del, get, post, put } from '../../services/client';
+import { del, get } from '../../services/client';
 import type { Credential } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import {
-  Button, Card, Code, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Field, IconButton, Loading, Modal, NoMatches, PageHeader, SearchToolbar, TextInput, useCollectionSearch,
+  Button, Card, Code, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, IconButton, Loading, NoMatches, PageHeader, SearchToolbar, useCollectionSearch,
 } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { formatDate } from '../../utils/format';
+import CredentialForm from '../../features/credentials/CredentialForm';
 
 export const credentialsQuery = { queryKey: ['credentials'], queryFn: () => get<Credential[]>('/credentials') };
 
@@ -66,48 +67,5 @@ export default function CredentialsPage() {
           confirmLabel={t('common.delete')} busy={remove.isPending} onCancel={() => setDeleting(null)} onConfirm={() => remove.mutate(deleting.id)} />
       )}
     </section>
-  );
-}
-
-function CredentialForm({ credential, onClose }: { credential: Credential | null; onClose: () => void }) {
-  const { t } = useI18n();
-  const qc = useQueryClient();
-  const toast = useToast();
-  const [name, setName] = useState(credential?.name ?? '');
-  const [username, setUsername] = useState(credential?.username ?? '');
-  const [password, setPassword] = useState('');
-  const save = useMutation({
-    mutationFn: () => credential
-      ? put<Credential>('/credentials/' + credential.id, { name, username, password: password || null })
-      : post<Credential>('/credentials', { name, username, password }),
-    onSuccess: () => {
-      toast.success(t('credentials.saved'));
-      qc.invalidateQueries({ queryKey: ['credentials'] });
-      onClose();
-    },
-  });
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    save.mutate();
-  };
-  const fe = (save.error as { fieldErrors?: Record<string, string> } | null)?.fieldErrors ?? {};
-  return (
-    <Modal title={credential ? t('credentials.edit') : t('credentials.add')} onClose={onClose}>
-      <form className="stack" onSubmit={submit}>
-        <ErrorAlert error={save.error} />
-        <Field label={t('common.name')} error={fe.name} required><TextInput value={name} onChange={(e) => setName(e.target.value)} required maxLength={150} /></Field>
-        <Field label={t('credentials.username')} error={fe.username} required><TextInput dir="ltr" value={username} onChange={(e) => setUsername(e.target.value)} required maxLength={150} /></Field>
-        <Field
-          label={credential ? t('credentials.newPassword') : t('credentials.password')} error={fe.password}
-          hint={credential ? t('credentials.rotateHint') : t('credentials.passwordHint')} required={!credential}
-        >
-          <TextInput dir="ltr" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required={!credential} maxLength={512} />
-        </Field>
-        <div className="modalFooter inline">
-          <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button type="submit" variant="primary" busy={save.isPending}>{t('common.save')}</Button>
-        </div>
-      </form>
-    </Modal>
   );
 }

@@ -5,7 +5,8 @@ import { loadWorkspace, saveWorkspace } from './store';
 
 /** Words that mark a request as workflow building, so the workspace opens before the reply lands. */
 const WORKFLOW_INTENT = /\b(workflow|pipeline|flow)\b|תהליך|זרימ|פייפליין/i;
-export const looksLikeWorkflowRequest = (text: string) => WORKFLOW_INTENT.test(text);
+const RUN_EXISTING = /\b(?:run|execute|start)\b.{0,60}\bworkflow\b|(?:הרץ|הריצו|להריץ|הרצת|הפעל).{0,50}תהליך/i;
+export const looksLikeWorkflowRequest = (text: string) => WORKFLOW_INTENT.test(text) && !RUN_EXISTING.test(text);
 
 const lastDraftOp = (messages: { operations?: AIOperation[] }[]) =>
   messages.flatMap((m) => m.operations ?? []).filter((op) => op.type === 'REPLACE_WORKFLOW_DRAFT').at(-1);

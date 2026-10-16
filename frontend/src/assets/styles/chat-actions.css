@@ -1,0 +1,11 @@
+.chatStarters { margin-top: var(--s4); }
+.chatStarters .tile { min-height: 88px; text-align: start; }
+.chatStarters .tileText { min-width: 0; }
+.chatStarters .tileText small { line-height: 1.45; }
+.chatActionFields { display: grid; gap: var(--s3); }
+.chatActionFields .field { margin: 0; }
+.chatActionDone { display: flex; align-items: center; gap: var(--s2); color: var(--ok); overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .chatStarters { grid-template-columns: minmax(0, 1fr); }
+  .chatStarters .tile { min-height: 72px; }
+}

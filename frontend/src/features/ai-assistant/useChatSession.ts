@@ -40,6 +40,7 @@ export function useChatSession(hooks: Hooks) {
   const [doc, setDoc] = useState<Doc>([]);
   const view = useRef(0);
   const last = useRef<ChatRequest | null>(null);
+  const inFlight = useRef(false);
   const hook = useRef(hooks);
   hook.current = hooks;
 
@@ -60,6 +61,7 @@ export function useChatSession(hooks: Hooks) {
       qc.invalidateQueries({ queryKey: ['ai', 'conversations'] });
     },
     onError: (error, r) => hook.current.onFail(error, r, r.view === view.current),
+    onSettled: () => { inFlight.current = false; },
   });
   const attach = useMutation({
     mutationFn: (file: File) => upload<StoredFile>('/files', file),
@@ -91,7 +93,7 @@ export function useChatSession(hooks: Hooks) {
   const submit = (value: Doc | string = doc) => {
     const input = typeof value === 'string' ? textDoc(value) : value;
     const message = serialize(input);
-    if (isEmpty(input) || message.length > MAX_LENGTH || send.isPending || attach.isPending || !status.data?.configured) return;
+    if (isEmpty(input) || message.length > MAX_LENGTH || inFlight.current || send.isPending || attach.isPending || !status.data?.configured) return;
     const { servers, files } = referencesOf(input);
     const { draftSummary, revision } = hook.current.prepare(message, { servers, files });
     const request: ChatRequest = {
@@ -99,6 +101,7 @@ export function useChatSession(hooks: Hooks) {
       fileIds: files.map((f) => f.id), machineIds: servers.map((s) => s.id),
     };
     last.current = request;
+    inFlight.current = true;
     clearComposer();
     send.mutate(request);
   };
