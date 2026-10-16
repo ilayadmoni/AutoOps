@@ -94,7 +94,7 @@ export default function Menu({ trigger, items, label, side = 'bottom' }: {
               type="button"
               role="menuitem"
               className={'menuItem' + (item.danger ? ' danger' : '')}
-              onClick={() => { setOpen(false); item.onSelect(); }}
+              onClick={() => { dismiss(); item.onSelect(); }}
             >
               {item.icon && <span className="menuIcon">{item.icon}</span>}
               <span className="menuText">

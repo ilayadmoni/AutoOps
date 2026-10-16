@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Spinner } from './Loaders';
 import Tooltip from './Tooltip';
+import Menu, { type MenuItem } from './Menu';
 
 /**
  * Floating action button: the page's one "add" action, as a round button pinned to the bottom
@@ -11,12 +12,13 @@ import Tooltip from './Tooltip';
  * the body so no scrolling or contained ancestor can carry it away. `label` is its accessible
  * name and its tooltip. Pass `to` for navigation, `onClick` for an in-page action.
  */
-export default function Fab({ label, onClick, to, busy, icon }: {
+export default function Fab({ label, onClick, to, busy, icon, items }: {
   label: string;
   onClick?: () => void;
   to?: string;
   busy?: boolean;
   icon?: ReactNode;
+  items?: MenuItem[];
 }) {
   const content = busy ? <Spinner tone="ink" /> : icon ?? <Plus size={24} strokeWidth={2.25} />;
   const button = to
@@ -26,5 +28,7 @@ export default function Fab({ label, onClick, to, busy, icon }: {
         {content}
       </button>
     );
-  return createPortal(<Tooltip text={label} side="top" describe={false}>{button}</Tooltip>, document.body);
+  return createPortal(items
+    ? <Menu label={label} side="top" trigger={button} items={items} />
+    : <Tooltip text={label} side="top" describe={false}>{button}</Tooltip>, document.body);
 }

@@ -2,6 +2,8 @@ node_modules/
 frontend/dist/
 backend/target/
 .env
+deploy/certs/*
+!deploy/certs/.gitkeep
 *.log
 .idea/
 .vscode/
@@ -9,11 +11,17 @@ backend/target/
 backend/bin/
 
 # Playwright
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+
+# Generated test coverage and caches
+coverage/
+.nyc_output/
+.cache/
+*.tsbuildinfo
 
 # Agent tooling
 .agents/

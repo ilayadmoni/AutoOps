@@ -7,24 +7,7 @@ export interface UserView { id: number; username: string; role: Role; status: 'A
 
 export interface Credential { id: number; name: string; username: string; authType: string; createdAt: string; updatedAt: string }
 
-export type TrustStatus = 'UNTRUSTED' | 'TRUSTED' | 'KEY_CHANGED';
-
-export interface Machine {
-  id: number; name: string; hostname: string; sshPort: number; operatingSystem?: string; osVersion?: string;
-  preferredCredentialId?: number | null; trustStatus: TrustStatus; hostKeyAlgorithm?: string; sshFingerprint?: string;
-  fingerprintVerifiedAt?: string; mismatchFingerprint?: string; mismatchDetectedAt?: string;
-  lastTestStatus?: string; lastTestedAt?: string; createdAt: string;
-}
-
-export interface Discovery {
-  machineId: number; hostname: string; port: number; algorithm: string; fingerprint: string;
-  currentTrustStatus: TrustStatus; trustedFingerprint?: string; matchesTrusted: boolean;
-}
-
-export interface MachineTest {
-  ssh: string; hostVerification: string; authentication: string; os: string; sudo: string;
-  osName?: string; osVersion?: string; osFamily?: string | null; message: string;
-}
+export type { Machine, MachineFolder, TrustStatus, Discovery, MachineTest } from './machines';
 
 export type ParamType = 'STRING' | 'INTEGER' | 'PATH' | 'SERVICE' | 'PACKAGE' | 'HOSTNAME' | 'ENUM';
 
@@ -121,11 +104,11 @@ export interface ValidationError { nodeKey?: string | null; field: string; messa
 
 export interface ValidationResult { valid: boolean; errors: ValidationError[] }
 
-export interface StoredFile { id: number; filename: string; size: number; checksum: string; contentType?: string; createdAt: string; referencedBy: string[] }
+export interface StoredFile { folderName?: string | null; fileCount?: number; id: number; filename: string; size: number; checksum: string; contentType?: string; createdAt: string; referencedBy: string[] }
 
 export interface MissingField { nodeKey?: string | null; field: string; message: string }
 
-export interface AIOperation { type: 'REPLACE_WORKFLOW_DRAFT' | 'PROPOSE_COMMAND_RUN' | 'PROPOSE_NEW_COMMAND' | 'PROPOSE_MACHINE' | 'ASK_USER'; payload: Record<string, unknown>; missingFields: MissingField[] }
+export interface AIOperation { type: 'REPLACE_WORKFLOW_DRAFT' | 'PROPOSE_COMMAND_RUN' | 'PROPOSE_NEW_COMMAND' | 'PROPOSE_MACHINE' | 'ASK_USER' | 'OFFER_ACTION_FORM'; payload: Record<string, unknown>; missingFields: MissingField[] }
 
 export interface ChatReply {
   conversationId: number; messageId: number; message: string; operations: AIOperation[];

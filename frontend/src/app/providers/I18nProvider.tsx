@@ -1,9 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { en } from '../../lib/i18n/en';
 import { he } from '../../lib/i18n/he';
+import { enImport, heImport } from '../../lib/i18n/machineImport';
+import { enEnvironment, heEnvironment } from '../../lib/i18n/environment';
+import { enChatActions, heChatActions } from '../../lib/i18n/chatActions';
+
+import { enFolders, heFolders } from '../../lib/i18n/folderPackages';
 
 export type Lang = 'en' | 'he';
-const DICTS: Record<Lang, Record<string, string>> = { en, he };
+const DICTS: Record<Lang, Record<string, string>> = {
+  en: { ...en, ...enImport, ...enEnvironment, ...enChatActions, ...enFolders }, he: { ...he, ...heImport, ...heEnvironment, ...heChatActions, ...heFolders },
+};
 type Vars = Record<string, string | number>;
 
 interface I18n {

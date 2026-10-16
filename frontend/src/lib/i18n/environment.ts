@@ -1,0 +1,31 @@
+export const enEnvironment = {
+  'environment.title': 'Environment',
+  'environment.subtitle': 'Read-only application configuration from .env and runtime settings. Secrets are masked.',
+  'environment.scope': 'Shows effective backend settings. Host-only Compose settings and changes awaiting a restart are not shown.',
+  'environment.search': 'Search configuration',
+  'environment.refresh': 'Refresh configuration',
+  'environment.variable': 'Variable',
+  'environment.value': 'Effective value',
+  'environment.status': 'Status',
+  'environment.configured': 'Configured',
+  'environment.unset': 'Not configured',
+  'environment.masked': 'Masked',
+  'environment.empty': 'No settings match your search.',
+  'environment.count': '{visible} of {total} settings',
+} as const;
+
+export const heEnvironment: Record<keyof typeof enEnvironment, string> = {
+  'environment.title': 'משתני סביבה',
+  'environment.subtitle': 'תצוגה לקריאה בלבד של הגדרות היישום מתוך .env והגדרות זמן ריצה. ערכים סודיים מוסתרים.',
+  'environment.scope': 'מוצגות הגדרות פעילות של השרת. הגדרות Compose של המארח ושינויים שממתינים להפעלה מחדש אינם מוצגים.',
+  'environment.search': 'חיפוש בהגדרות',
+  'environment.refresh': 'רענון הגדרות',
+  'environment.variable': 'משתנה',
+  'environment.value': 'ערך פעיל',
+  'environment.status': 'מצב',
+  'environment.configured': 'מוגדר',
+  'environment.unset': 'לא מוגדר',
+  'environment.masked': 'מוסתר',
+  'environment.empty': 'אין הגדרות התואמות לחיפוש.',
+  'environment.count': '{visible} מתוך {total} הגדרות',
+};
