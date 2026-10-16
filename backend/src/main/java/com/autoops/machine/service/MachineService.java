@@ -21,13 +21,15 @@ public class MachineService {
     private final MachineRepository repo;
     private final CredentialManagementService credentials;
     private final AuditService audit;
+    private final MachineFolderService folders;
     @PersistenceContext
     private EntityManager em;
 
-    public MachineService(MachineRepository repo, CredentialManagementService credentials, AuditService audit) {
+    public MachineService(MachineRepository repo, CredentialManagementService credentials, AuditService audit, MachineFolderService folders) {
         this.repo = repo;
         this.credentials = credentials;
         this.audit = audit;
+        this.folders = folders;
     }
 
     @Transactional(readOnly = true)
@@ -90,6 +92,8 @@ public class MachineService {
     }
 
     private void apply(Long userId, Machine m, MachineDtos.Upsert x) {
+        folders.requireExists(x.folderId());
+        m.setFolderId(x.folderId());
         if (x.preferredCredentialId() != null) {
             credentials.requireOwned(userId, x.preferredCredentialId());
         }

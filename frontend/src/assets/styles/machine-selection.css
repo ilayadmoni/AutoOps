@@ -1,0 +1,15 @@
+.machineBulkToolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); margin-block: var(--s3); }
+.machineBulkToolbar > .row { margin-inline-start: auto; }
+.machineBulkToolbar .check, .machineCardTitle .check { min-block-size: 44px; }
+.machineCardTitle { display: flex; align-items: center; gap: var(--s1); min-width: 0; }
+.machineCardTitle .check { min-inline-size: 44px; justify-content: center; flex: none; }
+.machineCardTitle h3 { overflow-wrap: anywhere; }
+.machineDeleteList { max-block-size: 40dvh; overflow-y: auto; padding-inline-start: var(--s5); }
+.machineDeleteList li { overflow-wrap: anywhere; margin-block: var(--s2); }
+.machineFolderItem { position: relative; display: grid; min-width: 0; }
+.machineFolderItem .machineFolderCard { height: 100%; }
+.machineFolderItem.selecting .machineFolderCard { padding-block-start: var(--s6); }
+.machineFolderSelect {
+  position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 1;
+  min-inline-size: 44px; min-block-size: 44px; justify-content: center;
+}

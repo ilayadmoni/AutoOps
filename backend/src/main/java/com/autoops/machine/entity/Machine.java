@@ -22,6 +22,8 @@ public class Machine {
     private String osVersion;
     @Column(name = "preferred_credential_id")
     private Long preferredCredentialId;
+    @Column(name = "folder_id")
+    private Long folderId;
     @Column(name = "ssh_host_key", columnDefinition = "text")
     private String sshHostKey;
     @Column(name = "ssh_host_key_algorithm")
@@ -91,6 +93,8 @@ public class Machine {
     }
 
     public Long getId() { return id; }
+    public Long getFolderId() { return folderId; }
+    public void setFolderId(Long v) { folderId = v; }
     public String getName() { return name; }
     public void setName(String v) { name = v; }
     public String getHostname() { return hostname; }
