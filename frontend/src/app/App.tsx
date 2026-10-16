@@ -15,6 +15,7 @@ const ExecutionsPage = lazy(() => import('../pages/executions/ExecutionsPage'));
 const ExecutionDetailPage = lazy(() => import('../pages/executions/ExecutionDetailPage'));
 const FilesPage = lazy(() => import('../pages/files/FilesPage'));
 const AdminPage = lazy(() => import('../pages/admin/AdminPage'));
+const EnvironmentAdminPage = lazy(() => import('../pages/admin/EnvironmentAdminPage'));
 const UsersAdminPage = lazy(() => import('../pages/admin/UsersAdminPage'));
 const DatasetsAdminPage = lazy(() => import('../pages/admin/DatasetsAdminPage'));
 const AuditPage = lazy(() => import('../pages/admin/AuditPage'));
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/executions/:id" element={<ExecutionDetailPage />} />
           <Route path="/files" element={<FilesPage />} />
           <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
+          <Route path="/admin/environment" element={<RequireAdmin><EnvironmentAdminPage /></RequireAdmin>} />
           <Route path="/admin/users" element={<RequireAdmin><UsersAdminPage /></RequireAdmin>} />
           <Route path="/admin/datasets" element={<RequireAdmin><DatasetsAdminPage /></RequireAdmin>} />
           <Route path="/admin/audit" element={<RequireAdmin><AuditPage /></RequireAdmin>} />
