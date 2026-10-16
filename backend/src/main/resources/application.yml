@@ -1,6 +1,9 @@
 spring:
   application:
     name: autoops
+  output:
+    ansi:
+      enabled: ${ANSI_OUTPUT:ALWAYS}
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/autoops}
     username: ${DATABASE_USERNAME:autoops}
@@ -21,7 +24,8 @@ spring:
       request-timeout: -1
 logging:
   pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %msg%n'
+    # Severity: INFO green, WARN yellow, ERROR red. Keep messages and stack traces complete.
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%thread]){faint} %clr(%-40.40logger{39}){cyan} : %clr(%msg){}%n%wEx'
 management:
   endpoints:
     web:
@@ -56,6 +60,7 @@ autoops:
     api-key: ${AI_API_KEY:}
     model: ${AI_MODEL:}
     ssl-verify: ${AI_SSL_VERIFY:true}
+    ssl-cert-path: ${AI_SSL_CERT_PATH:}
   minio:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     access-key: ${MINIO_ACCESS_KEY:autoops}

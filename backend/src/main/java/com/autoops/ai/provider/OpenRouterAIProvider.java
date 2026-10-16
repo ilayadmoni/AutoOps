@@ -11,11 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.net.http.HttpClient;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
 
@@ -28,14 +24,12 @@ public class OpenRouterAIProvider implements AIProvider {
     private final boolean configured;
 
     public OpenRouterAIProvider(@Value("${autoops.ai.base-url}") String url, @Value("${autoops.ai.api-key:}") String key,
-                                @Value("${autoops.ai.model:}") String model, @Value("${autoops.ai.ssl-verify:true}") boolean sslVerify) {
+                                @Value("${autoops.ai.model:}") String model, @Value("${autoops.ai.ssl-verify:true}") boolean sslVerify,
+                                @Value("${autoops.ai.ssl-cert-path:}") String sslCertPath) {
         this.model = model;
         this.configured = key != null && !key.isBlank() && model != null && !model.isBlank();
         HttpClient.Builder http = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).connectTimeout(Duration.ofSeconds(10));
-        if (!sslVerify) {
-            log.warn("AI_SSL_VERIFY=false: TLS certificates of the AI provider are NOT verified. Use only behind a trusted inspection proxy.");
-            http.sslContext(trustAll());
-        }
+        AIProviderTls.configure(http, sslVerify, sslCertPath);
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(http.build());
         factory.setReadTimeout(Duration.ofSeconds(120));
         // Buffer bodies so a Content-Length is always sent (some gateways reject chunked uploads).
@@ -128,17 +122,4 @@ public class OpenRouterAIProvider implements AIProvider {
         return out;
     }
 
-    private static SSLContext trustAll() {
-        try {
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(null, new TrustManager[]{new X509TrustManager() {
-                public void checkClientTrusted(X509Certificate[] chain, String authType) { }
-                public void checkServerTrusted(X509Certificate[] chain, String authType) { }
-                public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
-            }}, null);
-            return ctx;
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }

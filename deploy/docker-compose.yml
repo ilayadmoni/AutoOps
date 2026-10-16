@@ -59,6 +59,7 @@ services:
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-}
       AI_SSL_VERIFY: ${AI_SSL_VERIFY:-true}
+      AI_SSL_CERT_PATH: ${AI_SSL_CERT_PATH:-}
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-LOCAL}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-}
@@ -75,6 +76,11 @@ services:
       EXECUTION_APPROVAL_TIMEOUT_MINUTES: ${EXECUTION_APPROVAL_TIMEOUT_MINUTES:-1440}
       EXECUTION_MAX_OUTPUT_BYTES: ${EXECUTION_MAX_OUTPUT_BYTES:-65536}
       EXECUTION_REQUIRE_RHEL: ${EXECUTION_REQUIRE_RHEL:-true}
+    volumes:
+      - type: bind
+        source: ${AI_SSL_CERTS_DIR:-./certs}
+        target: /app/certs
+        read_only: true
     depends_on:
       postgres:
         condition: service_healthy
