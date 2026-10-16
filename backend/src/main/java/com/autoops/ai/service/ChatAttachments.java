@@ -53,6 +53,7 @@ public class ChatAttachments {
             var file = files.requireUsable(userId, id);
             text.append("\n- ").append(file.getId()).append(": ").append(file.getOriginalFilename())
                     .append(", ").append(file.getSize()).append(" bytes");
+            if (file.getFolderName() != null) text.append(" (folder package: destinationPath is the exact directory; overwrite replaces all contents)");
         }
         return text.append(']').toString();
     }

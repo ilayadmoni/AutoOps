@@ -36,6 +36,10 @@ management:
       probes:
         enabled: true
 server:
+  tomcat:
+    # A folder request contains up to 1,000 file parts and one JSON manifest.
+    max-part-count: 1001
+    max-part-header-size: 2KB
   port: ${SERVER_PORT:8080}
   error:
     include-stacktrace: never

@@ -28,6 +28,12 @@ public class StoredFile {
     private Instant orphanedAt;
     @Column(name = "deleted_at")
     private Instant deletedAt;
+    @Column(name = "folder_name")
+    private String folderName;
+    @Column(name = "folder_manifest")
+    private String folderManifest;
+    @Column(name = "folder_file_count", nullable = false)
+    private int folderFileCount;
 
     public Long getId() { return id; }
     public String getOriginalFilename() { return originalFilename; }
@@ -47,4 +53,10 @@ public class StoredFile {
     public void setOrphanedAt(Instant v) { orphanedAt = v; }
     public Instant getDeletedAt() { return deletedAt; }
     public void setDeletedAt(Instant v) { deletedAt = v; }
+    public String getFolderName() { return folderName; }
+    public void setFolderName(String v) { folderName = v; }
+    public String getFolderManifest() { return folderManifest; }
+    public void setFolderManifest(String v) { folderManifest = v; }
+    public int getFolderFileCount() { return folderFileCount; }
+    public void setFolderFileCount(int v) { folderFileCount = v; }
 }

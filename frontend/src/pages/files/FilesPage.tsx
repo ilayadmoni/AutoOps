@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import FolderUpload from './FolderUpload';
+import FolderContents from './FolderContents';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, FileText, Trash2 } from 'lucide-react';
+import { Download, FileText, Folder, Trash2 } from 'lucide-react';
 import { del, get, getAccessToken, upload } from '../../services/client';
 import type { StoredFile } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
@@ -48,9 +50,12 @@ export default function FilesPage() {
   return (
     <section>
       <PageHeader title={t('files.title')} subtitle={t('files.subtitle')} />
-      <FilePicker onPick={onPick}>
-        {(open) => <Fab label={t('files.upload')} busy={up.isPending} onClick={open} />}
-      </FilePicker>
+      <FolderUpload>{(openFolder) => <FilePicker onPick={onPick}>
+        {(open) => <Fab label={t('files.upload')} busy={up.isPending} items={[
+          { key: 'file', label: t('folders.uploadFile'), icon: <FileText size={16} />, onSelect: open },
+          { key: 'folder', label: t('folders.upload'), icon: <Folder size={16} />, onSelect: openFolder },
+        ]} />}
+      </FilePicker>}</FolderUpload>
       <ErrorAlert error={up.error} />
       {!!q.data?.length && <SearchToolbar value={query} onChange={setQuery} placeholder={t('files.searchPlaceholder')} />}
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
@@ -61,8 +66,9 @@ export default function FilesPage() {
         <div className="cards">
           {filtered.map((f) => (
             <Card key={f.id}>
-              <h3 dir="ltr" className="fileName"><FileText size={16} className="muted" /> {f.filename}</h3>
+              <h3 dir="ltr" className="fileName">{f.folderName ? <Folder size={16} className="muted" /> : <FileText size={16} className="muted" />} {f.folderName ?? f.filename}</h3>
               <div><Code>{f.checksum.slice(0, 16)}</Code></div>
+              {f.folderName && <><small className="muted">{t('folders.package')} · {t('folders.version', { id: f.id })} · {t('folders.count', { n: f.fileCount ?? 0 })}</small><FolderContents id={f.id} /></>}
               <small className="muted">{formatBytes(f.size)} · <bdi>{formatDate(f.createdAt, lang)}</bdi></small>
               <small className="muted">{t('files.usedBy')}: {f.referencedBy.length ? f.referencedBy.join(', ') : t('files.unused')}</small>
               <div className="cardFoot">

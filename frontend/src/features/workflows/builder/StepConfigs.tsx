@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { FileUp, Plus } from 'lucide-react';
-import type { Command, StoredFile, WorkflowNode } from '../../../types/api';
+import { Plus } from 'lucide-react';
+import type { Command, WorkflowNode } from '../../../types/api';
 import {
-  Button, Checkbox, Field, FilePicker, NumberInput, Segmented, Select, Textarea, TextInput,
+  Button, Checkbox, Field, NumberInput, Segmented, Select, Textarea, TextInput,
 } from '../../../components/ui';
-import { useToast } from '../../../components/ui/Toast';
 import { ParameterInputs } from '../../commands/ParameterInputs';
 import CreateCommandModal from '../../commands/CreateCommandModal';
 import CommandSearch from '../../commands/CommandSearch';
-import { useUpload } from '../../../pages/files/FilesPage';
 import { useI18n } from '../../../app/providers/I18nProvider';
 
 type ConfigProps = {
@@ -72,39 +70,7 @@ export function CommandConfig({ node, onChange, commands, errors, paramErrors }:
   );
 }
 
-export function FileConfig({ node, onChange, files, errors }: ConfigProps & { files: StoredFile[] }) {
-  const { t } = useI18n();
-  const up = useUpload();
-  const toast = useToast();
-  return (
-    <>
-      <Field label={t('workflows.file')} error={errors.storedFileId}>
-        <Select
-          block placeholder={t('workflows.selectFile')}
-          value={node.storedFileId ?? ''}
-          onChange={(x) => onChange({ storedFileId: x.target.value ? Number(x.target.value) : null })}
-          options={files.map((f) => ({ value: f.id, label: `${f.filename} (${f.checksum.slice(0, 8)})` }))}
-        />
-      </Field>
-      <FilePicker onPick={(f) => {
-        if (!f) return;
-        up.mutate(f, {
-          onSuccess: (saved) => { onChange({ storedFileId: saved.id }); toast.success(t('files.uploaded', { name: saved.filename })); },
-          onError: (err) => toast.error(err.message),
-        });
-      }}>
-        {(open) => <Button small busy={up.isPending} icon={<FileUp size={14} />} onClick={open}>{t('files.upload')}</Button>}
-      </FilePicker>
-      <Field label={t('workflows.destination')} error={errors.destinationPath} hint={t('workflows.destinationHint')}>
-        <TextInput dir="ltr" value={node.destinationPath ?? ''} onChange={(x) => onChange({ destinationPath: x.target.value })} />
-      </Field>
-      <div className="row gap wrap">
-        <Checkbox checked={!!node.overwrite} onChange={(x) => onChange({ overwrite: x.target.checked })} label={t('workflows.overwrite')} />
-        <Checkbox checked={!!node.useSudo} onChange={(x) => onChange({ useSudo: x.target.checked })} label={t('workflows.privileged')} />
-      </div>
-    </>
-  );
-}
+export { FileConfig } from './FileConfig';
 
 export function WaitConfig({ node, onChange, commands, errors, paramErrors }: ConfigProps & {
   commands: Command[]; paramErrors: Record<string, string>;
