@@ -1,3 +1,5 @@
+import { useCollectionTools } from '../../features/collections/useCollectionTools';
+import { CollectionToolbar, EditCollection, FavoritesEmpty, ItemControls } from '../../features/collections/CollectionControls';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { KeyRound, Pencil, Trash2 } from 'lucide-react';
@@ -20,7 +22,9 @@ export default function CredentialsPage() {
   const toast = useToast();
   const [editing, setEditing] = useState<Credential | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Credential | null>(null);
-  const { query, setQuery, filtered } = useCollectionSearch(q.data, (c) => [c.name, c.username, c.authType]);
+  const { query, setQuery, filtered: searched } = useCollectionSearch(q.data, (c) => [c.name, c.username, c.authType]);
+  const tools = useCollectionTools('credentials', q.data);
+  const filtered = tools.filter(searched);
   const remove = useMutation({
     mutationFn: (id: number) => del('/credentials/' + id),
     onSuccess: () => {
@@ -35,20 +39,21 @@ export default function CredentialsPage() {
   });
   return (
     <section>
-      <PageHeader title={t('credentials.title')} subtitle={t('credentials.subtitle')} />
+      <PageHeader title={t('credentials.title')} subtitle={t('credentials.subtitle')} actions={<EditCollection tools={tools} />} />
       <Fab label={t('credentials.add')} onClick={() => setEditing('new')} />
       {!!q.data?.length && <SearchToolbar value={query} onChange={setQuery} placeholder={t('credentials.searchPlaceholder')} />}
+      <CollectionToolbar tools={tools} visible={filtered} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('credentials.empty')} hint={t('credentials.emptyHint')} />
       ) : !filtered.length ? (
-        <NoMatches title={t('credentials.noMatch')} hint={t('credentials.noMatchHint')} />
+        tools.onlyFavorites && !query.trim() ? <FavoritesEmpty /> : <NoMatches title={t('credentials.noMatch')} hint={t('credentials.noMatchHint')} />
       ) : (
         <div className="cards">
           {filtered.map((c) => (
             <Card key={c.id}>
               <div className="row spread">
                 <h2 className="cardTitle" dir="auto"><KeyRound size={16} className="muted" /> {c.name}</h2>
-                <span className="badge muted">{c.authType}</span>
+                <div className="row gap"><span className="badge muted">{c.authType}</span><ItemControls tools={tools} item={c} /></div>
               </div>
               <div><Code>{c.username}</Code></div>
               <small className="muted">{t('credentials.updated')} <bdi>{formatDate(c.updatedAt, lang)}</bdi></small>

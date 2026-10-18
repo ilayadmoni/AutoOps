@@ -1,3 +1,5 @@
+import { useCollectionTools } from '../../features/collections/useCollectionTools';
+import { CollectionToolbar, EditCollection, FavoritesEmpty, ItemControls } from '../../features/collections/CollectionControls';
 import { useState } from 'react';
 import FolderUpload from './FolderUpload';
 import FolderContents from './FolderContents';
@@ -41,7 +43,9 @@ export default function FilesPage() {
   const toast = useToast();
   const up = useUpload();
   const [deleting, setDeleting] = useState<StoredFile | null>(null);
-  const { query, setQuery, filtered } = useCollectionSearch(q.data, (f) => [storedFileName(f), f.checksum, ...f.referencedBy]);
+  const { query, setQuery, filtered: searched } = useCollectionSearch(q.data, (f) => [storedFileName(f), f.checksum, ...f.referencedBy]);
+  const tools = useCollectionTools('files', q.data, item => !q.data?.find(file => file.id === item.id)?.referencedBy.length);
+  const filtered = tools.filter(searched);
   const remove = useMutation({
     mutationFn: (id: number) => del('/files/' + id),
     onSuccess: () => { toast.success(t('files.deleted')); setDeleting(null); qc.invalidateQueries({ queryKey: ['files'] }); },
@@ -50,7 +54,7 @@ export default function FilesPage() {
   const onPick = (file?: File) => file && up.mutate(file, { onSuccess: () => toast.success(t('files.uploaded', { name: file.name })) });
   return (
     <section>
-      <PageHeader title={t('files.title')} subtitle={t('files.subtitle')} />
+      <PageHeader title={t('files.title')} subtitle={t('files.subtitle')} actions={<EditCollection tools={tools} />} />
       <FolderUpload>{(openFolder) => <FilePicker onPick={onPick}>
         {(open) => <Fab label={t('files.upload')} busy={up.isPending} items={[
           { key: 'file', label: t('folders.uploadFile'), icon: <FileText size={16} />, onSelect: open },
@@ -59,15 +63,16 @@ export default function FilesPage() {
       </FilePicker>}</FolderUpload>
       <ErrorAlert error={up.error} />
       {!!q.data?.length && <SearchToolbar value={query} onChange={setQuery} placeholder={t('files.searchPlaceholder')} />}
+      <CollectionToolbar tools={tools} visible={filtered} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('files.empty')} hint={t('files.emptyHint')} />
       ) : !filtered.length ? (
-        <NoMatches title={t('files.noMatch')} hint={t('files.noMatchHint')} />
+        tools.onlyFavorites && !query.trim() ? <FavoritesEmpty /> : <NoMatches title={t('files.noMatch')} hint={t('files.noMatchHint')} />
       ) : (
         <div className="cards">
           {filtered.map((f) => (
             <Card key={f.id}>
-              <h2 dir="ltr" className="fileName cardTitle">{f.folderName ? <Folder size={16} className="muted" /> : <FileText size={16} className="muted" />} {storedFileName(f)}</h2>
+              <div className="row spread"><h2 dir="ltr" className="fileName cardTitle">{f.folderName ? <Folder size={16} className="muted" /> : <FileText size={16} className="muted" />} {storedFileName(f)}</h2><ItemControls tools={tools} item={f} /></div>
               <div><Code>{f.checksum.slice(0, 16)}</Code></div>
               {f.folderName && <><small className="muted">{t('folders.package')} · {t('folders.version', { id: f.id })} · {t('folders.count', { n: f.fileCount ?? 0 })}</small><FolderContents id={f.id} /></>}
               <small className="muted">{formatBytes(f.size)} · <bdi>{formatDate(f.createdAt, lang)}</bdi></small>

@@ -1,0 +1,86 @@
+import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
+import { chromium } from 'playwright';
+import { expect } from '@playwright/test';
+import { collectionFixtures } from './collections.fixtures.mjs';
+
+const browser = await chromium.launch({ headless: true });
+const base = process.env.UI_TEST_URL ?? 'http://localhost:5173';
+const output = 'dist/sidebar-checks';
+await mkdir(output, { recursive: true });
+try {
+  for (const lang of ['en', 'he']) {
+    const he = lang === 'he';
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+    const state = await collectionFixtures(page, lang);
+    state.role = 'ADMIN';
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const collapse = () => page.getByRole('button', { name: he ? 'כיווץ סרגל הניווט' : 'Collapse sidebar', exact: true });
+    const expand = () => page.getByRole('button', { name: he ? 'הרחבת סרגל הניווט' : 'Expand sidebar', exact: true });
+    const machineLink = () => page.locator('.sidebar').getByRole('link', { name: he ? 'שרתים' : 'Machines', exact: true });
+    const sidebar = page.locator('.sidebar');
+    await page.goto(`${base}/machines`);
+    await page.getByRole('heading', { name: he ? 'שרתים' : 'Machines', exact: true }).waitFor();
+    await expect(collapse()).toHaveAttribute('aria-expanded', 'true');
+    const expandedMain = await page.locator('main').boundingBox();
+    assert.equal(Math.round((await sidebar.boundingBox()).width), 280);
+    assert.equal(await machineLink().evaluate(el => getComputedStyle(el).fontSize), '16px');
+    assert.ok((await machineLink().boundingBox()).height >= 48);
+    assert.equal(await machineLink().locator('svg').evaluate(el => getComputedStyle(el).width), '22px');
+    await page.screenshot({ path: `${output}/expanded-${lang}.png`, fullPage: true });
+    await collapse().click();
+    await expect(expand()).toHaveAttribute('aria-expanded', 'false');
+    await expect(sidebar).toHaveCSS('width', '80px');
+    assert.equal(Math.round((await sidebar.boundingBox()).width), 80);
+    assert.ok((await page.locator('main').boundingBox()).width > expandedMain.width);
+    await expect(sidebar.locator('.sidebarNavLabel').first()).toBeHidden();
+    await expect(sidebar.locator('.brandWord')).toHaveCount(0);
+    await expect(machineLink()).toHaveAttribute('aria-current', 'page');
+    await machineLink().hover();
+    const tooltip = page.getByRole('tooltip', { name: he ? 'שרתים' : 'Machines', exact: true });
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toHaveAttribute('data-side', he ? 'left' : 'right');
+    const tipBox = await tooltip.boundingBox(), railBox = await sidebar.boundingBox();
+    assert.ok(he ? tipBox.x + tipBox.width <= railBox.x : tipBox.x >= railBox.x + railBox.width);
+    await page.mouse.move(500, 500);
+    await page.screenshot({ path: `${output}/collapsed-${lang}.png`, fullPage: true });
+    // Navigation works without labels, with tooltips available to keyboard users too.
+    await sidebar.getByRole('link', { name: he ? 'קבצים' : 'Files', exact: true }).click();
+    await expect(page).toHaveURL(/\/files$/);
+    await expect(expand()).toBeVisible();
+    await page.reload(); await expect(expand()).toBeVisible();
+    await expand().focus(); await page.keyboard.press('Space');
+    await expect(collapse()).toHaveAttribute('aria-expanded', 'true');
+    await expect(sidebar.locator('.sidebarNavLabel').first()).toBeVisible();
+    await collapse().click();
+    state.user = 2; await page.reload(); await expect(collapse()).toBeVisible();
+    state.user = 1; await page.reload(); await expect(expand()).toBeVisible();
+    // The desktop preference never removes labels from the mobile drawer.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(sidebar).toBeHidden();
+    const menu = page.locator('.topbar').getByRole('button', { name: he ? 'תפריט' : 'Menu', exact: true });
+    await menu.click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(sidebar.locator('.sidebarNavLabel').first()).toBeVisible();
+    await expect(sidebar.locator('.brandWord')).toBeVisible();
+    await expect(page.locator('main')).toHaveAttribute('inert', '');
+    await page.keyboard.press('Shift+Tab');
+    assert.ok(await sidebar.evaluate(el => el.contains(document.activeElement)));
+    await page.screenshot({ path: `${output}/mobile-${lang}.png`, fullPage: true });
+    await page.keyboard.press('Escape');
+    await expect(sidebar).toBeHidden(); await expect(menu).toBeFocused();
+    assert.equal(await page.locator('main').evaluate(el => el.inert), false);
+    await menu.click();
+    await sidebar.getByRole('link', { name: he ? 'שרתים' : 'Machines', exact: true }).click();
+    await expect(sidebar).toBeHidden();
+    await menu.click(); await page.setViewportSize({ width: 1440, height: 1000 });
+    await expect(page.locator('.navScrim')).toHaveCount(0);
+    await expect(expand()).toBeVisible();
+    assert.equal(await page.locator('main').evaluate(el => el.inert), false);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    assert.deepEqual(errors, []);
+    await page.close();
+  }
+  console.log('Sidebar: enlarged controls, collapse/expand, names/tooltips, RTL, navigation, per-user persistence, mobile drawer, keyboard focus and resizing passed.');
+} finally { await browser.close(); }

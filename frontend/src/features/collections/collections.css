@@ -1,0 +1,12 @@
+.collectionToolbar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s3); margin-block: var(--s3); }
+.collectionItemControls { display: inline-flex; align-items: center; gap: var(--s2); flex: none; }
+.collectionItemControls .check { min-block-size: 44px; min-inline-size: 44px; justify-content: center; }
+.favoriteButton[aria-pressed="true"] { color: var(--primary); }
+.collectionDeleteList { max-block-size: 40dvh; overflow-y: auto; padding-inline-start: var(--s5); }
+.collectionDeleteList li { overflow-wrap: anywhere; margin-block: var(--s2); }
+@media (max-width: 640px) {
+  .commandCollectionRow { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+  .commandCollectionInfo { min-width: 0; overflow-wrap: anywhere; }
+  .commandCollectionRow > code { grid-column: 1 / -1; max-width: 100%; overflow-x: auto; }
+  .commandCollectionRow > .btn { grid-column: 2; justify-self: end; }
+}

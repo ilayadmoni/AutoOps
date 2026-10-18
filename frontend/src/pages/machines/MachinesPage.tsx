@@ -1,3 +1,5 @@
+import { useCollectionTools } from '../../features/collections/useCollectionTools';
+import { CollectionToolbar, FavoriteButton, FavoritesEmpty } from '../../features/collections/CollectionControls';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,6 +27,7 @@ export default function MachinesPage() {
   const q = useQuery(machinesQuery);
   const credentials = useQuery({ queryKey: ['credentials'], queryFn: () => get<Credential[]>('/credentials') });
   const selection = useMachineSelection(q.data);
+  const tools = useCollectionTools('machines', q.data);
   const qc = useQueryClient();
   const toast = useToast();
   const [editing, setEditing] = useState<Machine | 'new' | null>(null);
@@ -34,12 +37,15 @@ export default function MachinesPage() {
   const [importing, setImporting] = useState(false);
   const [params] = useSearchParams();
   const folders = useMachineFolders();
+  const folderTools = useCollectionTools('machine-folders', folders.data);
   const folderList = folders.data ?? [];
+  const openFolder = () => { setQuery(''); tools.setOnlyFavorites(false); };
   const current = folderList.find(f => String(f.id) === params.get('folder'));
   const { query, setQuery, filtered } = useCollectionSearch(q.data, (m) => [m.name, m.hostname, m.operatingSystem, m.osVersion]);
-  const machines = filtered.filter(m => (m.folderId ?? null) === (current?.id ?? null));
+  const machines = tools.filter(filtered).filter(m => tools.onlyFavorites || (m.folderId ?? null) === (current?.id ?? null));
   const needle = query.trim().toLowerCase();
-  const visibleFolders = folderList.filter(f => f.parentId === (current?.id ?? null)).filter(f => {
+  const visibleFolders = folderList.filter(f => tools.onlyFavorites
+    ? folderTools.isFavorite(f.id) : f.parentId === (current?.id ?? null)).filter(f => {
     if (!needle || f.path.toLowerCase().includes(needle)) return true;
     const ids = folderDescendants(f, folderList);
     return filtered.some(m => m.folderId != null && ids.has(m.folderId));
@@ -65,22 +71,26 @@ export default function MachinesPage() {
         { key: 'add', label: t('machines.add'), icon: <Plus />, onSelect: () => setEditing('new') },
         { key: 'import', label: t('machineImport.title'), icon: <Upload />, onSelect: () => setImporting(true) },
       ]} />
-      <MachineBreadcrumbs current={current} folders={folderList} onNavigate={() => setQuery('')} />
+      <MachineBreadcrumbs current={current} folders={folderList} onNavigate={openFolder} />
       {(!!q.data?.length || !!folderList.length) && <SearchToolbar value={query} onChange={setQuery} placeholder={t('machines.searchPlaceholder')} />}
+      <CollectionToolbar tools={tools} visible={machines} hideBulk />
+      <ErrorAlert error={folderTools.favorites.error} onRetry={() => folderTools.favorites.refetch()} />
       <MachineBulkActions selection={selection} visible={selectable} />
       {q.isLoading || folders.isLoading ? <Loading /> : q.error || folders.error ? <ErrorAlert error={q.error || folders.error}
         onRetry={() => { void q.refetch(); void folders.refetch(); }} /> : !q.data?.length && !folderList.length ? (
         <EmptyState title={t('machines.empty')} hint={t('machines.emptyHint')} />
       ) : !machines.length && !visibleFolders.length ? (
-        needle ? <NoMatches title={t('machines.noMatch')} hint={t('machines.noMatchHint')} />
+        tools.onlyFavorites && !needle ? <FavoritesEmpty /> : needle ? <NoMatches title={t('machines.noMatch')} hint={t('machines.noMatchHint')} />
           : <EmptyState title={t('machineFolders.empty')} hint={t('machineFolders.emptyHint')} />
       ) : (
         <div className="cards">
           {visibleFolders.map(f => <MachineFolderCard key={'folder-' + f.id} folder={f} folders={folderList}
-            machines={q.data ?? []} selection={selection} onNavigate={() => setQuery('')} />)}
-          {machines.map(m => <MachineCard key={m.id} machine={m} folderPath={current?.path}
+            machines={q.data ?? []} selection={selection} onNavigate={openFolder}
+            favorite={<FavoriteButton tools={folderTools} item={{ ...f, name: f.path }} />} />)}
+          {machines.map(m => <MachineCard key={m.id} machine={m}
+            folderPath={tools.onlyFavorites ? folderList.find(f => f.id === m.folderId)?.path : current?.path}
             credential={credentials.data?.find(credential => credential.id === m.preferredCredentialId)}
-            credentialLoading={credentials.isPending} credentialError={credentials.isError}
+            favorite={<FavoriteButton tools={tools} item={m} />} credentialLoading={credentials.isPending} credentialError={credentials.isError}
             selected={selection.ids.has(m.id)} selectionDisabled={selection.busy}
             onSelect={selection.active ? () => selection.toggle(m.id) : undefined}
             onRun={() => setRunning(m)} onTest={() => setTesting(m)}

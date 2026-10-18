@@ -1,3 +1,5 @@
+import { useCollectionTools } from '../../features/collections/useCollectionTools';
+import { CollectionToolbar, EditCollection, FavoritesEmpty, ItemControls } from '../../features/collections/CollectionControls';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -18,9 +20,11 @@ export default function WorkflowsPage() {
   const qc = useQueryClient();
   const toast = useToast();
   const q = useQuery({ queryKey: ['workflows'], queryFn: () => get<WorkflowSummary[]>('/workflows') });
-  const { query, setQuery, filtered } = useCollectionSearch(q.data, (w) => [w.name, w.description]);
+  const { query, setQuery, filtered: searched } = useCollectionSearch(q.data, (w) => [w.name, w.description]);
   const [running, setRunning] = useState<WorkflowSummary | null>(null);
   const [deleting, setDeleting] = useState<WorkflowSummary | null>(null);
+  const tools = useCollectionTools('workflows', q.data);
+  const filtered = tools.filter(searched);
   const remove = useMutation({
     mutationFn: (id: number) => del('/workflows/' + id),
     onSuccess: () => { toast.success(t('workflows.deleted')); setDeleting(null); qc.invalidateQueries({ queryKey: ['workflows'] }); },
@@ -33,18 +37,19 @@ export default function WorkflowsPage() {
   });
   return (
     <section>
-      <PageHeader title={t('workflows.title')} subtitle={t('workflows.subtitle')} />
+      <PageHeader title={t('workflows.title')} subtitle={t('workflows.subtitle')} actions={<EditCollection tools={tools} />} />
       <Fab to="/workflows/new" label={t('workflows.create')} />
       {!!q.data?.length && <SearchToolbar value={query} onChange={setQuery} placeholder={t('workflows.searchPlaceholder')} />}
+      <CollectionToolbar tools={tools} visible={filtered} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} onRetry={() => q.refetch()} /> : !q.data?.length ? (
         <EmptyState title={t('workflows.empty')} hint={t('workflows.emptyHint')} action={<ButtonLink variant="primary" to="/workflows/new">{t('workflows.create')}</ButtonLink>} />
       ) : !filtered.length ? (
-        <NoMatches title={t('workflows.noMatch')} hint={t('workflows.noMatchHint')} />
+        tools.onlyFavorites && !query.trim() ? <FavoritesEmpty /> : <NoMatches title={t('workflows.noMatch')} hint={t('workflows.noMatchHint')} />
       ) : (
         <div className="cards">
           {filtered.map((w) => (
             <Card key={w.id}>
-              <div className="row spread"><h2 className="cardTitle" dir="auto">{w.name}</h2></div>
+              <div className="row spread"><h2 className="cardTitle" dir="auto">{w.name}</h2><ItemControls tools={tools} item={w} /></div>
               {w.description && <p className="muted">{w.description}</p>}
               <small className="muted">{t('workflows.steps', { n: w.stepCount })} · {t('workflows.updated')} <bdi>{formatDate(w.updatedAt, lang)}</bdi></small>
               <div className="cardFoot">

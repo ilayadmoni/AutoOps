@@ -23,6 +23,7 @@ export async function mockMachineImport(page) {
       { id: 3, name: 'Empty', path: 'Empty', parentId: null },
     ] : [];
     if (path === '/api/credentials') data = [];
+    if (path.startsWith('/api/favorites/')) data = [];
     if (path === '/api/machines/import/preview') data = { rows };
     if (path === '/api/machines/import') {
       state.payload = route.request().postDataBuffer().toString();

@@ -1,3 +1,6 @@
+import { useCollectionTools } from '../../features/collections/useCollectionTools';
+import { CollectionToolbar, EditCollection, FavoritesEmpty, ItemControls } from '../../features/collections/CollectionControls';
+import { useAuth } from '../../app/providers/AuthProvider';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Play, Sparkles } from 'lucide-react';
@@ -12,6 +15,7 @@ import CreateCommandModal from '../../features/commands/CreateCommandModal';
 
 export default function CommandsPage() {
   const { t } = useI18n();
+  const { isAdmin } = useAuth();
   const [q, setQ] = useState('');
   const [debounced, setDebounced] = useState('');
   const [category, setCategory] = useState('');
@@ -25,13 +29,14 @@ export default function CommandsPage() {
     return () => clearTimeout(h);
   }, [q]);
   const all = useQuery({ queryKey: ['commands'], queryFn: () => get<Command[]>('/commands') });
+  const tools = useCollectionTools('commands', all.data, item => isAdmin || !!all.data?.find(command => command.id === item.id)?.ownedByCurrentUser);
   const search = useQuery({
     queryKey: ['commands', 'search', debounced, category, risk],
     queryFn: () => get<SearchResult>(`/commands/search?q=${encodeURIComponent(debounced)}${category ? '&category=' + category : ''}${risk ? '&maxRisk=' + risk : ''}`),
     enabled: semantic && debounced.length > 2,
   });
   const categories = useMemo(() => [...new Set((all.data ?? []).map((c) => c.category).filter(Boolean) as string[])].sort(), [all.data]);
-  const list = useMemo(() => {
+  const searched = useMemo(() => {
     if (semantic && debounced.length > 2) {
       const ids = (search.data?.matches ?? []).map((m) => m.id);
       return ids.map((id) => all.data?.find((c) => c.id === id)).filter(Boolean) as Command[];
@@ -41,9 +46,10 @@ export default function CommandsPage() {
       && (!needle || [c.name, c.description, c.commandTemplate, c.category].join(' ').toLowerCase().includes(needle)));
   }, [all.data, search.data, semantic, debounced, category, risk]);
 
+  const list = tools.filter(searched);
   return (
     <section>
-      <PageHeader title={t('commands.title')} subtitle={t('commands.subtitle')} />
+      <PageHeader title={t('commands.title')} subtitle={t('commands.subtitle')} actions={<EditCollection tools={tools} />} />
       <Fab label={t('commands.create')} onClick={() => setCreating(true)} />
       <div className="toolbar">
         <SearchInput className="grow" aria-label={t('commands.searchPlaceholder')} placeholder={t('commands.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -62,14 +68,16 @@ export default function CommandsPage() {
           label={<><Sparkles size={14} /> {t('commands.semantic')}</>}
         />
       </div>
+      <CollectionToolbar tools={tools} visible={list} />
       {semantic && search.data && <p className="muted small">{t('commands.confidence')}: <StatusBadge status={search.data.confidence} /></p>}
       {all.isLoading || search.isFetching ? <Loading /> : all.error ? <ErrorAlert error={all.error} onRetry={() => all.refetch()} /> : !list.length ? (
-        <EmptyState title={t('commands.empty')} hint={t('commands.emptyHint')} />
+        tools.onlyFavorites && !q.trim() ? <FavoritesEmpty /> : <EmptyState title={t('commands.empty')} hint={t('commands.emptyHint')} />
       ) : (
         <div className="list">
           {list.map((c) => (
-            <article className="row clickable" key={c.id} onClick={() => setDetail(c)}>
-              <div className="grow">
+            <article className="row clickable commandCollectionRow" key={c.id} onClick={() => setDetail(c)}>
+              <ItemControls tools={tools} item={c} />
+              <div className="grow commandCollectionInfo">
                 <b>{c.name}</b>
                 <small className="muted">{c.category} · {t('source.' + c.source, undefined, c.source)}</small>
               </div>

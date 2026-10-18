@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { MoreHorizontal, Pencil, Play, PlugZap, ShieldAlert, Trash2 } from 'lucide-react';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { Button, Card, Checkbox, Code, IconButton, Menu, StatusBadge } from '../../components/ui';
@@ -5,8 +6,8 @@ import { formatDate } from '../../utils/format';
 import type { Credential, Machine } from '../../types/api';
 import { TrustBadge } from './MachineTrust';
 
-export default function MachineCard({ machine: m, folderPath, credential, credentialLoading, credentialError, onRun, onTest, onEdit, onDelete, selected, selectionDisabled, onSelect }: {
-  machine: Machine; folderPath?: string;
+export default function MachineCard({ machine: m, folderPath, credential, credentialLoading, credentialError, onRun, onTest, onEdit, onDelete, selected, selectionDisabled, onSelect, favorite }: {
+  machine: Machine; folderPath?: string; favorite?: ReactNode;
   credential?: Credential; credentialLoading?: boolean; credentialError?: boolean;
   onRun: () => void; onTest: () => void; onEdit: () => void; onDelete: () => void;
   selected?: boolean; selectionDisabled?: boolean; onSelect?: () => void;
@@ -17,7 +18,7 @@ export default function MachineCard({ machine: m, folderPath, credential, creden
       {onSelect && <Checkbox aria-label={t('machinesBulk.selectMachine', { name: m.name })} checked={!!selected}
         disabled={selectionDisabled} onChange={onSelect} />}
       <h2 className="cardTitle">{m.name}</h2>
-    </div><TrustBadge status={m.trustStatus} /></div>
+    </div><div className="row gap">{favorite}<TrustBadge status={m.trustStatus} /></div></div>
     <div><Code>{m.hostname}:{m.sshPort}</Code></div>
     {folderPath && <small className="muted machineFolderPath"><bdi dir="ltr">{folderPath}</bdi></small>}
     <small className="muted">{[m.operatingSystem, m.osVersion].filter(Boolean).join(' ') || t('machines.osUnknown')}</small>

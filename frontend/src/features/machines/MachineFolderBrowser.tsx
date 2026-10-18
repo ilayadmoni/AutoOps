@@ -1,4 +1,5 @@
 import { ChevronRight, Folder } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../app/providers/I18nProvider';
 import type { Machine, MachineFolder } from '../../types/api';
@@ -30,8 +31,9 @@ export function MachineBreadcrumbs({ current, folders, onNavigate }: {
   </nav>;
 }
 
-export function MachineFolderCard({ folder, folders, machines, onNavigate, selection }: {
+export function MachineFolderCard({ folder, folders, machines, onNavigate, selection, favorite }: {
   folder: MachineFolder; folders: MachineFolder[]; machines: Machine[]; onNavigate: () => void;
+  favorite?: ReactNode;
   selection: Pick<ReturnType<typeof useMachineSelection>, 'ids' | 'busy' | 'active' | 'selectVisible'>;
 }) {
   const { t } = useI18n();
@@ -40,7 +42,8 @@ export function MachineFolderCard({ folder, folders, machines, onNavigate, selec
   const count = members.length;
   const selectedCount = members.filter(machine => selection.ids.has(machine.id)).length;
   const children = folders.filter(f => f.parentId === folder.id).length;
-  return <div className={'machineFolderItem' + (selection.active ? ' selecting' : '')}>
+  return <div className={'machineFolderItem' + (selection.active ? ' selecting' : '') + (favorite ? ' favoritable' : '')}>
+    {favorite && <span className="machineFolderFavorite">{favorite}</span>}
     {selection.active && <Checkbox className="machineFolderSelect" aria-label={t('machinesBulk.selectFolder', { name: folder.name })}
       checked={count > 0 && selectedCount === count} indeterminate={selectedCount > 0 && selectedCount < count}
       disabled={selection.busy || count === 0} onChange={event => selection.selectVisible(members, event.target.checked)} />}
