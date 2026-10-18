@@ -1,3 +1,4 @@
+import type { ImportCredentials } from './useImportCredentials';
 import { useMemo } from 'react';
 import { ChevronRight, Folder } from 'lucide-react';
 import { useI18n } from '../../../app/providers/I18nProvider';
@@ -7,6 +8,7 @@ import { sessionFolders, type SessionFolder } from './sessionFolders';
 import type { CredentialDraft, ImportRow } from './types';
 
 interface Props {
+  credentials: ImportCredentials;
   rows: ImportRow[]; selected: Set<number>; drafts: Record<number, CredentialDraft>;
   onToggle: (index: number) => void; onCredential: (index: number, value?: CredentialDraft) => void;
   onSelectFolder: (indices: number[], checked: boolean) => void;
@@ -31,7 +33,7 @@ function FolderGroup({ node, ...props }: Omit<Props, 'rows'> & { node: SessionFo
     </summary>
     <div className="importFolderContents">
       {!!node.rows.length && <ul className="importSessions">{node.rows.map(row => <ImportSessionRow key={row.index} row={row}
-        selected={props.selected.has(row.index)} draft={props.drafts[row.index]} onToggle={() => props.onToggle(row.index)}
+        credentials={props.credentials} selected={props.selected.has(row.index)} draft={props.drafts[row.index]} onToggle={() => props.onToggle(row.index)}
         onCredential={value => props.onCredential(row.index, value)} />)}</ul>}
       {node.children.map(child => <FolderGroup key={child.path} node={child} {...props} />)}
     </div>

@@ -14,7 +14,8 @@ public final class MachineImportDtos {
         }
     }
     public record Preview(List<Row> rows) {}
-    public record Selection(@Min(0) int index, @Valid CredentialDtos.CreateCredential credential) {
+    public record Selection(@Min(0) int index, @Valid CredentialDtos.CreateCredential credential, @Positive Long existingCredentialId) {
+        public Selection(int index, CredentialDtos.CreateCredential credential) { this(index, credential, null); }
         @Override public String toString() { return "Selection[index=" + index + "]"; }
     }
     public record Request(@NotEmpty @Size(max = 2000) List<@NotNull @Valid Selection> selections) {}

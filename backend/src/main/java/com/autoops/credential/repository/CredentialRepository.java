@@ -10,4 +10,6 @@ public interface CredentialRepository extends JpaRepository<Credential, Long> {
     List<Credential> findByDeletedAtIsNullOrderByNameAsc();
 
     Optional<Credential> findByIdAndDeletedAtIsNull(Long id);
+
+    List<Credential> findTop2ByUsernameAndDeletedAtIsNullOrderByIdAsc(String username);
 }

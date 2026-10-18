@@ -43,6 +43,11 @@ public class MachineImportService {
                 continue;
             }
             try { outcomes.add(writer.create(userId, row, selection)); }
+            catch (ApiException e) {
+                String reasonCode = java.util.Set.of("CREDENTIAL_AMBIGUOUS", "CREDENTIAL_USERNAME_MISMATCH").contains(e.code())
+                        ? e.code() : "IMPORT_FAILED";
+                outcomes.add(new Outcome(row.index(), row.name(), "FAILED", reasonCode, null));
+            }
             catch (Exception e) {
                 // Never return DB errors or request/credential objects to the browser.
                 outcomes.add(new Outcome(row.index(), row.name(), "FAILED", "IMPORT_FAILED", null));

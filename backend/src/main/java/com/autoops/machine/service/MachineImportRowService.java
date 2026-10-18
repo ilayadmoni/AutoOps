@@ -1,6 +1,5 @@
 package com.autoops.machine.service;
 
-import com.autoops.credential.service.CredentialManagementService;
 import com.autoops.machine.dto.MachineDtos;
 import com.autoops.machine.dto.MachineImportDtos.*;
 import com.autoops.machine.repository.MachineRepository;
@@ -13,11 +12,11 @@ public class MachineImportRowService {
     private final MachineRepository repo;
     private final MachineService machines;
     private final MachineFolderService folders;
-    private final CredentialManagementService credentials;
+    private final MachineImportCredentials credentials;
     private final EntityManager em;
 
     public MachineImportRowService(MachineRepository repo, MachineService machines, MachineFolderService folders,
-                                   CredentialManagementService credentials, EntityManager em) {
+                                   MachineImportCredentials credentials, EntityManager em) {
         this.repo = repo;
         this.machines = machines;
         this.folders = folders;
@@ -34,8 +33,8 @@ public class MachineImportRowService {
         boolean duplicate = repo.findByDeletedAtIsNullOrderByNameAsc().stream()
                 .anyMatch(m -> MobaSessionFields.endpoint(m.getHostname(), m.getSshPort()).equals(endpoint));
         if (duplicate) return new Outcome(row.index(), row.name(), "SKIPPED", "DUPLICATE", null);
+        Long credentialId = credentials.resolve(userId, row.username(), selection);
         Long folderId = folders.ensurePath(row.folderPath());
-        Long credentialId = selection.credential() == null ? null : credentials.create(userId, selection.credential()).id();
         var machine = machines.create(userId, new MachineDtos.Upsert(row.name(), row.hostname(), row.sshPort(),
                 null, null, credentialId, folderId));
         return new Outcome(row.index(), row.name(), "IMPORTED", null, machine.id());
