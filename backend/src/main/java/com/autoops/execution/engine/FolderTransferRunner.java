@@ -33,7 +33,7 @@ final class FolderTransferRunner {
                 String status = result.cancelled() ? ExecutionStatus.CANCELLED
                         : result.success() ? ExecutionStatus.SUCCESS : ExecutionStatus.FAILED;
                 String error = result.cancelled() ? "Stopped by user" : result.timedOut() ? "Folder deployment timed out"
-                        : result.success() ? null : "Folder deployment failed; inspect stderr";
+                        : result.success() ? null : failure(result.stderr());
                 return new StepResult(status, result.stdout(), result.stderr(), result.exitCode(), error);
             } catch (IOException e) { return StepResult.failed("Could not read folder package"); }
             finally {
@@ -41,5 +41,10 @@ final class FolderTransferRunner {
                 catch (RuntimeException ignored) { /* Best effort after disconnected/cancelled sessions. */ }
             }
         }
+    }
+    static String failure(String stderr) {
+        String detail = stderr == null ? "" : stderr.strip();
+        if (detail.isEmpty()) return "Folder deployment failed; inspect stderr";
+        return "Folder deployment failed: " + detail.substring(0, Math.min(500, detail.length()));
     }
 }

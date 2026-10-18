@@ -54,7 +54,7 @@ public class StepResolver {
                 boolean folder = stored.getFolderName() != null;
                 String dest = folder ? absolutePath(f.destinationPath(), "Destination directory").replaceAll("/+$", "") : destination(f.destinationPath(), stored.getOriginalFilename());
                 var r = (folder || f.useSudo()) && f.overwrite() ? CommandRiskAnalyzer.Risk.HIGH : CommandRiskAnalyzer.Risk.MEDIUM;
-                yield new ResolvedStep(step, "FILE_TRANSFER", (folder ? "deploy folder " : "transfer ") + stored.getOriginalFilename(), "transfer -> " + dest,
+                yield new ResolvedStep(step, "FILE_TRANSFER", folder ? "deploy folder " + stored.getFolderName() : "transfer " + stored.getOriginalFilename(), "transfer -> " + dest,
                         r.name(), f.useSudo(), bounded(f.timeoutSeconds(), 1, 3600, 300),
                         new ResolvedStep.FileSource(stored.getId(), stored.getObjectKey(), stored.getSize(), stored.getChecksum(), stored.getOriginalFilename()),
                         dest, ANY_LINUX);

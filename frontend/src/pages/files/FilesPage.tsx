@@ -11,6 +11,7 @@ import {
 } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { formatBytes, formatDate } from '../../utils/format';
+import { storedFileName } from '../../utils/storedFileName';
 
 export const filesQuery = { queryKey: ['files'], queryFn: () => get<StoredFile[]>('/files') };
 
@@ -40,7 +41,7 @@ export default function FilesPage() {
   const toast = useToast();
   const up = useUpload();
   const [deleting, setDeleting] = useState<StoredFile | null>(null);
-  const { query, setQuery, filtered } = useCollectionSearch(q.data, (f) => [f.filename, f.checksum, ...f.referencedBy]);
+  const { query, setQuery, filtered } = useCollectionSearch(q.data, (f) => [storedFileName(f), f.checksum, ...f.referencedBy]);
   const remove = useMutation({
     mutationFn: (id: number) => del('/files/' + id),
     onSuccess: () => { toast.success(t('files.deleted')); setDeleting(null); qc.invalidateQueries({ queryKey: ['files'] }); },
@@ -66,7 +67,7 @@ export default function FilesPage() {
         <div className="cards">
           {filtered.map((f) => (
             <Card key={f.id}>
-              <h3 dir="ltr" className="fileName">{f.folderName ? <Folder size={16} className="muted" /> : <FileText size={16} className="muted" />} {f.folderName ?? f.filename}</h3>
+              <h2 dir="ltr" className="fileName cardTitle">{f.folderName ? <Folder size={16} className="muted" /> : <FileText size={16} className="muted" />} {storedFileName(f)}</h2>
               <div><Code>{f.checksum.slice(0, 16)}</Code></div>
               {f.folderName && <><small className="muted">{t('folders.package')} · {t('folders.version', { id: f.id })} · {t('folders.count', { n: f.fileCount ?? 0 })}</small><FolderContents id={f.id} /></>}
               <small className="muted">{formatBytes(f.size)} · <bdi>{formatDate(f.createdAt, lang)}</bdi></small>
@@ -80,7 +81,7 @@ export default function FilesPage() {
           ))}
         </div>
       )}
-      {deleting && <ConfirmDialog danger title={t('files.deleteTitle')} message={t('files.deleteMessage', { name: deleting.filename })} confirmLabel={t('common.delete')}
+      {deleting && <ConfirmDialog danger title={t('files.deleteTitle')} message={t('files.deleteMessage', { name: storedFileName(deleting) })} confirmLabel={t('common.delete')}
         busy={remove.isPending} onCancel={() => setDeleting(null)} onConfirm={() => remove.mutate(deleting.id)} />}
     </section>
   );

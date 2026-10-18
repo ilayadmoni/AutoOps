@@ -18,8 +18,16 @@ final class FolderDeployCommands {
                 [ -d "$parent" ] || { echo 'Destination parent directory does not exist' >&2; exit 1; }
                 [ ! -L "$dest" ] || { echo 'Destination must not be a symlink' >&2; exit 1; }
                 [ ! -e "$dest" ] || [ -d "$dest" ] || { echo 'Destination is not a directory' >&2; exit 1; }
+                if [ -e "$dest" ] && [ "$replace" != yes ]; then
+                  echo 'Destination exists; Replace directory is disabled. Choose a new folder path including the original folder name under a writable parent.' >&2; exit 1
+                fi
+                [ -w "$parent" ] && [ -x "$parent" ] || { echo 'Permission denied: destination parent directory is not writable/searchable; choose your SSH user home directory or enable sudo if authorized' >&2; exit 1; }
                 lock="${dest}.autoops-lock"
-                mkdir -- "$lock" || { echo 'Destination is locked by another deployment' >&2; exit 1; }
+                if ! mkdir -- "$lock"; then
+                  if [ -d "$lock" ]; then echo 'Destination is locked by another deployment' >&2;
+                  else echo 'Cannot create deployment lock; check destination parent permissions' >&2; fi
+                  exit 1
+                fi
                 stage="$parent/.autoops-stage-$nonce"
                 backup="$parent/.autoops-backup-$nonce"
                 stage_owned=no

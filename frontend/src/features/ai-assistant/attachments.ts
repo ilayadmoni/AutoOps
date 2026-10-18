@@ -9,7 +9,7 @@ export const MAX_SERVERS = 20;
  * "[Attached files (...):\n- 12: setup.sh, 2048 bytes]". Split it back out so the thread shows chips, not the block.
  */
 const BLOCK = /\n\n\[Attached files[^\n]*\n((?:- \d+: [^\n]*\n?)+)\]$/;
-const LINE = /^- (\d+): (.*), (\d+) bytes$/;
+const LINE = /^- (\d+): (.*), (\d+) bytes(?: \(folder[^\n]*\))?$/;
 
 export function splitAttachments(content: string): { text: string; files: Attachment[]; machines: ServerAttachment[] } {
   const m = content.match(BLOCK);

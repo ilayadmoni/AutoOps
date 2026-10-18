@@ -9,15 +9,21 @@ type ConfigProps = { node: WorkflowNode; onChange: (patch: Partial<WorkflowNode>
 export function FileConfig({ node, onChange, files, errors }: ConfigProps & { files: StoredFile[] }) {
   const { t } = useI18n();
   const up = useUpload();
-  const folder = !!files.find((f) => f.id === node.storedFileId)?.folderName;
+  const folderName = files.find((f) => f.id === node.storedFileId)?.folderName;
+  const folder = !!folderName;
   const toast = useToast();
+  function selectSource(saved?: StoredFile) {
+    const destinationPath = saved?.folderName && (!node.destinationPath || node.destinationPath === '/tmp/')
+      ? '/tmp/' + saved.folderName : node.destinationPath;
+    onChange({ storedFileId: saved?.id ?? null, overwrite: false, destinationPath });
+  }
   return (
     <>
       <Field label={t('folders.select')} error={errors.storedFileId}>
         <Select
           block placeholder={t('workflows.selectFile')}
           value={node.storedFileId ?? ''}
-          onChange={(x) => onChange({ storedFileId: x.target.value ? Number(x.target.value) : null, overwrite: false })}
+          onChange={(x) => selectSource(files.find((f) => f.id === Number(x.target.value)))}
           options={files.map((f) => ({ value: f.id, label: `${f.folderName ? t('folders.package') + ": " + f.folderName : f.filename} (#${f.id} · ${f.checksum.slice(0, 8)})` }))}
         />
       </Field>
@@ -30,11 +36,11 @@ export function FileConfig({ node, onChange, files, errors }: ConfigProps & { fi
       }}>
         {(open) => <Button small busy={up.isPending} icon={<FileUp size={14} />} onClick={open}>{t('files.upload')}</Button>}
       </FilePicker>
-      <FolderUpload onUploaded={(saved) => onChange({ storedFileId: saved.id, overwrite: false })}>
+      <FolderUpload onUploaded={selectSource}>
         {(open) => <Button small icon={<Folder size={14} />} onClick={open}>{t('folders.upload')}</Button>}
       </FolderUpload>
-      <Field label={t(folder ? 'folders.destination' : 'workflows.destination')} error={errors.destinationPath} hint={t(folder ? 'folders.destinationHint' : 'workflows.destinationHint')}>
-        <TextInput dir="ltr" value={node.destinationPath ?? ''} onChange={(x) => onChange({ destinationPath: x.target.value })} />
+      <Field label={t(folder ? 'folders.destination' : 'workflows.destination')} error={errors.destinationPath} hint={t(folder ? 'folders.destinationHint' : 'workflows.destinationHint', { name: folderName ?? '' })}>
+        <TextInput dir="ltr" spellCheck={false} autoCapitalize="none" autoCorrect="off" value={node.destinationPath ?? ''} onChange={(x) => onChange({ destinationPath: x.target.value })} />
       </Field>
       {folder && <small className="muted">{t('folders.replaceHint')}</small>}
       <div className="row gap wrap">
