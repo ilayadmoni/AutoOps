@@ -1,0 +1,11 @@
+.git
+.env
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/target
+**/dist
+deploy/exports
+deploy/certs
+**/*.log

@@ -27,3 +27,6 @@ coverage/
 .agents/
 .claude/
 skills-lock.json
+
+# Exported deployment images
+/deploy/exports/

@@ -5,7 +5,7 @@ name: autoops
 
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    image: ${POSTGRES_IMAGE:-pgvector/pgvector:pg16}
     environment:
       POSTGRES_DB: autoops
       POSTGRES_USER: ${DATABASE_USERNAME:-autoops}
@@ -27,7 +27,7 @@ services:
       dockerfile: deploy/minio/Dockerfile
       args:
         MINIO_RELEASE: ${MINIO_RELEASE:-RELEASE.2025-10-15T17-29-55Z}
-    image: autoops-minio:${MINIO_RELEASE:-RELEASE.2025-10-15T17-29-55Z}
+    image: ${MINIO_IMAGE:-autoops-minio}:${MINIO_RELEASE:-RELEASE.2025-10-15T17-29-55Z}
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-autoops}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
@@ -41,6 +41,7 @@ services:
     restart: unless-stopped
 
   backend:
+    image: ${BACKEND_IMAGE:-autoops-backend}:${AUTOOPS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: deploy/backend/Dockerfile
@@ -94,6 +95,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    image: ${FRONTEND_IMAGE:-autoops-frontend}:${AUTOOPS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: deploy/frontend/Dockerfile
