@@ -2,6 +2,7 @@ import { enOperations } from './enOperations';
 
 /** English source dictionary. Every key must also exist in he.ts (enforced by the type checker). */
 export const en = {
+  'common.actions': 'Actions', 'common.breadcrumb': 'Breadcrumbs', 'nav.main': 'Main navigation', 'nav.skip': 'Skip to content',
   'common.loading': 'Loading…', 'common.starting': 'Starting AutoOps…', 'common.retry': 'Retry', 'common.cancel': 'Cancel',
   'common.confirm': 'Confirm', 'common.close': 'Close', 'common.save': 'Save', 'common.edit': 'Edit', 'common.notSet': 'Not set', 'common.copy': 'Copy', 'common.copied': 'Copied', 'common.delete': 'Delete',
   'common.name': 'Name', 'common.description': 'Description', 'common.status': 'Status', 'common.none': 'None',
@@ -55,7 +56,7 @@ export const en = {
   'machines.osVersion': 'Version', 'machines.preferredCredential': 'Preferred credential',
   'machines.endpointResetsTrust': 'Changing the host or port removes the trusted host key; you will need to trust it again.',
 
-  'trust.title': 'SSH host key: {name}', 'trust.explain': 'AutoOps retrieves the server key itself. Compare the fingerprint with the one on the server before trusting it.',
+  'trust.title': 'Verify server identity: {name}', 'trust.explain': 'AutoOps retrieves the server key itself. Compare the fingerprint with the one on the server before trusting it.',
   'trust.current': 'Current status', 'trust.trustedFingerprint': 'Trusted fingerprint', 'trust.presentedFingerprint': 'Fingerprint presented on mismatch',
   'trust.discover': 'Discover fingerprint', 'trust.matches': 'The server still presents the trusted key.',
   'trust.changedWarning': 'This key is DIFFERENT from the trusted key. Only continue if you know why the key changed.',
@@ -63,7 +64,7 @@ export const en = {
   'trust.verifiedCheckbox': 'I verified this fingerprint out-of-band', 'trust.confirm': 'Trust this key', 'trust.replace': 'Replace trusted key',
   'trust.confirmed': 'Host key trusted', 'trust.revoke': 'Revoke trust', 'trust.revoked': 'Trust revoked',
 
-  'test.title': 'Connection test: {name}', 'test.run': 'Run test', 'test.selectCredential': 'Select a credential',
+  'test.title': 'Connection test: {name}', 'test.run': 'Test connection', 'test.selectCredential': 'Select a credential',
   'test.ssh': 'SSH connection', 'test.hostVerification': 'Host verification', 'test.authentication': 'Authentication', 'test.os': 'Operating system', 'test.sudo': 'Sudo',
 
   'commands.title': 'Command Bank', 'commands.subtitle': 'Approved, parameterized Linux actions. Only approved commands can run.',

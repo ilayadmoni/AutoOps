@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Pencil, Plus, Upload } from 'lucide-react';
-import { del } from '../../services/client';
-import type { Machine } from '../../types/api';
+import { del, get } from '../../services/client';
+import type { Credential, Machine } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import {
   Button, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Loading, NoMatches, PageHeader, SearchToolbar, useCollectionSearch,
@@ -12,7 +12,7 @@ import { useToast } from '../../components/ui/Toast';
 import { machinesQuery } from '../../features/executions/RunOptionsForm';
 import RunCommandModal from '../../features/commands/RunCommandModal';
 import MachineForm from '../../features/machines/MachineForm';
-import { TrustDialog } from '../../features/machines/MachineTrust';
+import MachineConnectionDialog from '../../features/machines/MachineConnectionDialog';
 import MachineImportDialog from '../../features/machines/import/MachineImportDialog';
 import { useMachineFolders } from '../../features/machines/useMachineFolders';
 import MachineCard from '../../features/machines/MachineCard';
@@ -23,11 +23,12 @@ import { folderDescendants, MachineBreadcrumbs, MachineFolderCard } from '../../
 export default function MachinesPage() {
   const { t } = useI18n();
   const q = useQuery(machinesQuery);
+  const credentials = useQuery({ queryKey: ['credentials'], queryFn: () => get<Credential[]>('/credentials') });
   const selection = useMachineSelection(q.data);
   const qc = useQueryClient();
   const toast = useToast();
   const [editing, setEditing] = useState<Machine | 'new' | null>(null);
-  const [trusting, setTrusting] = useState<Machine | null>(null);
+  const [testing, setTesting] = useState<Machine | null>(null);
   const [running, setRunning] = useState<Machine | null>(null);
   const [deleting, setDeleting] = useState<Machine | null>(null);
   const [importing, setImporting] = useState(false);
@@ -78,15 +79,17 @@ export default function MachinesPage() {
           {visibleFolders.map(f => <MachineFolderCard key={'folder-' + f.id} folder={f} folders={folderList}
             machines={q.data ?? []} selection={selection} onNavigate={() => setQuery('')} />)}
           {machines.map(m => <MachineCard key={m.id} machine={m} folderPath={current?.path}
+            credential={credentials.data?.find(credential => credential.id === m.preferredCredentialId)}
+            credentialLoading={credentials.isPending} credentialError={credentials.isError}
             selected={selection.ids.has(m.id)} selectionDisabled={selection.busy}
             onSelect={selection.active ? () => selection.toggle(m.id) : undefined}
-            onRun={() => setRunning(m)} onTrust={() => setTrusting(m)}
+            onRun={() => setRunning(m)} onTest={() => setTesting(m)}
             onEdit={() => setEditing(m)} onDelete={() => setDeleting(m)} />)}
         </div>
       )}
       {editing && <MachineForm machine={editing === 'new' ? null : editing} initial={{ folderId: current?.id }} onClose={() => setEditing(null)} />}
       {importing && <MachineImportDialog onClose={() => setImporting(false)} />}
-      {trusting && <TrustDialog machine={trusting} onClose={() => setTrusting(null)} />}
+      {testing && <MachineConnectionDialog machine={q.data?.find(machine => machine.id === testing.id) ?? testing} onClose={() => setTesting(null)} />}
       {running && <RunCommandModal initial={{ machineIds: [running.id] }} onClose={() => setRunning(null)} />}
       {deleting && <ConfirmDialog danger title={t('machines.deleteTitle')} message={t('machines.deleteMessage', { name: deleting.name })}
         confirmLabel={t('common.delete')} busy={remove.isPending} onCancel={() => setDeleting(null)} onConfirm={() => remove.mutate(deleting.id)} />}

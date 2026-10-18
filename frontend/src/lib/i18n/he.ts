@@ -4,6 +4,7 @@ import type { en } from './en';
 
 /** Hebrew dictionary. Typed against en so a missing translation fails the build. */
 export const he: Record<keyof typeof en, string> = {
+  'common.actions': 'פעולות', 'common.breadcrumb': 'נתיב ניווט', 'nav.main': 'ניווט ראשי', 'nav.skip': 'דילוג לתוכן',
   'common.loading': 'טוען…', 'common.starting': 'מפעיל את AutoOps…', 'common.retry': 'נסה שוב', 'common.cancel': 'ביטול',
   'common.confirm': 'אישור', 'common.close': 'סגירה', 'common.save': 'שמירה', 'common.edit': 'עריכה', 'common.notSet': 'לא הוגדר', 'common.copy': 'העתקה', 'common.copied': 'הועתק', 'common.delete': 'מחיקה',
   'common.name': 'שם', 'common.description': 'תיאור', 'common.status': 'סטטוס', 'common.none': 'ללא',
@@ -57,7 +58,7 @@ export const he: Record<keyof typeof en, string> = {
   'machines.osVersion': 'גרסה', 'machines.preferredCredential': 'פרטי גישה מועדפים',
   'machines.endpointResetsTrust': 'שינוי המארח או הפורט מבטל את המפתח המאושר; יהיה צורך לאשר אותו מחדש.',
 
-  'trust.title': 'מפתח SSH של השרת: {name}', 'trust.explain': 'AutoOps מאחזר את מפתח השרת בעצמו. השוו את טביעת האצבע לזו שבשרת לפני האישור.',
+  'trust.title': 'אימות זהות השרת: {name}', 'trust.explain': 'AutoOps מאחזר את מפתח השרת בעצמו. השוו את טביעת האצבע לזו שבשרת לפני האישור.',
   'trust.current': 'מצב נוכחי', 'trust.trustedFingerprint': 'טביעת אצבע מאושרת', 'trust.presentedFingerprint': 'טביעת האצבע שהוצגה באי ההתאמה',
   'trust.discover': 'איתור טביעת אצבע', 'trust.matches': 'השרת עדיין מציג את המפתח המאושר.',
   'trust.changedWarning': 'המפתח הזה שונה מהמפתח המאושר. המשיכו רק אם ידוע לכם מדוע המפתח השתנה.',
@@ -65,7 +66,7 @@ export const he: Record<keyof typeof en, string> = {
   'trust.verifiedCheckbox': 'אימתתי את טביעת האצבע בערוץ נפרד', 'trust.confirm': 'אשר מפתח זה', 'trust.replace': 'החלף את המפתח המאושר',
   'trust.confirmed': 'מפתח השרת אושר', 'trust.revoke': 'ביטול אמון', 'trust.revoked': 'האמון בוטל',
 
-  'test.title': 'בדיקת חיבור: {name}', 'test.run': 'הרץ בדיקה', 'test.selectCredential': 'בחרו פרטי גישה',
+  'test.title': 'בדיקת חיבור: {name}', 'test.run': 'בדיקת חיבור', 'test.selectCredential': 'בחרו פרטי גישה',
   'test.ssh': 'חיבור SSH', 'test.hostVerification': 'אימות שרת', 'test.authentication': 'הזדהות', 'test.os': 'מערכת הפעלה', 'test.sudo': 'Sudo',
 
   'commands.title': 'מאגר פקודות', 'commands.subtitle': 'פעולות Linux מאושרות עם פרמטרים. רק פקודות מאושרות ניתנות להרצה.',
