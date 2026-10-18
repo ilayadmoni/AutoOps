@@ -1,6 +1,6 @@
 # Deployment
 
-`docker-compose.yml` runs PostgreSQL + pgvector, MinIO (built from a pinned source release), the backend and the
+`docker-compose.yml` runs PostgreSQL + pgvector, MinIO (exported from a pinned source release), the backend and the
 Nginx-served frontend. See [`docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md) for configuration, health checks and the
 manual verification checklist.
 
@@ -44,3 +44,7 @@ docker compose --env-file .env -f deploy/docker-compose.yml up -d --no-build --p
 ```
 
 Exports use the build host's architecture; the target host must support it.
+
+`docker-compose.yml` uses preloaded images only and contains no build definitions.
+`docker-compose.build.yml` adds the build definitions on the build host; the export
+script includes it automatically. The target host does not need this override or source code.

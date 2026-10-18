@@ -22,7 +22,7 @@ fi
 command -v docker >/dev/null || { echo "Docker is required." >&2; exit 1; }
 command -v python3 >/dev/null || { echo "Python 3 is required to read the Compose image mapping." >&2; exit 1; }
 docker compose version >/dev/null
-compose=(docker compose --env-file "$env_file" -f "$script_dir/docker-compose.yml")
+compose=(docker compose --env-file "$env_file" -f "$script_dir/docker-compose.yml" -f "$script_dir/docker-compose.build.yml")
 
 # Validate before building; never print the resolved configuration (contains secrets).
 "${compose[@]}" config --quiet

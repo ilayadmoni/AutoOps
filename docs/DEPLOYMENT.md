@@ -4,7 +4,10 @@
 
 ```bash
 cp .env.example .env    # fill in all REQUIRED values
-docker compose --env-file .env -f deploy/docker-compose.yml up --build -d
+./deploy/build-export.sh
+# On the target host, after copying the exports, Compose file, env and certificates:
+for archive in deploy/exports/*.tar; do docker image load --input "$archive"; done
+docker compose --env-file .env -f deploy/docker-compose.yml up -d --pull never
 ```
 
 Services: `postgres` (pgvector/pgvector:pg16, volume `postgres-data`), `minio` (pinned release built from source,
@@ -55,7 +58,7 @@ so the directory and certificate must be readable by that user. Certificates in 
 Recreate the backend after changing configuration or certificates:
 
 ```bash
-docker compose --env-file .env -f deploy/docker-compose.yml up -d --build --force-recreate backend
+docker compose --env-file .env -f deploy/docker-compose.yml up -d --pull never --force-recreate backend
 ```
 
 When running Java directly, set `AI_SSL_CERT_PATH` to the certificate's local filesystem path instead.
