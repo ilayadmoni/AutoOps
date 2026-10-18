@@ -26,4 +26,9 @@ public class FolderPackageController {
     }
     @GetMapping("/{id}/manifest")
     public List<FolderManifest.Entry> manifest(@PathVariable Long id) { return folders.manifest(current.id(), id); }
+    @DeleteMapping("/{id}/folders")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSubfolder(@PathVariable Long id, @RequestParam String path) {
+        folders.deleteSubfolder(current.id(), id, path);
+    }
 }

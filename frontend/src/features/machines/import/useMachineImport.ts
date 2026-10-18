@@ -84,7 +84,7 @@ export function useMachineImport() {
       for (const index of selected) {
         const row = rows.find(row => row.index === index)!;
         const matches = matchingCredentials(row, credentials.query.data);
-        if (!drafts[index] && matches.length > 1 && !matches.some(match => match.id === credentials.ids[index])) {
+        if (!drafts[index] && !credentials.defaultId && matches.length > 1 && !matches.some(match => match.id === credentials.ids[index])) {
           throw new Error(t('machineImport.ambiguousSession', { name: row.name }));
         }
       }
@@ -92,7 +92,7 @@ export function useMachineImport() {
       body.append('file', file);
       body.append('selection', new Blob([JSON.stringify({ selections: [...selected].map(index => ({
         index, credential: drafts[index] ?? null,
-        existingCredentialId: drafts[index] ? null : credentials.ids[index]
+        existingCredentialId: drafts[index] ? null : credentials.ids[index] ?? credentials.defaultId
           ?? matchingCredentials(rows.find(row => row.index === index)!, credentials.query.data ?? []).at(0)?.id ?? null,
       })) })], { type: 'application/json' }));
       const response = await api<ImportResult>('/machines/import', { method: 'POST', body });

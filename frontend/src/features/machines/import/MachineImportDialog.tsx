@@ -1,6 +1,6 @@
 import { Upload } from 'lucide-react';
 import { useI18n } from '../../../app/providers/I18nProvider';
-import { Button, Checkbox, ErrorAlert, FilePicker, Loading, Modal } from '../../../components/ui';
+import { Button, Checkbox, ErrorAlert, Field, FilePicker, Loading, Modal, Select } from '../../../components/ui';
 import ImportFolderGroups from './ImportFolderGroups';
 import { revealInvalidCredential } from './sessionFolders';
 import ImportResults from './ImportResults';
@@ -32,6 +32,11 @@ export default function MachineImportDialog({ onClose }: { onClose: () => void }
           </div>
           <fieldset disabled={state.busy} className="importSelection">
             <legend className="srOnly">{t('machineImport.preview')}</legend>
+            {!!state.credentials.query.data?.length && <Field label={t('machineImport.defaultCredential')} hint={t('machineImport.defaultCredentialHint')}>
+              <Select block value={state.credentials.defaultId ?? ''} placeholder={t('machineImport.noDefaultCredential')}
+                options={state.credentials.query.data.map(credential => ({ value: credential.id, label: credential.name, hint: credential.username }))}
+                onChange={e => state.credentials.setDefaultId(e.target.value ? Number(e.target.value) : null)} />
+            </Field>}
             <Checkbox checked={!!eligible.length && state.selected.size === eligible.length}
               indeterminate={state.selected.size > 0 && state.selected.size < eligible.length}
               disabled={!eligible.length} label={t('machineImport.selectAll')} onChange={e => state.toggleAll(e.target.checked)} />

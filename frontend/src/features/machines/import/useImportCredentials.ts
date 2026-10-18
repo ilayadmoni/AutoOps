@@ -11,9 +11,10 @@ export function matchingCredentials(row: ImportRow, credentials: Credential[]) {
 export function useImportCredentials() {
   const query = useQuery({ queryKey: ['credentials'], queryFn: () => get<Credential[]>('/credentials') });
   const [ids, setIds] = useState<Record<number, number>>({});
+  const [defaultId, setDefaultId] = useState<number | null>(null);
   const choose = (index: number, id?: number) => setIds(current => {
     const next = { ...current }; if (id == null) delete next[index]; else next[index] = id; return next;
   });
-  return { query, ids, choose, reset: () => setIds({}) };
+  return { query, ids, defaultId, setDefaultId, choose, reset: () => { setIds({}); setDefaultId(null); } };
 }
 export type ImportCredentials = ReturnType<typeof useImportCredentials>;

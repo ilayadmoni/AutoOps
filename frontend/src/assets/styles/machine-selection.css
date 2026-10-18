@@ -15,5 +15,6 @@
 }
 .machineFolderFavorite { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; z-index: 1; }
 .machineFolderFavorite .icon { min-inline-size: 44px; min-block-size: 44px; }
+.machineFolderDelete { position: absolute; inset-block-start: 8px; inset-inline-end: 56px; z-index: 1; min-inline-size: 44px; min-block-size: 44px; }
 .machineFolderItem.favoritable .machineFolderSelect { inset-inline-end: auto; inset-inline-start: 8px; }
 .machineFolderItem.favoritable.selecting .machineFolderCard { padding-block-start: 56px; }

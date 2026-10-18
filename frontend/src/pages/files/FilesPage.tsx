@@ -74,7 +74,7 @@ export default function FilesPage() {
             <Card key={f.id}>
               <div className="row spread"><h2 dir="ltr" className="fileName cardTitle">{f.folderName ? <Folder size={16} className="muted" /> : <FileText size={16} className="muted" />} {storedFileName(f)}</h2><ItemControls tools={tools} item={f} /></div>
               <div><Code>{f.checksum.slice(0, 16)}</Code></div>
-              {f.folderName && <><small className="muted">{t('folders.package')} · {t('folders.version', { id: f.id })} · {t('folders.count', { n: f.fileCount ?? 0 })}</small><FolderContents id={f.id} /></>}
+              {f.folderName && <><small className="muted">{t('folders.package')} · {t('folders.version', { id: f.id })} · {t('folders.count', { n: f.fileCount ?? 0 })}</small><FolderContents id={f.id} canDelete={!f.referencedBy.length} /></>}
               <small className="muted">{formatBytes(f.size)} · <bdi>{formatDate(f.createdAt, lang)}</bdi></small>
               <small className="muted">{t('files.usedBy')}: {f.referencedBy.length ? f.referencedBy.join(', ') : t('files.unused')}</small>
               <div className="cardFoot">

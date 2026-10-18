@@ -14,6 +14,7 @@ import com.autoops.execution.plan.StepResolver;
 import com.autoops.execution.realtime.ExecutionEventPublisher;
 import com.autoops.machine.entity.Machine;
 import com.autoops.machine.repository.MachineRepository;
+import com.autoops.machine.service.SshHostTrustService;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -32,15 +33,17 @@ public class PreflightRunner {
     private final CredentialRepository credentials;
     private final StepResolver resolver;
     private final RemotePreflightChecks remote;
+    private final SshHostTrustService trust;
     private final ExecutionEventPublisher events;
 
     public PreflightRunner(ExecutionStore store, MachineRepository machines, CredentialRepository credentials, StepResolver resolver,
-                           RemotePreflightChecks remote, ExecutionEventPublisher events) {
+                           RemotePreflightChecks remote, SshHostTrustService trust, ExecutionEventPublisher events) {
         this.store = store;
         this.machines = machines;
         this.credentials = credentials;
         this.resolver = resolver;
         this.remote = remote;
+        this.trust = trust;
         this.events = events;
     }
 
@@ -66,13 +69,13 @@ public class PreflightRunner {
 
     private String check(Execution e, ExecutionPlan plan, MachineRun mr, PreflightRun p) {
         Machine machine = machines.findById(mr.getMachineId())
-                .filter(m -> m.getDeletedAt() == null && e.getStartedBy().equals(m.getCreatedBy())).orElse(null);
+                .filter(m -> m.getDeletedAt() == null).orElse(null);
         if (machine == null) {
             skipRemote(p);
             return "Machine is no longer available";
         }
         Credential credential = mr.getCredentialId() == null ? null : credentials.findById(mr.getCredentialId())
-                .filter(c -> c.getDeletedAt() == null && e.getStartedBy().equals(c.getCreatedBy())).orElse(null);
+                .filter(c -> c.getDeletedAt() == null).orElse(null);
         if (credential == null) {
             skipRemote(p);
             return "No usable credential for this machine";
@@ -99,6 +102,15 @@ public class PreflightRunner {
             }
         }
 
+        if (!machine.isTrusted() && !machine.isAutoTrustBlocked()) {
+            try {
+                machine = trust.trustOnFirstUse(e.getStartedBy(), mr.getMachineId());
+            } catch (ApiException ex) {
+                skipRemote(p);
+                p.setSshStatus("FAILED");
+                return "SSH host key discovery failed: " + ex.getMessage();
+            }
+        }
         if (!machine.isTrusted()) {
             p.setHostVerificationStatus("UNTRUSTED");
             p.setSshStatus("NOT_CHECKED");

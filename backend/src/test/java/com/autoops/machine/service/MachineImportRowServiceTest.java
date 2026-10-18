@@ -1,6 +1,7 @@
 package com.autoops.machine.service;
 
 import com.autoops.credential.dto.CredentialDtos;
+import com.autoops.credential.repository.CredentialRepository;
 import com.autoops.credential.service.CredentialManagementService;
 import com.autoops.machine.dto.MachineDtos;
 import com.autoops.machine.dto.MachineImportDtos.*;
@@ -18,13 +19,16 @@ class MachineImportRowServiceTest {
     private final MachineService machines = mock(MachineService.class);
     private final MachineFolderService folders = mock(MachineFolderService.class);
     private final CredentialManagementService credentials = mock(CredentialManagementService.class);
+    private final CredentialRepository credentialRepo = mock(CredentialRepository.class);
+    private final MachineImportCredentials importCredentials = new MachineImportCredentials(credentialRepo, credentials);
     private final EntityManager em = mock(EntityManager.class);
-    private final MachineImportRowService service = new MachineImportRowService(repo, machines, folders, credentials, em);
+    private final MachineImportRowService service = new MachineImportRowService(repo, machines, folders, importCredentials, em);
     private final Row row = new Row(0, "VM", "vm.example", 22, "ops", "Lab/Apps", "SSH", null, List.of());
 
     private void setup() {
         when(em.createNativeQuery(anyString())).thenReturn(mock(Query.class));
         when(repo.findByDeletedAtIsNullOrderByNameAsc()).thenReturn(List.of());
+        when(credentialRepo.findTop2ByUsernameAndDeletedAtIsNullOrderByIdAsc("ops")).thenReturn(List.of());
         when(folders.ensurePath("Lab/Apps")).thenReturn(8L);
         when(machines.create(eq(1L), any())).thenAnswer(call -> {
             Machine m = new Machine(); m.setName("VM"); m.setHostname("vm.example");

@@ -21,9 +21,6 @@ public class MachineImportCredentials {
         if (selection.credential() != null) return credentials.create(userId, selection.credential()).id();
         if (selection.existingCredentialId() != null) {
             var existing = credentials.get(userId, selection.existingCredentialId());
-            if (username == null || username.isBlank() || !username.equals(existing.username())) {
-                throw ApiException.badRequest("CREDENTIAL_USERNAME_MISMATCH", "Credential username does not match the session");
-            }
             return existing.id();
         }
         if (username == null || username.isBlank()) return null;

@@ -15,8 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 /**
- * Explicit SSH host trust. The browser is never authoritative for the key: the backend discovers it, the user confirms
- * the fingerprint, and the backend re-discovers the key and stores it only if it matches what the user confirmed.
+ * SSH host trust. Manual confirmation re-discovers the key; first-use preflight may pin an untrusted machine's key.
  */
 @Service
 public class SshHostTrustService {
@@ -42,6 +41,19 @@ public class SshHostTrustService {
         boolean matches = m.isTrusted() && SshHostKey.sameFingerprint(key.fingerprint(), m.getSshFingerprint());
         return new Discovery(m.getId(), m.getHostname(), m.getSshPort(), key.algorithm(), key.fingerprint(),
                 m.trustStatus(), m.getSshFingerprint(), matches);
+    }
+
+    /** Pins a new machine's first observed key. Revoked or retargeted machines stay on the manual trust path. */
+    @Transactional
+    public Machine trustOnFirstUse(Long userId, Long machineId) {
+        Machine m = machines.findActiveForUpdate(machineId).orElseThrow(() -> ApiException.notFound("Machine"));
+        if (m.isTrusted() || m.isAutoTrustBlocked()) return m;
+        SshHostKey key = probe(m);
+        m.trust(key.algorithm(), key.base64Key(), key.fingerprint());
+        m = machines.save(m);
+        audit.record(userId, "SSH_TRUST_AUTO_CONFIRMED", "MACHINE", m.getId(),
+                Map.of("fingerprint", key.fingerprint(), "algorithm", key.algorithm()));
+        return m;
     }
 
     @Transactional

@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Pencil, Plus, Upload } from 'lucide-react';
 import { del, get } from '../../services/client';
-import type { Credential, Machine } from '../../types/api';
+import type { Credential, Machine, MachineFolder } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import {
   Button, ConfirmDialog, EmptyState, ErrorAlert, errorMessage, Fab, Loading, NoMatches, PageHeader, SearchToolbar, useCollectionSearch,
@@ -34,8 +34,9 @@ export default function MachinesPage() {
   const [testing, setTesting] = useState<Machine | null>(null);
   const [running, setRunning] = useState<Machine | null>(null);
   const [deleting, setDeleting] = useState<Machine | null>(null);
+  const [deletingFolder, setDeletingFolder] = useState<MachineFolder | null>(null);
   const [importing, setImporting] = useState(false);
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const folders = useMachineFolders();
   const folderTools = useCollectionTools('machine-folders', folders.data);
   const folderList = folders.data ?? [];
@@ -58,6 +59,18 @@ export default function MachinesPage() {
     mutationFn: (id: number) => del('/machines/' + id),
     onSuccess: () => { toast.success(t('machines.deleted')); setDeleting(null); qc.invalidateQueries({ queryKey: ['machines'] }); },
     onError: (e) => { toast.error(errorMessage(e)); setDeleting(null); },
+  });
+  const removeFolder = useMutation({
+    mutationFn: (folder: MachineFolder) => del('/machine-folders/' + folder.id),
+    onSuccess: (_, folder) => {
+      toast.success(t('machineFolders.deleted'));
+      setDeletingFolder(null);
+      if (current && folderDescendants(folder, folderList).has(current.id)) setParams(folder.parentId ? { folder: String(folder.parentId) } : {});
+      void qc.invalidateQueries({ queryKey: ['machine-folders'] });
+      void qc.invalidateQueries({ queryKey: ['machines'] });
+      void qc.invalidateQueries({ queryKey: ['favorites'] });
+    },
+    onError: e => toast.error(errorMessage(e)),
   });
   return (
     <section>
@@ -85,7 +98,7 @@ export default function MachinesPage() {
       ) : (
         <div className="cards">
           {visibleFolders.map(f => <MachineFolderCard key={'folder-' + f.id} folder={f} folders={folderList}
-            machines={q.data ?? []} selection={selection} onNavigate={openFolder}
+            machines={q.data ?? []} selection={selection} onNavigate={openFolder} onDelete={() => setDeletingFolder(f)}
             favorite={<FavoriteButton tools={folderTools} item={{ ...f, name: f.path }} />} />)}
           {machines.map(m => <MachineCard key={m.id} machine={m}
             folderPath={tools.onlyFavorites ? folderList.find(f => f.id === m.folderId)?.path : current?.path}
@@ -103,6 +116,9 @@ export default function MachinesPage() {
       {running && <RunCommandModal initial={{ machineIds: [running.id] }} onClose={() => setRunning(null)} />}
       {deleting && <ConfirmDialog danger title={t('machines.deleteTitle')} message={t('machines.deleteMessage', { name: deleting.name })}
         confirmLabel={t('common.delete')} busy={remove.isPending} onCancel={() => setDeleting(null)} onConfirm={() => remove.mutate(deleting.id)} />}
+      {deletingFolder && <ConfirmDialog danger title={t('machineFolders.deleteTitle')}
+        message={t('machineFolders.deleteMessage', { name: deletingFolder.path })} confirmLabel={t('common.delete')}
+        busy={removeFolder.isPending} onCancel={() => setDeletingFolder(null)} onConfirm={() => removeFolder.mutate(deletingFolder)} />}
     </section>
   );
 }

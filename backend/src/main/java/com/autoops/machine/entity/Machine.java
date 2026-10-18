@@ -36,6 +36,8 @@ public class Machine {
     private Instant hostKeyMismatchAt;
     @Column(name = "host_key_mismatch_fingerprint")
     private String hostKeyMismatchFingerprint;
+    @Column(name = "ssh_auto_trust_blocked", nullable = false)
+    private boolean autoTrustBlocked;
     @Column(name = "last_test_status")
     private String lastTestStatus;
     @Column(name = "last_tested_at")
@@ -79,6 +81,7 @@ public class Machine {
     }
 
     public void clearTrust() {
+        autoTrustBlocked = true;
         sshHostKeyAlgorithm = null;
         sshHostKey = null;
         sshFingerprint = null;
@@ -118,6 +121,7 @@ public class Machine {
     public Instant getLastTestedAt() { return lastTestedAt; }
     public void setLastTestedAt(Instant v) { lastTestedAt = v; }
     public Long getCreatedBy() { return createdBy; }
+    public boolean isAutoTrustBlocked() { return autoTrustBlocked; }
     public void setCreatedBy(Long v) { createdBy = v; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getDeletedAt() { return deletedAt; }
