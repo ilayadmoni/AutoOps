@@ -30,6 +30,8 @@ public class ProposeWorkflowDraftTool implements AITool {
             Map.entry("timeoutSeconds", Map.of("type", "integer")),
             Map.entry("storedFileId", Map.of("type", "integer")),
             Map.entry("destinationPath", Map.of("type", "string")),
+            Map.entry("overwrite", Map.of("type", "boolean", "description", "Default false; replace only when the user explicitly requests it")),
+            Map.entry("useSudo", Map.of("type", "boolean", "description", "Default false; use only when explicitly requested")),
             Map.entry("checkType", Map.of("type", "string", "enum", List.of("OUTPUT_CONTAINS", "EXIT_CODE", "FILE_EXISTS", "SERVICE_ACTIVE"))),
             Map.entry("expectedOutput", Map.of("type", "string")),
             Map.entry("target", Map.of("type", "string")),
@@ -48,14 +50,15 @@ public class ProposeWorkflowDraftTool implements AITool {
     public ToolRisk risk() { return ToolRisk.PROPOSE; }
 
     public String description() {
-        return "Propose a complete workflow draft for the user to review in the Workflow Builder. Use only approved command ids from "
-                + "search_commands. The draft is validated and shown to the user; it is never saved or executed automatically.";
+        return "Build and propose the workflow as soon as its action is known, even one file/folder copy. Infer a short name; description is optional. "
+                + "Use attached resource ids without asking again. Command steps use approved ids or customCommand; file copies need no command search. "
+                + "The user reviews the draft in the Builder; this tool never saves or runs it.";
     }
 
     public Map<String, Object> schema() {
         return Map.of("type", "object", "properties", Map.of(
-                "name", Map.of("type", "string"),
-                "description", Map.of("type", "string"),
+                "name", Map.of("type", "string", "description", "Generate a concise title from the user's goal; do not ask the user to supply it"),
+                "description", Map.of("type", "string", "description", "Optional; do not delay a draft to request it"),
                 "nodes", NODES_SCHEMA), "required", List.of("name", "nodes"));
     }
 
