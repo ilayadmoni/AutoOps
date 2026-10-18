@@ -8,4 +8,5 @@
 **/dist
 deploy/exports
 deploy/certs
+deploy/tls
 **/*.log
