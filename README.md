@@ -173,12 +173,16 @@ server. The AI has no SQL, shell, SSH, HTTP or filesystem tools and never sees c
 
 ```bash
 ./deploy/build-export.sh
-# On the target host: edit all REPLACE values in deploy/docker-compose.yml.
+# On the target host: copy the exports, Compose file and certificate script.
+bash deploy/generate-tls-cert.sh autoops.example.com
+# Edit all REPLACE values in deploy/docker-compose.yml.
 for archive in deploy/exports/*.tar; do docker image load --input "$archive"; done
 docker compose -f deploy/docker-compose.yml up -d --pull never
 ```
 
-Open http://localhost:8088 and sign in with `AUTOOPS_ADMIN_USERNAME` / `AUTOOPS_ADMIN_PASSWORD`.
+Trust `deploy/tls/ca.crt` on your client device, then open `https://autoops.example.com/`
+(using the DNS name or IPv4 address supplied to the certificate script) and sign in with
+`AUTOOPS_ADMIN_USERNAME` / `AUTOOPS_ADMIN_PASSWORD`.
 Then: add a credential → add a machine → **Trust host key** → **Test** → run a command from the Command Bank.
 
 <details>

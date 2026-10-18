@@ -4,6 +4,8 @@ backend/target/
 .env
 deploy/certs/*
 !deploy/certs/.gitkeep
+deploy/tls/*
+!deploy/tls/.gitkeep
 *.log
 .idea/
 .vscode/

@@ -4,13 +4,15 @@
 
 ```bash
 ./deploy/build-export.sh
-# On the target host, after copying the exports, Compose file and certificates:
+# On the target host, after copying the exports, Compose file and certificate script:
+bash deploy/generate-tls-cert.sh autoops.example.com
+# Edit every REPLACE value in deploy/docker-compose.yml before starting.
 for archive in deploy/exports/*.tar; do docker image load --input "$archive"; done
 docker compose -f deploy/docker-compose.yml up -d --pull never
 ```
 
 Services: `postgres` (pgvector/pgvector:pg16, volume `postgres-data`), `minio` (pinned release built from source,
-volume `minio-data`), `backend` (Spring Boot), `frontend` (Nginx on host port 8088, editable in Compose). Startup is
+volume `minio-data`), `backend` (Spring Boot), `frontend` (Nginx HTTPS on host port 443). Startup is
 ordered by health checks: Postgres `pg_isready`, MinIO `/minio/health/live`, backend `/actuator/health/readiness`.
 Replace every `REPLACE:` environment value directly in `deploy/docker-compose.yml` before starting.
 Descriptions are placeholders; use `""` for unused optional values. No `.env` file is needed.
@@ -70,7 +72,14 @@ This setting applies to the AI assistant client, and does not configure embeddin
 `deploy/nginx/nginx.conf` serves the SPA, proxies `/api`, and has a dedicated location for
 `/api/executions/{id}/events` with buffering disabled and a one-hour read timeout (the backend also sends
 `X-Accel-Buffering: no` and periodic keep-alive comments). Uploads are limited by `client_max_body_size`.
-Terminate TLS in front of Nginx in production so the `Secure` refresh cookie is sent.
+Production Nginx terminates TLS on port 443 and the backend sets a `Secure` refresh cookie.
+Run `bash deploy/generate-tls-cert.sh <DNS-name-or-IPv4-address>` on the deployment host before starting
+Compose. This creates a private CA and a server certificate with a matching subject alternative name
+in `deploy/tls/`. Install `deploy/tls/ca.crt` on client devices to trust the site. Protect and back up
+`deploy/tls/ca.key`; it is not mounted in Nginx. The server certificate lasts one year.
+Replacing the generated CA requires installing the new `ca.crt` on client devices. To use an existing
+certificate instead, place its PEM certificate and private key at `deploy/tls/server.crt` and
+`deploy/tls/server.key`. Compose mounts those two files read-only. Only port 443 is exposed.
 
 ## Health
 

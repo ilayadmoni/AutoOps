@@ -46,7 +46,7 @@ services:
       JWT_SECRET: "REPLACE: Random JWT signing secret, at least 32 bytes"
       JWT_ACCESS_EXPIRATION: "REPLACE: Access token lifetime in milliseconds, e.g. 900000"
       JWT_REFRESH_EXPIRATION: "REPLACE: Refresh token lifetime in milliseconds, e.g. 604800000"
-      COOKIE_SECURE: "REPLACE: true for HTTPS; false only for plain HTTP lab access"
+      COOKIE_SECURE: "true"
       AUTOOPS_ADMIN_USERNAME: "REPLACE: Initial administrator username, e.g. admin"
       AUTOOPS_ADMIN_PASSWORD: "REPLACE: Initial administrator password, at least 10 characters, not a default password"
       CREDENTIAL_ENCRYPTION_KEY: "REPLACE: Random encryption secret, at least 16 characters; keep stable to preserve stored credentials"
@@ -91,7 +91,16 @@ services:
   frontend:
     image: autoops-frontend:latest
     ports:
-      - "8088:80"
+      - "443:443"
+    volumes:
+      - type: bind
+        source: ./tls/server.crt
+        target: /etc/nginx/tls/server.crt
+        read_only: true
+      - type: bind
+        source: ./tls/server.key
+        target: /etc/nginx/tls/server.key
+        read_only: true
     depends_on:
       backend:
         condition: service_healthy
