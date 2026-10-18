@@ -101,7 +101,7 @@ const MentionEditor = forwardRef<EditorHandle, Props>(function MentionEditor(
     <div
       ref={root} className="mentionEditor" data-empty={empty || undefined} data-placeholder={placeholder}
       contentEditable={disabled ? false : mode} suppressContentEditableWarning spellCheck dir={empty ? pageDir : 'auto'}
-      role="combobox" aria-multiline="true" aria-label={label} aria-disabled={disabled} aria-autocomplete="list" aria-haspopup="listbox"
+      role="combobox" aria-label={label} aria-disabled={disabled} aria-autocomplete="list" aria-haspopup="listbox"
       tabIndex={disabled ? -1 : 0} {...aria}
       onInput={emit} onClick={onClick}
       onKeyDown={(event) => { if (!event.nativeEvent.isComposing) onKeyDown(event); }}

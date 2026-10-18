@@ -31,7 +31,7 @@ export default function EnvironmentAdminPage() {
       {query.error && <ErrorAlert error={query.error} onRetry={() => query.refetch()} />}
       {query.isLoading ? <Loading /> : query.data && (!rows.length ? <EmptyState title={t('environment.empty')} /> : (
         <div className="environmentTable">
-          <table className="table">
+          <table className="table" tabIndex={0}>
             <caption className="muted small">{t('environment.title')}</caption>
             <thead><tr>
               <th scope="col">{t('environment.variable')}</th>

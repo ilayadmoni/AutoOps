@@ -9,7 +9,7 @@ export default function ChatHero({ onChoose, disabled }: { onChoose: (prompt: st
   return (
     <div className="chatHero">
       <div className="orb"><Bot /></div>
-      <h2>{t('ai.title')}</h2>
+      <h1>{t('ai.title')}</h1>
       <p>{t('chatActions.intro')}</p>
       <StarterActions onChoose={onChoose} disabled={disabled} />
     </div>

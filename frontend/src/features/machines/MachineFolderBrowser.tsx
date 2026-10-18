@@ -46,7 +46,7 @@ export function MachineFolderCard({ folder, folders, machines, onNavigate, selec
       disabled={selection.busy || count === 0} onChange={event => selection.selectVisible(members, event.target.checked)} />}
     <Link className="card interactive machineFolderCard" to={folderLocation(folder.id)} onClick={onNavigate}>
     <Folder size={32} aria-hidden="true" />
-    <h3>{folder.name}</h3>
+    <h2 className="cardTitle">{folder.name}</h2>
     <div className="muted">
       <span>{t('machineFolders.machineCount', { n: count })}</span>
       {!!children && <span> · {t('machineFolders.folderCount', { n: children })}</span>}

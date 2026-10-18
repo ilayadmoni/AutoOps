@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Bot, Server, Workflow, TerminalSquare, History, Shield, KeyRound, FileUp, Menu, Users, Database, ScrollText, Settings } from 'lucide-react';
+import { Bot, Server, Workflow, TerminalSquare, History, Shield, KeyRound, FileUp, Menu, Users, Database, ScrollText, Settings, X } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { useI18n } from '../providers/I18nProvider';
 import { Brand, IconButton, PageIconContext } from '../../components/ui';
 import SidebarFooter from './SidebarFooter';
 import AppControls from '../../components/AppControls';
+import { useMobileNavigation } from './useMobileNavigation';
 
 /** Section icons, longest prefix first, so a detail route takes its parent section's icon. */
 const SECTION_ICONS: [string, ReactNode][] = [
@@ -20,6 +21,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const { isAdmin } = useAuth();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const mobileOpen = useMobileNavigation(open, () => setOpen(false));
   const { pathname } = useLocation();
   const sectionIcon = SECTION_ICONS.find(([p]) => p === '/' ? pathname === '/' : pathname.startsWith(p))?.[1] ?? null;
   const link = (to: string, icon: ReactNode, label: string) => (
@@ -29,14 +31,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   );
   return (
     <div className={'shell' + (open ? ' navOpen' : '')}>
+      <a className="skipLink" href="#main-content">{t('nav.skip')}</a>
       <header className="topbar">
         <IconButton label={t('nav.menu')} onClick={() => setOpen(!open)} aria-expanded={open}><Menu size={20} /></IconButton>
         <Brand size={22} />
         <AppControls />
       </header>
-      <aside className="sidebar">
+      <aside className="sidebar" role={mobileOpen ? 'dialog' : undefined} aria-modal={mobileOpen || undefined} aria-label={t('nav.main')}>
+        <IconButton className="sidebarClose" label={t('common.close')} onClick={() => setOpen(false)}><X size={18} /></IconButton>
         <Brand size={26} />
-        <nav>
+        <nav aria-label={t('nav.main')}>
           {link('/', <Bot />, t('nav.assistant'))}
           {link('/workflows', <Workflow />, t('nav.workflows'))}
           {link('/commands', <TerminalSquare />, t('nav.commands'))}
@@ -56,7 +60,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <SidebarFooter />
       </aside>
       {open && <div className="navScrim" onClick={() => setOpen(false)} aria-hidden="true" />}
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <div className="appFloat"><AppControls /></div>
         <PageIconContext.Provider value={sectionIcon}>
           <div className="mainBody">{children}</div>

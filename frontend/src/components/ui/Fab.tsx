@@ -9,7 +9,7 @@ import Menu, { type MenuItem } from './Menu';
 /**
  * Floating action button: the page's one "add" action, as a round button pinned to the bottom
  * corner opposite the navigation (bottom-left under RTL, bottom-right in LTR). It is portalled to
- * the body so no scrolling or contained ancestor can carry it away. `label` is its accessible
+ * the main landmark so no scrolling page container can carry it away. `label` is its accessible
  * name and its tooltip. Pass `to` for navigation, `onClick` for an in-page action.
  */
 export default function Fab({ label, onClick, to, busy, icon, items }: {
@@ -30,5 +30,5 @@ export default function Fab({ label, onClick, to, busy, icon, items }: {
     );
   return createPortal(items
     ? <Menu label={label} side="top" trigger={button} items={items} />
-    : <Tooltip text={label} side="top" describe={false}>{button}</Tooltip>, document.body);
+    : <Tooltip text={label} side="top" describe={false}>{button}</Tooltip>, document.querySelector('main') ?? document.body);
 }

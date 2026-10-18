@@ -1,6 +1,7 @@
 import { createContext, useContext, type MouseEvent, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useI18n } from '../../app/providers/I18nProvider';
 
 /** The current section's icon, supplied by the app shell from the navigation it already renders. */
 export const PageIconContext = createContext<ReactNode>(null);
@@ -20,12 +21,13 @@ export default function PageHeader({ title, subtitle, actions, back }: {
   back?: PageBack;
 }) {
   const icon = useContext(PageIconContext);
+  const { t } = useI18n();
   const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
   return (
     <>
       <header className="pageBar">
         {back ? (
-          <nav className="pageCrumb" aria-label="breadcrumb">
+          <nav className="pageCrumb" aria-label={t('common.breadcrumb')}>
             <Link to={back.to} onClick={back.onClick}>{back.label}</Link>
             {rtl ? <ChevronLeft size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />}
           </nav>

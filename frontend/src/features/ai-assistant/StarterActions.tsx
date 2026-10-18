@@ -1,5 +1,4 @@
-import { KeyRound, Play, Server, TerminalSquare, Workflow } from 'lucide-react';
-import { Tile } from '../../components/ui';
+import { ArrowRight, KeyRound, Play, Server, TerminalSquare, Workflow } from 'lucide-react';
 import { useI18n } from '../../app/providers/I18nProvider';
 
 const STARTERS = [
@@ -13,9 +12,15 @@ export default function StarterActions({ onChoose, disabled }: { onChoose: (prom
   return (
     <div className="suggestions chatStarters">
       {STARTERS.map(({ id, Icon }) => (
-        <Tile key={id} icon={<Icon aria-hidden="true" />} title={t(`chatActions.${id}.title`)}
-          hint={t(`chatActions.${id}.hint`)} disabled={disabled}
-          onClick={() => onChoose(t(`chatActions.${id}.prompt`))} />
+        <button key={id} type="button" className={`tile starterAction${id === 'run' ? ' starterActionPrimary' : ''}`}
+          disabled={disabled} onClick={() => onChoose(t(`chatActions.${id}.prompt`))}>
+          <span className="tileIcon"><Icon aria-hidden="true" /></span>
+          <span className="tileText">
+            <strong>{t(`chatActions.${id}.title`)}</strong>
+            <small>{t(`chatActions.${id}.hint`)}</small>
+          </span>
+          <ArrowRight className="starterArrow" size={18} aria-hidden="true" />
+        </button>
       ))}
     </div>
   );

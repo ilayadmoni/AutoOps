@@ -44,7 +44,7 @@ export default function WorkflowsPage() {
         <div className="cards">
           {filtered.map((w) => (
             <Card key={w.id}>
-              <div className="row spread"><h3 dir="auto">{w.name}</h3></div>
+              <div className="row spread"><h2 className="cardTitle" dir="auto">{w.name}</h2></div>
               {w.description && <p className="muted">{w.description}</p>}
               <small className="muted">{t('workflows.steps', { n: w.stepCount })} · {t('workflows.updated')} <bdi>{formatDate(w.updatedAt, lang)}</bdi></small>
               <div className="cardFoot">

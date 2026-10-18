@@ -40,7 +40,7 @@ export default function UsersAdminPage() {
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} /> : !q.data?.length ? <EmptyState title={t('users.empty')} /> : (
         <table className="table evenColumns">
           <colgroup><col /><col /><col /><col /><col className="colActions" /></colgroup>
-          <thead><tr><th className="centered">{t('login.username')}</th><th className="controlCell">{t('users.role')}</th><th className="centered">{t('common.status')}</th><th className="centered">{t('users.created')}</th><th /></tr></thead>
+          <thead><tr><th className="centered">{t('login.username')}</th><th className="controlCell">{t('users.role')}</th><th className="centered">{t('common.status')}</th><th className="centered">{t('users.created')}</th><th><span className="srOnly">{t('common.actions')}</span></th></tr></thead>
           <tbody>
             {q.data.map((u) => (
               <tr key={u.id}>

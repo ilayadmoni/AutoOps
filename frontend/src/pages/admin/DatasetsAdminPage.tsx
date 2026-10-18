@@ -49,7 +49,7 @@ export default function DatasetsAdminPage() {
       <ErrorAlert error={up.error} />
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} /> : !q.data?.length ? <EmptyState title={t('datasets.empty')} /> : (
         <table className="table">
-          <thead><tr><th>#</th><th>{t('files.name')}</th><th>{t('common.status')}</th><th>{t('datasets.rows')}</th><th>{t('datasets.candidates')}</th><th>{t('datasets.added')}</th><th>{t('files.uploadedAt')}</th><th /></tr></thead>
+          <thead><tr><th>#</th><th>{t('files.name')}</th><th>{t('common.status')}</th><th>{t('datasets.rows')}</th><th>{t('datasets.candidates')}</th><th>{t('datasets.added')}</th><th>{t('files.uploadedAt')}</th><th><span className="srOnly">{t('common.actions')}</span></th></tr></thead>
           <tbody>
             {q.data.map((d) => (
               <tr key={d.id}>

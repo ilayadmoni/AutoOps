@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
+import { useI18n } from '../../app/providers/I18nProvider';
 
 type Toast = { id: number; kind: 'success' | 'error'; text: string };
 const Ctx = createContext<{ success: (t: string) => void; error: (t: string) => void }>({ success: () => {}, error: () => {} });
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t: translate } = useI18n();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const push = useCallback((kind: Toast['kind'], text: string) => {
     const id = Date.now() + Math.random();
@@ -21,7 +23,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div key={t.id} className={'toast ' + t.kind}>
             {t.kind === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
             <span>{t.text}</span>
-            <button className="icon" aria-label="dismiss" onClick={() => setToasts((x) => x.filter((v) => v.id !== t.id))}><X size={14} /></button>
+            <button type="button" className="icon" aria-label={translate('common.close')} onClick={() => setToasts((x) => x.filter((v) => v.id !== t.id))}><X size={14} /></button>
           </div>
         ))}
       </div>

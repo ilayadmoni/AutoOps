@@ -47,7 +47,7 @@ export default function CredentialsPage() {
           {filtered.map((c) => (
             <Card key={c.id}>
               <div className="row spread">
-                <h3 dir="auto"><KeyRound size={16} className="muted" /> {c.name}</h3>
+                <h2 className="cardTitle" dir="auto"><KeyRound size={16} className="muted" /> {c.name}</h2>
                 <span className="badge muted">{c.authType}</span>
               </div>
               <div><Code>{c.username}</Code></div>

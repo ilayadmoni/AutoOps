@@ -42,7 +42,7 @@ export default function Menu({ trigger, items, label, side = 'bottom' }: {
       if (!anchor.current?.contains(t) && !layer.current?.contains(t)) setOpen(false);
     };
     const escape = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'Escape') { setOpen(false); anchor.current?.focus(); }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setOpen(false); anchor.current?.focus(); }
     };
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', escape);

@@ -17,7 +17,7 @@ export default function ExecutionPipeline({ machines, liveOutput, executionId }:
         <article className="executionColumn" key={run.id} aria-labelledby={`machine-run-${run.id}`}>
           <header className="executionColumnHead">
             <div className="row gap"><Server size={16} aria-hidden="true" />
-              <h3 id={`machine-run-${run.id}`} dir="auto">{run.machineName}</h3>
+              <h2 className="cardTitle" id={`machine-run-${run.id}`} dir="auto">{run.machineName}</h2>
             </div>
             {run.hostname && <small className="muted" dir="ltr">{run.hostname}</small>}
             <div className="row spread wrap"><StatusBadge status={run.status} />

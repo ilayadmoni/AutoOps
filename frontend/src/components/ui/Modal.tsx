@@ -1,6 +1,9 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { IconButton } from './Button';
+import { useI18n } from '../../app/providers/I18nProvider';
+import { useModalFocus } from './useModalFocus';
 
 /**
  * Dialog with Escape-to-close and a focus trap. Focus moves into the dialog on open and
@@ -14,40 +17,10 @@ export default function Modal({ title, onClose, children, footer, wide }: {
   wide?: boolean;
 }) {
   const dialog = useRef<HTMLDivElement>(null);
-  const restoreTo = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    restoreTo.current = document.activeElement as HTMLElement | null;
-    dialog.current?.focus();
-    return () => restoreTo.current?.focus?.();
-  }, []);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-        return;
-      }
-      if (e.key !== 'Tab' || !dialog.current) return;
-      const focusable = dialog.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  return (
+  const titleId = useId();
+  const { t } = useI18n();
+  useModalFocus(dialog, onClose);
+  return createPortal(
     <div className="modalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
         ref={dialog}
@@ -55,15 +28,15 @@ export default function Modal({ title, onClose, children, footer, wide }: {
         className={'modal' + (wide ? ' wide' : '')}
         role="dialog"
         aria-modal="true"
-        aria-label={typeof title === 'string' ? title : undefined}
+        aria-labelledby={titleId}
       >
         <div className="modalHeader">
-          <h2>{title}</h2>
-          <IconButton label="close" onClick={onClose}><X size={18} /></IconButton>
+          <h2 id={titleId}>{title}</h2>
+          <IconButton label={t('common.close')} onClick={onClose}><X size={18} /></IconButton>
         </div>
         <div className="modalBody">{children}</div>
         {footer && <div className="modalFooter">{footer}</div>}
       </div>
-    </div>
+    </div>, document.body,
   );
 }
