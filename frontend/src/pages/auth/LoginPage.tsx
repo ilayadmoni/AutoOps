@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../app/providers/AuthProvider';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { Button, ErrorAlert, TextInput, PasswordInput } from '../../components/ui';
@@ -50,7 +49,6 @@ export default function LoginPage() {
             >
               {busy ? copy.busy : copy.submit}
             </Button>
-            <div className="loginSecurity"><ShieldCheck /> <span>{copy.session}</span></div>
           </form>
         </div>
       </section>

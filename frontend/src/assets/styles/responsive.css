@@ -1,6 +1,7 @@
 /* Breakpoints: 1100px stacks the assistant's canvas over the chat, 900px collapses split panes,
    760px switches the shell to a drawer. */
 @media (max-width: 1100px) {
+  .table { display: block; max-width: 100%; overflow-x: auto; }
   .assistant.split, .assistant.split.withRail { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(360px, 58%) minmax(0, 1fr); }
   .assistant.split .convRail { display: none; }
   .assistant.split .previewPane { grid-row: 1; border-inline-start: 0; border-bottom: 1px solid var(--border); }
@@ -54,7 +55,6 @@
   .previewFoot { display: none; }
   .chatScroll, .composerWrap, .split .chatScroll, .split .composerWrap { padding-inline: var(--s3); }
   .list > .row { flex-wrap: wrap; }
-  .table { display: block; overflow-x: auto; }
   .loginPanel { min-height: 100vh; padding: var(--s6) var(--s5) 40px; }
   /* The thread loses the avatar gutter: at this width the indent costs more than it clarifies. */
   .msgBody { padding-inline-start: 0; }

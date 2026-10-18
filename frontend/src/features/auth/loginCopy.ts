@@ -12,8 +12,6 @@ export const loginCopy: Record<Lang, {
   busy: string;
   showPassword: string;
   hidePassword: string;
-  session: string;
-  environment: string;
 }> = {
   en: {
     headline: 'Run approved operations across your Linux VMs.',
@@ -31,8 +29,6 @@ export const loginCopy: Record<Lang, {
     busy: 'Signing in…',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
-    session: 'Session protected by a rotating refresh token.',
-    environment: 'SECURE OPERATIONS CONSOLE',
   },
   he: {
     headline: 'הריצו פעולות מאושרות על  שרתי הלינוקס שלכם.',
@@ -50,7 +46,5 @@ export const loginCopy: Record<Lang, {
     busy: 'מתחבר…',
     showPassword: 'הצג סיסמה',
     hidePassword: 'הסתר סיסמה',
-    session: 'החיבור מוגן באמצעות אסימון רענון מתחלף.',
-    environment: 'מסוף תפעול מאובטח',
   },
 };

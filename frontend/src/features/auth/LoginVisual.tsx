@@ -19,9 +19,6 @@ export default function LoginVisual({ copy }: { copy: Copy }) {
           })}
         </ul>
       </div>
-      <div className="environmentStatus" dir="ltr">
-        <i aria-hidden="true" /> {copy.environment}
-      </div>
     </section>
   );
 }

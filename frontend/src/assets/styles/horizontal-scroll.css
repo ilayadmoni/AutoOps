@@ -1,0 +1,10 @@
+/* Keep wide data and code reachable by scrolling without drawing horizontal bars. */
+:is(.table, .tableWrap, .environmentTable, .executionPipelines,
+  .workspaceTools, .prose pre, .proseTable) { scrollbar-width: none; }
+:is(.table, .tableWrap, .environmentTable, .executionPipelines,
+  .workspaceTools, .prose pre, .proseTable)::-webkit-scrollbar { display: none; }
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .palette { scrollbar-width: none; }
+  .palette::-webkit-scrollbar { display: none; }
+}

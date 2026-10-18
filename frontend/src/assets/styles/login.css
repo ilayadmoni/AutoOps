@@ -10,7 +10,7 @@
   background-size: 40px 40px;
 }
 .loginVisual .brand { margin: 0; }
-.loginPitch { display: grid; gap: var(--s6); max-width: 540px; }
+.loginPitch { display: grid; gap: var(--s6); max-width: 540px; margin-block: auto; }
 .loginPitch h2 { margin: 0; font-size: clamp(32px, 3.6vw, 48px); line-height: 1.06; letter-spacing: -.035em; }
 .loginPitch > p { margin: 0; max-width: 56ch; color: color-mix(in srgb, var(--text) 70%, var(--muted)); font-size: 17px; line-height: 1.55; }
 .loginPitch ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
@@ -20,9 +20,6 @@
   background: var(--surface); border: 1px solid var(--border); color: var(--primary);
 }
 .loginPitch svg { width: var(--s4); height: var(--s4); }
-.environmentStatus { display: flex; align-items: center; gap: var(--s2); color: var(--muted); font: 12px var(--font-mono); }
-/* The dot carries live environment state, which is the one place a status dot earns its place. */
-.environmentStatus i { width: var(--s2); height: var(--s2); border-radius: var(--radius-pill); background: var(--ok); }
 
 .loginPanel { min-width: 0; padding: var(--s7) clamp(24px, 4vw, 56px) var(--s8); display: flex; flex-direction: column; gap: var(--s7); }
 .loginControls { align-self: flex-end; }
@@ -38,5 +35,3 @@
 
 /* The only action on the form, so it spans the column rather than sizing to its label. */
 .loginSubmit { width: 100%; height: var(--control-h-lg); margin-top: var(--s1); font-size: 15px; }
-.loginSecurity { display: flex; align-items: center; gap: var(--s2); color: var(--muted); font-size: 13px; }
-.loginSecurity svg { width: 15px; height: 15px; flex: none; }
