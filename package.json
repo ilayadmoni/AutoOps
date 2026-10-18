@@ -1,7 +1,7 @@
 {
   "name": "autoops",
   "version": "1.0.0",
-  "description": "AutoOps manages and automates RHEL machines over verified SSH: an approved **Command Bank**, typed **workflows**,\r one central **execution engine** with preflight, approvals, live progress and full history, file transfer through\r MinIO, and an **AI assistant** that finds, proposes and explains — but never executes.",
+  "description": "AutoOps manages Linux machines over verified SSH with a Command Bank, workflows, execution history, file transfers and an AI assistant.",
   "main": "index.js",
   "directories": {
     "doc": "docs"

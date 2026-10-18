@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Machine, StoredFile } from '../../types/api';
 import { get } from '../../services/client';
 import { formatBytes } from '../../utils/format';
+import { storedFileName } from '../../utils/storedFileName';
 import { MAX_FILES, MAX_SERVERS, referencesOf, tag, type Doc, type Sigil } from './editor/mentionDoc';
 import type { EditorHandle, TextRange } from './editor/MentionEditor';
 import { mentionAt, type MentionOption, type MentionQuery } from './mentionModel';
@@ -24,7 +25,7 @@ export function useComposerMentions({ editor, doc, disabled }: {
   const needle = mention?.query.toLocaleLowerCase() ?? '';
   const options: MentionOption[] = (mention?.symbol === '@'
     ? (servers.data ?? []).map((s) => ({ id: s.id, label: s.name, detail: s.hostname, selected: refs.servers.some((m) => m.id === s.id) }))
-    : (files.data ?? []).map((f) => ({ id: f.id, label: f.filename, detail: formatBytes(f.size), selected: refs.files.some((a) => a.id === f.id) })))
+    : (files.data ?? []).map((f) => ({ id: f.id, label: storedFileName(f), detail: formatBytes(f.size), selected: refs.files.some((a) => a.id === f.id) })))
     .filter((option) => `${option.label} ${option.detail} ${option.id}`.toLocaleLowerCase().includes(needle))
     .map((option) => ({ ...option, disabled: option.selected || atLimit }));
   const activeIndex = Math.min(active, Math.max(0, options.length - 1));
@@ -45,7 +46,8 @@ export function useComposerMentions({ editor, doc, disabled }: {
   };
   const select = (option: MentionOption) => {
     if (!mention || option.disabled || disabled) return;
-    const label = mention.symbol === '@' ? servers.data?.find((s) => s.id === option.id)?.name : files.data?.find((f) => f.id === option.id)?.filename;
+    const file = files.data?.find((f) => f.id === option.id);
+    const label = mention.symbol === '@' ? servers.data?.find((s) => s.id === option.id)?.name : file ? storedFileName(file) : undefined;
     if (label === undefined) return;
     editor.current?.insert(tag(mention.symbol, option.id, label), range(mention));
     setMention(null);

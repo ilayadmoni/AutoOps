@@ -27,8 +27,8 @@ public class DatasetImport {
     private Integer candidateRecords = 0;
     @Column(name = "invalid_records")
     private Integer invalidRecords = 0;
-    @Column(name = "non_rhel_records")
-    private Integer nonRhelRecords = 0;
+    @Column(name = "non_linux_records")
+    private Integer nonLinuxRecords = 0;
     @Column(name = "duplicate_records")
     private Integer duplicateRecords = 0;
     @Column(name = "processed_records")
@@ -80,8 +80,8 @@ public class DatasetImport {
     public void setCandidateRecords(Integer v) { candidateRecords = v; }
     public Integer getInvalidRecords() { return invalidRecords; }
     public void setInvalidRecords(Integer v) { invalidRecords = v; }
-    public Integer getNonRhelRecords() { return nonRhelRecords; }
-    public void setNonRhelRecords(Integer v) { nonRhelRecords = v; }
+    public Integer getNonLinuxRecords() { return nonLinuxRecords; }
+    public void setNonLinuxRecords(Integer v) { nonLinuxRecords = v; }
     public Integer getDuplicateRecords() { return duplicateRecords; }
     public void setDuplicateRecords(Integer v) { duplicateRecords = v; }
     public Integer getProcessedRecords() { return processedRecords; }

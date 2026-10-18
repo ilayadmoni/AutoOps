@@ -30,7 +30,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="loginShell" dir={dir}>
+    <main className="loginShell" dir={dir}>
       <LoginVisual copy={copy} />
       <section className="loginPanel">
         <div className="loginControls"><AppControls /></div>
@@ -54,6 +54,6 @@ export default function LoginPage() {
           </form>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

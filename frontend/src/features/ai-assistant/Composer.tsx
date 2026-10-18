@@ -3,6 +3,7 @@ import { ArrowUp, FolderOpen, Monitor, Plus, Server } from 'lucide-react';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { FileChip, FilePicker, IconButton, Menu, Spinner } from '../../components/ui';
 import type { StoredFile } from '../../types/api';
+import { storedFileName } from '../../utils/storedFileName';
 import MentionEditor, { type EditorHandle } from './editor/MentionEditor';
 import { MAX_FILES, MAX_LENGTH, isEmpty, referencesOf, serialize, tag, type Doc } from './editor/mentionDoc';
 import { useComposerMentions } from './useComposerMentions';
@@ -64,7 +65,7 @@ export default function Composer({ doc, onChange, onSubmit, disabled, busy, uplo
         />
         <div className="composerBar">
           <FilePicker onPick={(file) => {
-            if (file) void onUpload(file).then((stored) => editor.current?.insert(tag('#', stored.id, stored.filename))).catch(() => undefined);
+            if (file) void onUpload(file).then((stored) => editor.current?.insert(tag('#', stored.id, storedFileName(stored)))).catch(() => undefined);
           }} disabled={!canAttach}>
             {(open) => (
               <Menu

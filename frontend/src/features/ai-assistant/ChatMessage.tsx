@@ -8,6 +8,7 @@ import { CopyButton, Output } from '../../components/ui';
 import MessageText from './MessageText';
 import ProposalCard from './ProposalCard';
 import QuestionCard from './QuestionCard';
+import ActionFormCard from './actions/ActionFormCard';
 import { useI18n } from '../../app/providers/I18nProvider';
 
 export type Msg = { role: 'user' | 'assistant'; content: string; operations?: AIOperation[] };
@@ -103,6 +104,8 @@ export default function ChatMessage({ msg, reply, failed, onCanvas, onShow, acti
         </div>
         {msg.operations?.map((op, i) => op.type === 'ASK_USER' ? (
           <QuestionCard key={i} op={op} onAnswer={actions.onAnswer} answer={reply} busy={actions.answering} />
+        ) : op.type === 'OFFER_ACTION_FORM' ? (
+          <ActionFormCard key={i} op={op} disabled={actions.answering} />
         ) : (
           <ProposalCard
             key={i} op={op} onCanvas={onCanvas} onShow={onShow}

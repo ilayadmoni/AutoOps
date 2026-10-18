@@ -20,7 +20,7 @@ class DatasetJsonParserTest {
     @Test
     void parsesTopLevelArrayWithAliasesArraysAndParameters() {
         var header = parse("""
-                [{"Title": " Restart ", "template": "systemctl restart {{service}}", "os": ["rhel", "centos"],
+                [{"Title": " Restart ", "template": "systemctl restart {{service}}", "os": ["debian", "ubuntu"],
                   "parameters": [{"name": "service", "type": "SERVICE"}], "extra": 1},
                  {"name": "Disk", "command": "df -h", "category": null}]
                 """);
@@ -28,7 +28,7 @@ class DatasetJsonParserTest {
         var first = rows.get(0).values();
         assertEquals("Restart", first.get("name"));
         assertEquals("systemctl restart {{service}}", first.get("command"));
-        assertEquals("rhel,centos", first.get("os"));
+        assertEquals("debian,ubuntu", first.get("os"));
         assertEquals("[{\"name\":\"service\",\"type\":\"SERVICE\"}]", first.get("parameters"));
         assertFalse(rows.get(1).values().containsKey("category"));
         assertEquals(1, rows.get(0).line());

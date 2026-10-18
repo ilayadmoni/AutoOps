@@ -50,9 +50,9 @@ input[type='number']::-webkit-inner-spin-button { appearance: none; margin: 0; }
 
 /* Select: themed popup for consistent light/dark, RTL and cross-platform rendering. */
 .selectWrap { position: relative; display: inline-grid; min-width: 0; }
-.selectWrap.block { display: grid; width: 100%; }
+.selectWrap.block { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; }
 .selectNative { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
-.selectTrigger { width: 100%; height: var(--control-h); display: flex; align-items: center; justify-content: space-between; gap: var(--s2); padding-inline: var(--control-pad) 10px; color: var(--text); background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--inset-top); cursor: pointer; text-align: start; transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
+.selectTrigger { width: 100%; min-width: 0; height: var(--control-h); display: flex; align-items: center; justify-content: space-between; gap: var(--s2); padding-inline: var(--control-pad) 10px; color: var(--text); background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--inset-top); cursor: pointer; text-align: start; transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
 .selectTrigger:hover:not(:disabled) { border-color: var(--border-strong); }
 .selectTrigger:focus-visible, .selectWrap.open > .selectTrigger { outline: none; border-color: var(--primary); box-shadow: var(--inset-top), 0 0 0 var(--ring-w) var(--primary-soft); }
 .selectTrigger:disabled { background: var(--input-disabled); color: var(--muted); cursor: not-allowed; box-shadow: none; }
@@ -242,3 +242,19 @@ input[type='checkbox']:disabled::before, input[type='radio']:disabled::before { 
 .fieldRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s3); }
 
 progress { width: 100%; accent-color: var(--primary); }
+
+/* Command search: empty until the user types, results inline so they scroll with the panel they sit in. */
+.commandResults {
+  display: grid; gap: 2px; padding: var(--s1); max-height: 320px; overflow-y: auto; overscroll-behavior: contain;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+}
+.commandResult, .commandChosen { display: grid; gap: 3px; padding: 8px var(--s2); border-radius: var(--radius-xs); min-width: 0; }
+.commandResult { cursor: pointer; }
+.commandResult.active { background: var(--surface-2); }
+.commandResult[aria-selected='true'] strong { color: var(--primary); }
+.commandResultHead { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); min-width: 0; }
+.commandResultHead strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.commandResult code, .commandChosen code { font-size: 11.5px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; text-align: start; }
+.commandResult small { font-size: 11.5px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.commandResultsEmpty { padding: var(--s3); text-align: center; color: var(--muted); font-size: 12.5px; }
+.commandChosen { border: 1px solid var(--border); background: var(--surface-2); padding: var(--s2) var(--s3); border-radius: var(--radius-sm); }

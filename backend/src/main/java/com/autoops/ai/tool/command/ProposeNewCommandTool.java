@@ -3,6 +3,7 @@ package com.autoops.ai.tool.command;
 import com.autoops.ai.tool.AITool;
 import com.autoops.command.entity.CommandDefinition;
 import com.autoops.command.repository.CommandDefinitionRepository;
+import com.autoops.command.retrieval.CommandRetrievalService;
 import com.autoops.command.risk.CommandRiskAnalyzer;
 import com.autoops.command.service.CommandTemplateService;
 import com.autoops.command.service.ParameterSpec;
@@ -29,12 +30,15 @@ public class ProposeNewCommandTool implements AITool {
     private final CommandRiskAnalyzer risk;
     private final CommandDefinitionRepository commands;
     private final ObjectMapper json;
+    private final CommandRetrievalService retrieval;
 
-    public ProposeNewCommandTool(CommandTemplateService templates, CommandRiskAnalyzer risk, CommandDefinitionRepository commands, ObjectMapper json) {
+    public ProposeNewCommandTool(CommandTemplateService templates, CommandRiskAnalyzer risk, CommandDefinitionRepository commands, ObjectMapper json,
+                                 CommandRetrievalService retrieval) {
         this.templates = templates;
         this.risk = risk;
         this.commands = commands;
         this.json = json;
+        this.retrieval = retrieval;
     }
 
     public String name() { return "propose_command"; }
@@ -57,7 +61,9 @@ public class ProposeNewCommandTool implements AITool {
                 "description", Map.of("type", "string"),
                 "category", Map.of("type", "string", "description", "e.g. FILES, NETWORK, SERVICES, SYSTEM, STORAGE, PACKAGES"),
                 "commandTemplate", Map.of("type", "string", "description", "e.g. 'du -sh {{path}}'"),
-                "parameters", Map.of("type", "array", "items", param)), "required", List.of("name", "commandTemplate"));
+                "parameters", Map.of("type", "array", "items", param),
+                "confirmNew", Map.of("type", "boolean", "description", "Set to true only after reviewing similarExisting commands and finding none that fits")),
+                "required", List.of("name", "commandTemplate"));
     }
 
     public Object execute(Map<String, Object> args, Long user) {
@@ -76,6 +82,18 @@ public class ProposeNewCommandTool implements AITool {
         List<ParameterSpec> specs = templates.validateTemplate(template, declared);
         if (commands.existsByNormalizedTemplate(CommandDefinition.normalize(template))) {
             throw ApiException.conflict("DUPLICATE_COMMAND", "This command already exists in the Command Bank; use search_commands to find it and use it");
+        }
+        if (!Boolean.TRUE.equals(args.get("confirmNew"))) {
+            var similar = retrieval.sameProgram(template, 8);
+            if (!similar.isEmpty()) {
+                Map<String, Object> out = new LinkedHashMap<>();
+                out.put("accepted", false);
+                out.put("similarExisting", similar);
+                out.put("note", "The Command Bank already has commands for this program; their names may not match the request. "
+                        + "If one of these templates does what the user asked, use it (show it, propose_command_run, or use its id in "
+                        + "the workflow) and do not propose a new command. Only if none fits, call propose_command again with confirmNew=true.");
+                return out;
+            }
         }
         String category = Objects.toString(args.get("category"), "").strip();
         Map<String, Object> payload = new LinkedHashMap<>();

@@ -1,3 +1,4 @@
+import { openAttachmentPicker } from './chat-mentions.helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chromium } from 'playwright';
@@ -65,7 +66,7 @@ test('mentions survive chat errors and history reload, with a visible mobile RTL
     assert.deepEqual(requests[1].machineIds, [8]);
     assert.deepEqual(requests[1].fileIds, [31]);
 
-    await page.getByRole('button', { name: 'Attach server (@)', exact: true }).click();
+    await openAttachmentPicker(page, 'server');
     await page.getByRole('option').waitFor();
     await page.screenshot({ path: join(tmpdir(), 'chat-mentions-desktop.png') });
     await page.evaluate(() => {

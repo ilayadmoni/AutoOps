@@ -3,7 +3,7 @@ spring:
     name: autoops
   output:
     ansi:
-      enabled: ALWAYS
+      enabled: ${ANSI_OUTPUT:ALWAYS}
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/autoops}
     username: ${DATABASE_USERNAME:autoops}
@@ -22,6 +22,10 @@ spring:
   mvc:
     async:
       request-timeout: -1
+logging:
+  pattern:
+    # Severity: INFO green, WARN yellow, ERROR red. Keep messages and stack traces complete.
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%thread]){faint} %clr(%-40.40logger{39}){cyan} : %clr(%msg){}%n%wEx'
 management:
   endpoints:
     web:
@@ -32,6 +36,10 @@ management:
       probes:
         enabled: true
 server:
+  tomcat:
+    # A folder request contains up to 1,000 file parts and one JSON manifest.
+    max-part-count: 1001
+    max-part-header-size: 2KB
   port: ${SERVER_PORT:8080}
   error:
     include-stacktrace: never
@@ -56,6 +64,7 @@ autoops:
     api-key: ${AI_API_KEY:}
     model: ${AI_MODEL:}
     ssl-verify: ${AI_SSL_VERIFY:true}
+    ssl-cert-path: ${AI_SSL_CERT_PATH:}
   minio:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     access-key: ${MINIO_ACCESS_KEY:autoops}
@@ -70,8 +79,6 @@ autoops:
     approval-timeout-minutes: ${EXECUTION_APPROVAL_TIMEOUT_MINUTES:1440}
     max-output-bytes: ${EXECUTION_MAX_OUTPUT_BYTES:65536}
     # Any Linux runs by default; each command declares the distribution families it supports.
-    # Set true to restrict execution to RHEL-family machines only.
-    require-rhel: ${EXECUTION_REQUIRE_RHEL:false}
   files:
     orphan-retention-days: ${FILES_ORPHAN_RETENTION_DAYS:7}
   embedding:

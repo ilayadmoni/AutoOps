@@ -87,7 +87,7 @@ input.subtle:hover:not(:focus) { border-color: var(--border); }
    stays readable at zoom levels where its label is not. */
 .flowNode {
   --node-accent: var(--primary); --node-accent-soft: var(--primary-soft);
-  width: 150px; display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+  width: 250px; display: flex; align-items: center; gap: var(--s3);
   animation: flowIn var(--slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms);
 }
 @keyframes flowIn { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
@@ -118,29 +118,30 @@ input.subtle:hover:not(:focus) { border-color: var(--border); }
 .flowFlag.error { background: var(--bad); color: #fff; }
 [data-theme='light'] .flowFlag.approval { color: #fff; }
 
-.flowLabel { display: grid; justify-items: center; gap: 2px; text-align: center; width: 100%; }
+/* The flow runs downward, so the name and detail sit beside the tile, clear of the connections below it. */
+.flowLabel { display: grid; justify-items: start; gap: 2px; text-align: start; min-width: 0; flex: 1; }
 .flowLabel strong {
   font-size: 12.5px; line-height: 1.3; letter-spacing: -.005em; color: var(--text);
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
 }
 .flowLabel small { font-size: 11px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Trigger-shaped preflight: rounded on its leading side, output only. */
+/* Trigger-shaped preflight: rounded on its top side, output only. */
 .flowNode.trigger { --node-accent: var(--muted); --node-accent-soft: var(--surface-2); }
-.flowNode.trigger .flowBox { border-radius: 42px var(--radius-lg) var(--radius-lg) 42px; border-style: dashed; box-shadow: none; }
+.flowNode.trigger .flowBox { border-radius: 42px 42px var(--radius-lg) var(--radius-lg); border-style: dashed; box-shadow: none; }
 .flowNode.trigger .flowIcon svg { width: 28px; height: 28px; }
 
-/* Handles. Input: a slim bar on the leading edge. Outputs: dots tinted by branch. */
+/* Handles. Input: a slim bar on the top edge. Outputs: dots on the bottom edge, tinted by branch. */
 .flowHandle.react-flow__handle { border: 2px solid var(--canvas-bg); transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
-.flowHandle.in.react-flow__handle { width: 8px; height: 18px; border-radius: 3px; background: var(--edge); }
+.flowHandle.in.react-flow__handle { width: 18px; height: 8px; border-radius: 3px; background: var(--edge); }
 .flowHandle.out.react-flow__handle { width: 12px; height: 12px; border-radius: var(--radius-pill); }
 .flowHandle.out.success { background: var(--edge-ok); }
 .flowHandle.out.failure { background: var(--edge-bad); }
-.flowHandle.react-flow__handle:hover { transform: translate(50%, -50%) scale(1.3); box-shadow: 0 0 0 4px var(--primary-soft); }
+.flowHandle.react-flow__handle:hover { transform: translate(-50%, 50%) scale(1.3); box-shadow: 0 0 0 4px var(--primary-soft); }
 .flowHandle.in.react-flow__handle:hover { transform: translate(-50%, -50%) scale(1.2); }
 .flowCanvas .react-flow__handle.connectingto { background: var(--primary); }
 .flowOutLabel {
-  position: absolute; inset-inline-start: calc(100% + 10px); transform: translateY(-50%);
+  position: absolute; top: calc(100% + 10px); transform: translateX(-50%);
   font-size: 10px; font-weight: 600; letter-spacing: .02em; color: var(--muted); pointer-events: none; white-space: nowrap;
   padding: 1px 5px; border-radius: var(--radius-xs); background: var(--surface); border: 1px solid var(--border);
   opacity: 0; transition: opacity var(--fast) var(--ease);
@@ -149,15 +150,15 @@ input.subtle:hover:not(:focus) { border-color: var(--border); }
    the labels would sit on top of the outgoing connections. */
 .flowNode:hover .flowOutLabel, .flowNode.isSelected .flowOutLabel { opacity: 1; z-index: 2; }
 .flowOutLabel.failure { color: color-mix(in srgb, var(--edge-bad) 80%, var(--muted)); }
-/* When a "+" stub occupies the success output, its label moves above the stub line. */
-.flowBox:has(.flowStub) .flowOutLabel.success { transform: translateY(calc(-50% - 16px)); }
+/* When a "+" stub occupies the success output, its label moves beside the stub line. */
+.flowBox:has(.flowStub) .flowOutLabel.success { transform: translateX(calc(-100% - 8px)); }
 
 /* Unwired output stub with its "+" (n8n). */
 .flowStub {
-  position: absolute; inset-inline-start: calc(100% + 6px); transform: translateY(-50%);
-  display: flex; align-items: center; pointer-events: none;
+  position: absolute; top: calc(100% + 6px); transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; pointer-events: none;
 }
-.flowStubLine { width: 34px; height: 2px; background: var(--edge); }
+.flowStubLine { width: 2px; height: 28px; background: var(--edge); }
 .flowStubAdd {
   pointer-events: all; width: 22px; height: 22px; display: grid; place-items: center; cursor: pointer;
   border-radius: var(--radius-xs); border: 1.5px solid var(--edge); background: var(--surface); color: var(--muted);
@@ -168,7 +169,7 @@ input.subtle:hover:not(:focus) { border-color: var(--border); }
 /* ---------- Inspector ---------- */
 /* Overlays the canvas (as n8n does) so the graph keeps the full width. */
 .inspector {
-  position: absolute; inset-block: 0; inset-inline-end: 0; width: min(352px, 100%); z-index: 6;
+  position: absolute; inset-block: 0; inset-inline-end: 0; width: min(400px, 100%); z-index: 6;
   border-inline-start: 1px solid var(--border); background: var(--surface);
   display: flex; flex-direction: column; min-height: 0; box-shadow: var(--shadow-pop);
   animation: aoSlideIn var(--base) var(--ease-out);
@@ -178,6 +179,9 @@ input.subtle:hover:not(:focus) { border-color: var(--border); }
 @keyframes aoSlideInRtl { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
 .inspectorHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3); border-bottom: 1px solid var(--border); }
 .inspectorHead strong { flex: 1; min-width: 0; font-size: 13.5px; }
-.inspectorBody { padding: var(--s4); overflow-y: auto; display: grid; gap: var(--s4); align-content: start; min-height: 0; }
+/* One column that never grows past the panel: long command names and templates wrap or truncate instead of scrolling sideways. */
+.inspectorBody { padding: var(--s4); overflow-y: auto; overflow-x: hidden; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s4); align-content: start; min-height: 0; }
+.inspectorBody > *, .inspectorBody .field, .inspectorBody .selectWrap { min-width: 0; max-width: 100%; }
+.inspectorBody code { white-space: pre-wrap; overflow-wrap: anywhere; }
 .inspectorEmpty { padding: var(--s6) var(--s4); text-align: center; color: var(--muted); display: grid; gap: var(--s2); justify-items: center; }
 .builderAlerts:empty { display: none; }

@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Background, BackgroundVariant, Controls, MarkerType, ReactFlow, ReactFlowProvider, useReactFlow,
+  applyNodeChanges, Background, BackgroundVariant, Controls, MarkerType, ReactFlow, ReactFlowProvider, useReactFlow,
   type Connection, type Edge, type Node, type NodeChange,
 } from '@xyflow/react';
 import type { NodeType, WorkflowNode } from '../../../types/api';
 import StepNode, { PreflightNode, type Branch, type StepNodeData } from './StepNode';
 import BranchEdge, { type BranchEdgeData } from './BranchEdge';
-import { autoLayout, COL, loadPositions, savePositions, type Positions } from './layout';
+import { autoLayout, loadPositions, ROW, savePositions, type Positions } from './layout';
 
 const nodeTypes = { step: StepNode, preflight: PreflightNode };
 const edgeTypes = { branch: BranchEdge };
@@ -18,7 +18,7 @@ export type FlowCanvasProps = {
   /** Read-only preview: no dragging, wiring or "+" stubs. Positions always come from auto-layout. */
   readOnly?: boolean;
   /** Key under which manual drags are remembered. Omit for a canvas that should not persist. */
-  storageId?: number | null;
+  storageId?: number | string | null;
   /** Width of a panel overlaying the trailing edge; the view is shifted so it never hides a step. */
   overlayWidth?: number;
   onSelect?: (key: string | null) => void;
@@ -107,10 +107,20 @@ function Canvas({
       } satisfies StepNodeData,
     }));
     return [
-      { id: '__preflight', type: 'preflight', position: { x: -COL, y: 0 }, data: {}, draggable: false, selectable: false, connectable: false },
+      { id: '__preflight', type: 'preflight', position: { x: 0, y: -ROW }, data: {}, draggable: false, selectable: false, connectable: false },
       ...steps,
     ];
   }, [nodes, errors, selected, subtitleFor, readOnly, onAddAfter]);
+
+  // React Flow is controlled: drags must update rendered state, or the node never moves. Model changes rebuild the
+  // nodes; the measured sizes React Flow reported are carried over so layout and fitting stay stable.
+  const [rfNodes, setRfNodes] = useState<Node[]>(flowNodes);
+  useEffect(() => {
+    setRfNodes((prev) => flowNodes.map((n) => {
+      const old = prev.find((p) => p.id === n.id);
+      return old ? { ...n, measured: old.measured, width: old.width, height: old.height } : n;
+    }));
+  }, [flowNodes]);
 
   const flowEdges = useMemo<Edge[]>(() => {
     const marker = (color: string) => ({ type: MarkerType.ArrowClosed, width: 16, height: 16, color });
@@ -137,6 +147,7 @@ function Canvas({
   }, [nodes, readOnly, onDisconnect]);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setRfNodes((ns) => applyNodeChanges(changes, ns));
     let moved = false;
     for (const c of changes) {
       if (c.type === 'position' && c.position && c.id !== '__preflight') {
@@ -157,7 +168,7 @@ function Canvas({
 
   return (
     <ReactFlow
-      nodes={flowNodes}
+      nodes={rfNodes}
       edges={flowEdges}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
@@ -190,8 +201,8 @@ function Canvas({
 /**
  * The workflow canvas shared by the builder and the assistant's live preview. Graph edges ARE the
  * workflow's successNext/failureNext fields, so wiring a connection edits the model directly
- * instead of keeping a second copy of the topology. Always laid out left to right (`dir="ltr"`):
- * columns read as execution order, which does not mirror with the interface language.
+ * instead of keeping a second copy of the topology. Laid out top to bottom, with `dir="ltr"` so
+ * failure lanes always branch to the right: rows read as execution order, which does not mirror with the language.
  */
 export default function FlowCanvas(props: FlowCanvasProps) {
   return (

@@ -177,9 +177,15 @@ public class WorkflowService {
         s.setRequiresApproval(Boolean.TRUE.equals(n.requiresApproval()));
         switch (s) {
             case CommandStep c -> {
-                c.setCommandDefinitionId(n.commandDefinitionId());
-                c.setCommandTemplate(commands.findById(n.commandDefinitionId()).map(x -> x.getCommandTemplate()).orElse(null));
-                c.setParameters(write(n.parameters()));
+                if (n.hasCustomCommand()) {
+                    c.setCommandDefinitionId(null);
+                    c.setCommandTemplate(n.customCommand().strip());
+                    c.setParameters(null);
+                } else {
+                    c.setCommandDefinitionId(n.commandDefinitionId());
+                    c.setCommandTemplate(commands.findById(n.commandDefinitionId()).map(x -> x.getCommandTemplate()).orElse(null));
+                    c.setParameters(write(n.parameters()));
+                }
                 c.setRunWithSudo(Boolean.TRUE.equals(n.runWithSudo()));
                 c.setTimeoutSeconds(n.timeoutSeconds());
             }
@@ -220,13 +226,13 @@ public class WorkflowService {
         return switch (s) {
             case CommandStep c -> new WorkflowDtos.Node(s.getStepKey(), "COMMAND", s.getName(), s.getDescription(), s.isRequiresApproval(), ok, fail,
                     c.getCommandDefinitionId(), read(c.getParameters()), c.isRunWithSudo(), c.getTimeoutSeconds(), null, null, null, null,
-                    null, null, null, null, null);
+                    null, null, null, null, null, c.getCommandDefinitionId() == null ? c.getCommandTemplate() : null);
             case FileTransferStep f -> new WorkflowDtos.Node(s.getStepKey(), "FILE_TRANSFER", s.getName(), s.getDescription(), s.isRequiresApproval(), ok, fail,
                     null, null, null, f.getTimeoutSeconds(), f.getStoredFileId(), f.getDestinationPath(), f.isOverwrite(), f.isUseSudo(),
-                    null, null, null, null, null);
+                    null, null, null, null, null, null);
             case WaitUntilStep x -> new WorkflowDtos.Node(s.getStepKey(), "WAIT_UNTIL", s.getName(), s.getDescription(), s.isRequiresApproval(), ok, fail,
                     x.getCommandDefinitionId(), read(x.getParameters()), x.isRunWithSudo(), x.getTimeoutSeconds(), null, null, null, null,
-                    x.getCheckType(), x.getExpectedOutput(), x.getExpectedExitCode(), x.getTarget(), x.getCheckIntervalSeconds());
+                    x.getCheckType(), x.getExpectedOutput(), x.getExpectedExitCode(), x.getTarget(), x.getCheckIntervalSeconds(), null);
             default -> throw new IllegalStateException();
         };
     }

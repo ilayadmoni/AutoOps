@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { History, MessageSquarePlus, Workflow as WorkflowIcon } from 'lucide-react';
 import { ApiError } from '../../services/client';
 import type { AIOperation } from '../../types/api';
@@ -41,7 +42,7 @@ export default function AIAssistantPage() {
     },
   });
   const { status, conversations, conversationId, messages, send, attach, remove, submit } = session;
-  const { actions, reviewWorkflow, runInitial, setRunInitial, machineOp, setMachineOp, markAdded } = useProposalActions(submit, send.isPending);
+  const { actions, reviewWorkflow, runInitial, setRunInitial, machineOp, setMachineOp, markAdded } = useProposalActions(submit, send.isPending, conversationId);
   const { railOpen, setRailOpen, toggleRail } = useConversationRail();
   const scroller = useRef<HTMLDivElement>(null);
   const started = workspace.state.started;
@@ -52,6 +53,15 @@ export default function AIAssistantPage() {
     if (workspace.state.nodes.length && !window.confirm(t('ai.replaceDraftConfirm'))) return;
     workspace.dispatch({ type: 'apply', proposal: proposalOf(op) }); setClosed(false);
   };
+  // Returning from the full builder opens that conversation, with the workspace the builder just handed back.
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    const id = Number(params.get('conversation'));
+    if (!id) return;
+    setParams({}, { replace: true });
+    void openConversation(id).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
   useEffect(() => {
     const el = scroller.current;
     if (el && (messages.length > 0 || send.isPending)) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
@@ -88,7 +98,7 @@ export default function AIAssistantPage() {
         <div className="chatScroll" ref={scroller}>
           <div className={'chatInner' + (messages.length === 0 ? ' isEmpty' : '')}>
             {notConfigured && <div className="alert info">{t('ai.notConfigured')}</div>}
-            {messages.length === 0 && !notConfigured && <ChatHero />}
+            {messages.length === 0 && !notConfigured && <ChatHero onChoose={submit} disabled={!status.data?.configured || send.isPending || attach.isPending} />}
             {messages.map((m, i) => (
               <ChatMessage
                 key={i}
@@ -118,7 +128,7 @@ export default function AIAssistantPage() {
         <WorkflowWorkspace
           state={workspace.state} dispatch={workspace.dispatch} change={workspace.change}
           building={send.isPending} canRetry={session.failed} onRetry={session.retry}
-          onClose={() => setClosed(true)}
+          onClose={() => setClosed(true)} conversationId={conversationId}
         />
       )}
       {runInitial && <RunCommandModal initial={runInitial} onClose={() => setRunInitial(null)} />}

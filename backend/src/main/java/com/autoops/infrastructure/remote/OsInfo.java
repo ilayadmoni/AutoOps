@@ -1,16 +1,11 @@
 package com.autoops.infrastructure.remote;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /** Parsed /etc/os-release. */
 public record OsInfo(String id, String idLike, String name, String versionId, String prettyName) {
-    private static final Set<String> RHEL_IDS = Set.of("rhel", "centos", "rocky", "almalinux", "ol", "fedora");
-
     public static OsInfo parse(String osRelease) {
         Map<String, String> v = new HashMap<>();
         if (osRelease != null) {
@@ -33,16 +28,7 @@ public record OsInfo(String id, String idLike, String name, String versionId, St
         return !id.isBlank();
     }
 
-    /** RHEL and binary-compatible rebuilds (CentOS, Rocky, Alma, Oracle Linux) or anything declaring ID_LIKE=rhel. */
-    public boolean rhelFamily() {
-        String lowerId = id.toLowerCase(Locale.ROOT);
-        if (RHEL_IDS.contains(lowerId) && !"fedora".equals(lowerId)) {
-            return true;
-        }
-        return Arrays.stream(idLike.toLowerCase(Locale.ROOT).split("\\s+")).anyMatch("rhel"::equals);
-    }
-
-    /** Distribution family (RHEL, DEBIAN, SUSE...), or empty for a distro outside the known families. */
+    /** Distribution family (RPM, DEBIAN, SUSE...), or empty for a distro outside the known families. */
     public Optional<OsFamily> family() {
         return OsFamily.ofRelease(id, idLike);
     }

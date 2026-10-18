@@ -5,16 +5,17 @@ import type { ReactNode } from 'react';
  * step palette and the assistant's starter prompts. `tone` colours the icon with a status token,
  * so a tile can carry the same type colour it has elsewhere (e.g. on the canvas).
  */
-export default function Tile({ icon, title, hint, tone, onClick, className }: {
+export default function Tile({ icon, title, hint, tone, onClick, className, disabled }: {
   icon: ReactNode;
   title: ReactNode;
   hint?: ReactNode;
   tone?: 'primary' | 'info' | 'warn';
   onClick: () => void;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
-    <button type="button" className={['tile', tone ? 'tone-' + tone : '', className ?? ''].filter(Boolean).join(' ')} onClick={onClick}>
+    <button type="button" disabled={disabled} className={['tile', tone ? 'tone-' + tone : '', className ?? ''].filter(Boolean).join(' ')} onClick={onClick}>
       <span className="tileIcon">{icon}</span>
       <span className="tileText">
         <strong>{title}</strong>

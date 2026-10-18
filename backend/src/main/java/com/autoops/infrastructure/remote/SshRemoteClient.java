@@ -247,6 +247,9 @@ public class SshRemoteClient implements RemoteClient {
                         Thread.sleep(25);
                     }
                 }
+                if (timedOut || wasCancelled) {
+                    interrupt(channel, out, err, stdout, stderr, buf, listener);
+                }
                 int code = timedOut || wasCancelled ? -1 : channel.getExitStatus();
                 return new ExecResult(code, stdout.text(), stderr.text(), timedOut, wasCancelled);
             } catch (InterruptedException e) {
@@ -257,6 +260,31 @@ public class SshRemoteClient implements RemoteClient {
             } finally {
                 if (channel != null) {
                     channel.disconnect();
+                }
+            }
+        }
+
+        /**
+         * Asks a command that is being stopped (or timed out) to end itself, as Ctrl+C would: INT, then TERM, while its last
+         * output is still collected. The channel is closed afterwards either way. Servers that ignore SSH signal requests
+         * (OpenSSH before 7.9) only see the channel close, so a command that never writes output may keep running there.
+         */
+        private static void interrupt(ChannelExec channel, InputStream out, InputStream err, BoundedOutput stdout, BoundedOutput stderr,
+                                      byte[] buf, OutputListener listener) throws IOException, InterruptedException {
+            for (String signal : new String[]{"INT", "TERM"}) {
+                try {
+                    channel.sendSignal(signal);
+                } catch (Exception e) {
+                    return;
+                }
+                long until = System.currentTimeMillis() + 4000;
+                while (!channel.isClosed() && System.currentTimeMillis() < until) {
+                    if (!(drain(out, stdout, buf, listener, "stdout") | drain(err, stderr, buf, listener, "stderr"))) {
+                        Thread.sleep(50);
+                    }
+                }
+                if (channel.isClosed()) {
+                    return;
                 }
             }
         }

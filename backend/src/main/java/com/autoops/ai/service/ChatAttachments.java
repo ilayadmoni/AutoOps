@@ -51,8 +51,9 @@ public class ChatAttachments {
         StringBuilder text = new StringBuilder("\n\n[Attached files (stored file id: name, size). Use these ids for FILE_TRANSFER steps:");
         for (Long id : new LinkedHashSet<>(ids)) {
             var file = files.requireUsable(userId, id);
-            text.append("\n- ").append(file.getId()).append(": ").append(file.getOriginalFilename())
+            text.append("\n- ").append(file.getId()).append(": ").append(file.getFolderName() == null ? file.getOriginalFilename() : file.getFolderName())
                     .append(", ").append(file.getSize()).append(" bytes");
+            if (file.getFolderName() != null) text.append(" (folder: extracted automatically, no archive remains; destinationPath is the full final folder path including its name, under a writable parent; overwrite replaces all contents)");
         }
         return text.append(']').toString();
     }

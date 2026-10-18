@@ -66,7 +66,7 @@ public class ExecutionService {
         boolean sudo = Boolean.TRUE.equals(r.runWithSudo());
         Map<String, String> params = r.parameters() == null ? Map.of() : r.parameters();
         var step = new PlanStep(ExecutionPlanFactory.COMMAND_STEP_KEY, null, cmd.getName(), false,
-                new StepDefinition.Command(cmd.getId(), params, sudo, ExecutionPlanFactory.COMMAND_TIMEOUT_SECONDS), null, null);
+                new StepDefinition.Command(cmd.getId(), params, sudo, ExecutionPlanFactory.COMMAND_TIMEOUT_SECONDS, null), null, null);
         // Fails fast with field-level errors; the engine resolves again right before running.
         var resolved = resolver.resolve(step, user.id());
         var options = new ExecutionDtos.RunOptions(r.machineIds(), r.credentialId(), r.mode(), r.concurrency(), r.failurePolicy());
@@ -116,7 +116,7 @@ public class ExecutionService {
             e.setParameters(paramsJson);
             e.setRunWithSudo(sudo);
             e.setStartedBy(user.id());
-            e.setMode(o.mode() == null ? "MANUAL" : o.mode());
+            e.setMode(o.mode() == null ? "AUTOMATIC" : o.mode());
             e.setConcurrency(concurrency);
             e.setFailurePolicy(o.failurePolicy() == null ? "STOP_NEW_MACHINES" : o.failurePolicy());
             e.setRiskLevel(risk);
@@ -134,7 +134,7 @@ public class ExecutionService {
             return e.getId();
         });
         audit.record(user.id(), "EXECUTION_STARTED", "EXECUTION", id, Map.of("type", type, "title", title, "risk", risk,
-                "mode", o.mode() == null ? "MANUAL" : o.mode(), "machines", targets.size()));
+                "mode", o.mode() == null ? "AUTOMATIC" : o.mode(), "machines", targets.size()));
         engine.launch(id);
         return queries.detail(user, id);
     }

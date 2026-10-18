@@ -4,7 +4,6 @@ import com.autoops.credential.entity.Credential;
 import com.autoops.execution.entity.ExecutionStatus;
 import com.autoops.execution.plan.ResolvedStep;
 import com.autoops.execution.plan.StepDefinition;
-import com.autoops.files.entity.StoredFile;
 import com.autoops.files.repository.StoredFileRepository;
 import com.autoops.files.service.ObjectStorageService;
 import com.autoops.infrastructure.remote.ExecResult;
@@ -16,9 +15,6 @@ import com.autoops.machine.entity.Machine;
 import com.autoops.machine.service.MachineConnectionService;
 import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
-import java.util.Locale;
-import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -40,9 +36,9 @@ public class StepRunner {
     public StepResult run(Machine machine, Credential credential, ResolvedStep step, BooleanSupplier cancelled, OutputListener listener) {
         try {
             return switch (step.type()) {
-                case "COMMAND" -> command(machine, credential, step, listener);
+                case "COMMAND" -> command(machine, credential, step, cancelled, listener);
                 case "WAIT_UNTIL" -> waitUntil(machine, credential, step, cancelled);
-                case "FILE_TRANSFER" -> transfer(machine, credential, step);
+                case "FILE_TRANSFER" -> new FileTransferRunner(connections, storage, files).run(machine, credential, step, cancelled);
                 default -> StepResult.failed("Unsupported step type " + step.type());
             };
         } catch (RemoteException e) {
@@ -52,10 +48,13 @@ public class StepRunner {
         }
     }
 
-    /** Commands run to completion (bounded by their timeout); Stop takes effect at the next step boundary. */
-    private StepResult command(Machine machine, Credential credential, ResolvedStep step, OutputListener listener) {
+    /**
+     * Runs a command until it exits, times out or the user presses Stop. A long-running command (e.g. `docker compose up`
+     * without -d) is interrupted on Stop instead of holding the execution until its timeout.
+     */
+    private StepResult command(Machine machine, Credential credential, ResolvedStep step, BooleanSupplier cancelled, OutputListener listener) {
         try (RemoteSession session = connections.connect(machine, credential)) {
-            ExecResult r = exec(session, credential, step.resolvedCommand(), step.runWithSudo(), step.timeoutSeconds(), () -> false, listener);
+            ExecResult r = exec(session, credential, step.resolvedCommand(), step.runWithSudo(), step.timeoutSeconds(), cancelled, listener);
             return fromExec(r, step.timeoutSeconds());
         }
     }
@@ -98,71 +97,6 @@ public class StepRunner {
             case "FILE_EXISTS", "SERVICE_ACTIVE" -> r.exitCode() == 0;
             default -> false;
         };
-    }
-
-    /**
-     * Uploads the stored file to a temporary path next to (or, for privileged destinations, outside) the destination,
-     * verifies its SHA-256 on the machine, then moves it into place with fixed, server-built commands.
-     */
-    private StepResult transfer(Machine machine, Credential credential, ResolvedStep step) {
-        var def = (StepDefinition.FileTransfer) step.step().definition();
-        ResolvedStep.FileSource src = step.file();
-        StoredFile stored = files.findById(src.id()).orElse(null);
-        if (stored == null || stored.getDeletedAt() != null) {
-            return StepResult.failed("Stored file is no longer available");
-        }
-        String dest = step.destinationPath();
-        String qDest = ShellCommands.quote(dest);
-        String tmp = def.useSudo() ? "/tmp/.autoops-" + UUID.randomUUID() : dest + ".autoops-" + UUID.randomUUID().toString().substring(0, 8);
-        String qTmp = ShellCommands.quote(tmp);
-        StringBuilder log = new StringBuilder();
-        try (RemoteSession session = connections.connect(machine, credential)) {
-            if (!def.overwrite()) {
-                ExecResult exists = exec(session, credential, "test -e " + qDest, def.useSudo(), 30, () -> false, null);
-                if (exists.success()) {
-                    return new StepResult(ExecutionStatus.FAILED, null, exists.stderr(), 1, "Destination " + dest + " already exists and overwrite is disabled");
-                }
-            }
-            try (InputStream in = storage.get(stored.getObjectKey())) {
-                session.upload(in, stored.getSize(), tmp, step.timeoutSeconds());
-            } catch (RemoteException e) {
-                cleanup(session, credential, qTmp, false);
-                return StepResult.failed(e.getMessage() + " (uploading to " + tmp + ")");
-            } catch (java.io.IOException e) {
-                cleanup(session, credential, qTmp, false);
-                return StepResult.failed("Could not read stored file content");
-            }
-            log.append("Uploaded ").append(stored.getSize()).append(" bytes to temporary path\n");
-            ExecResult sum = session.exec("sha256sum -- " + qTmp, 120);
-            String remoteSum = sum.stdout() == null ? "" : sum.stdout().trim().split("\\s+")[0].toLowerCase(Locale.ROOT);
-            if (!sum.success() || !remoteSum.equals(stored.getChecksum().toLowerCase(Locale.ROOT))) {
-                cleanup(session, credential, qTmp, false);
-                return new StepResult(ExecutionStatus.FAILED, log.toString(), sum.stderr(), sum.exitCode(),
-                        sum.success() ? "Checksum mismatch after transfer" : "Could not verify checksum on the machine (sha256sum unavailable?)");
-            }
-            log.append("SHA-256 verified: ").append(remoteSum).append('\n');
-            String move = def.useSudo()
-                    ? "cp -- " + qTmp + " " + qDest + " && rm -f -- " + qTmp
-                    : "mv -f -- " + qTmp + " " + qDest;
-            ExecResult mv = exec(session, credential, move, def.useSudo(), 120, () -> false, null);
-            if (!mv.success()) {
-                cleanup(session, credential, qTmp, false);
-                return new StepResult(ExecutionStatus.FAILED, log.toString(), mv.stderr(), mv.exitCode(), "Could not move file into " + dest);
-            }
-            if (def.useSudo()) {
-                cleanup(session, credential, qTmp, false);
-            }
-            log.append("Placed at ").append(dest).append('\n');
-            return new StepResult(ExecutionStatus.SUCCESS, log.toString(), "", 0, null);
-        }
-    }
-
-    private void cleanup(RemoteSession session, Credential credential, String qTmp, boolean sudo) {
-        try {
-            exec(session, credential, "rm -f -- " + qTmp, sudo, 30, () -> false, null);
-        } catch (RuntimeException ignored) {
-            // best effort
-        }
     }
 
     private ExecResult exec(RemoteSession session, Credential credential, String command, boolean sudo, int timeout,

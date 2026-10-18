@@ -18,19 +18,20 @@ public final class MachineDtos {
             @Min(1) @Max(65535) Integer sshPort,
             @Size(max = 100) String operatingSystem,
             @Size(max = 100) String osVersion,
-            Long preferredCredentialId) {
+            Long preferredCredentialId,
+            Long folderId) {
     }
 
     /** Safe machine representation; never includes credential data. */
     public record Response(Long id, String name, String hostname, Integer sshPort, String operatingSystem, String osVersion,
                            Long preferredCredentialId, String trustStatus, String hostKeyAlgorithm, String sshFingerprint,
                            Instant fingerprintVerifiedAt, String mismatchFingerprint, Instant mismatchDetectedAt,
-                           String lastTestStatus, Instant lastTestedAt, Instant createdAt) {
+                           String lastTestStatus, Instant lastTestedAt, Instant createdAt, Long folderId) {
         public static Response from(Machine m) {
             return new Response(m.getId(), m.getName(), m.getHostname(), m.getSshPort(), m.getOperatingSystem(), m.getOsVersion(),
                     m.getPreferredCredentialId(), m.trustStatus(), m.getSshHostKeyAlgorithm(), m.getSshFingerprint(),
                     m.getFingerprintVerifiedAt(), m.getHostKeyMismatchFingerprint(), m.getHostKeyMismatchAt(),
-                    m.getLastTestStatus(), m.getLastTestedAt(), m.getCreatedAt());
+                    m.getLastTestStatus(), m.getLastTestedAt(), m.getCreatedAt(), m.getFolderId());
         }
     }
 }

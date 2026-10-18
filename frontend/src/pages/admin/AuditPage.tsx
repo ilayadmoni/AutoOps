@@ -32,7 +32,7 @@ export default function AuditPage() {
       </div>
       {q.isLoading ? <Loading /> : q.error ? <ErrorAlert error={q.error} /> : !q.data?.items.length ? <EmptyState title={t('audit.empty')} /> : (
         <>
-          <table className="table">
+          <table className="table" tabIndex={0} aria-label={t('audit.title')}>
             <thead><tr><th>{t('audit.time')}</th><th>{t('audit.user')}</th><th>{t('audit.action')}</th><th>{t('audit.entity')}</th><th>{t('audit.details')}</th></tr></thead>
             <tbody>{q.data.items.map((e) => (
               <tr key={e.id}><td>{formatDate(e.createdAt, lang)}</td><td>{e.userId ?? '-'}</td><td><Code>{e.action}</Code></td><td>{e.entityType}{e.entityId ? ' #' + e.entityId : ''}</td><td><Code>{e.metadata}</Code></td></tr>

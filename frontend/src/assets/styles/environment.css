@@ -1,0 +1,7 @@
+.environmentTable { overflow-x: auto; }
+.environmentTable table { width: 100%; }
+.environmentTable caption { text-align: start; padding-block: var(--s2); }
+.environmentTable th[scope="row"] { text-align: start; font-weight: 500; text-transform: none; }
+.environmentTable code, .environmentTable .mono { overflow-wrap: anywhere; white-space: normal; }
+.environmentTable td { min-width: 10rem; max-width: 32rem; }
+.environmentProperty { display: block; margin-top: var(--s1); font-weight: 400; overflow-wrap: anywhere; }

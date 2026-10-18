@@ -41,7 +41,7 @@ export default function Tooltip({ text, children, side = 'top', describe = true 
   const layer = useRef<HTMLDivElement>(null);
   const timer = useRef<number>(undefined);
   const [open, setOpen] = useState(false);
-  const pos = useFloating(open, anchor, layer, { side, align: 'center' });
+  const pos = useFloating(open, anchor, layer, { side, align: 'center', offset: side === 'left' || side === 'right' ? 16 : 6 });
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { openAttachmentPicker } from './chat-mentions.helpers.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chromium } from 'playwright';
@@ -52,14 +53,14 @@ test('mentions become inline tags at the caret and send exact IDs', async () => 
     await page.getByRole('option', { name: /deploy.sh/ }).click();
     await input.locator('.mentionTag', { hasText: 'deploy.sh' }).waitFor();
     // Esc closes the picker and the bare trigger character with it.
-    await page.getByRole('button', { name: 'Attach server (@)', exact: true }).click();
+    await openAttachmentPicker(page, 'server');
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('listbox').count(), 0);
-    await page.getByRole('button', { name: 'Attach server (@)', exact: true }).click();
+    await openAttachmentPicker(page, 'server');
     await page.getByRole('option', { name: /Staging API/ }).waitFor();
     assert.equal(await page.getByRole('option', { name: /Staging API/ }).getAttribute('aria-disabled'), 'true');
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Attach file (#)', exact: true }).click();
+    await openAttachmentPicker(page, 'file');
     await page.getByRole('option', { name: /config.json/ }).click();
     await page.getByRole('button', { name: 'Remove file: config.json' }).click();
     assert.equal(await input.locator('.mentionTag').count(), 2);
@@ -89,7 +90,7 @@ test('tags sit mid-text, delete atomically, and equal names stay distinct by id'
     await input.fill('Deploy to now');
     await input.press('Home');
     for (let i = 0; i < 'Deploy to '.length; i++) await input.press('ArrowRight');
-    await page.getByRole('button', { name: 'Attach server (@)', exact: true }).click();
+    await openAttachmentPicker(page, 'server');
     await page.getByRole('option', { name: /api.example/ }).click();
     assert.equal(await shape(input), 'Deploy to <Production API> now');
     await page.keyboard.type('!');

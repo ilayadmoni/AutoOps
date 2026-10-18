@@ -1,5 +1,7 @@
 package com.autoops.workflow.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -39,7 +41,15 @@ public final class WorkflowDtos {
             String expectedOutput,
             Integer expectedExitCode,
             String target,
-            Integer intervalSeconds) {
+            Integer intervalSeconds,
+            // COMMAND without a Command Bank entry: the exact shell command this step runs
+            String customCommand) {
+
+        /** Not an `isX()` getter: Jackson would serialize it as a "customCommand": true property over the command text. */
+        @JsonIgnore
+        public boolean hasCustomCommand() {
+            return customCommand != null && !customCommand.isBlank();
+        }
 
         public String normalizedType() {
             if (type == null) {

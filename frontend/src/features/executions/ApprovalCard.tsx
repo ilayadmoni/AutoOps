@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { AlertTriangle, Check, X } from 'lucide-react';
 import { ApiError, post } from '../../services/client';
 import type { ApprovalView } from '../../types/api';
@@ -10,7 +9,7 @@ import { useToast } from '../../components/ui/Toast';
 import { formatDate } from '../../utils/format';
 
 /** Persisted approval decision: explicit Run click, plus acknowledgement for HIGH risk (enforced by the backend too). */
-export function ApprovalCard({ approval, showLink }: { approval: ApprovalView; showLink?: boolean }) {
+export function ApprovalCard({ approval }: { approval: ApprovalView }) {
   const { t, lang } = useI18n();
   const qc = useQueryClient();
   const toast = useToast();
@@ -22,7 +21,6 @@ export function ApprovalCard({ approval, showLink }: { approval: ApprovalView; s
     onSuccess: (a) => {
       toast.success(a.status === 'APPROVED' ? t('approvals.approved') : t('approvals.rejected'));
       qc.invalidateQueries({ queryKey: ['execution', approval.executionId] });
-      qc.invalidateQueries({ queryKey: ['approvals'] });
     },
   });
   return (
@@ -30,7 +28,6 @@ export function ApprovalCard({ approval, showLink }: { approval: ApprovalView; s
       <div className="row spread wrap">
         <div className="stack tight grow">
           <strong>{approval.scope === 'STEP' ? t('approvals.stepGate', { step: approval.stepName ?? '', machine: approval.machineName ?? '' }) : t('approvals.executionGate')}</strong>
-          {showLink && <div><Link to={'/executions/' + approval.executionId}>#{approval.executionId} {approval.executionTitle}</Link></div>}
           <small className="muted"><bdi>{approval.reason}</bdi> · {formatDate(approval.requestedAt, lang)}</small>
         </div>
         <RiskBadge risk={approval.riskLevel} />

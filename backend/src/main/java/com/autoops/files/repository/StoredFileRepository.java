@@ -14,7 +14,7 @@ public interface StoredFileRepository extends JpaRepository<StoredFile, Long> {
 
     Optional<StoredFile> findByIdAndDeletedAtIsNull(Long id);
 
-    Optional<StoredFile> findFirstByOriginalFilenameAndChecksumAndDeletedAtIsNullOrderByIdAsc(String originalFilename, String checksum);
+    Optional<StoredFile> findFirstByOriginalFilenameAndChecksumAndFolderNameIsNullAndDeletedAtIsNullOrderByIdAsc(String originalFilename, String checksum);
 
     /** Orphans past retention that no workflow step references at all (not even deleted workflows' history). */
     @Query(value = """

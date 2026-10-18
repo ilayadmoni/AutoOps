@@ -3,14 +3,18 @@
 ## Docker Compose
 
 ```bash
-cp .env.example .env    # fill in all REQUIRED values
-docker compose --env-file .env -f deploy/docker-compose.yml up --build -d
+./deploy/build-export.sh
+# On the target host, after copying the exports, Compose file and certificates:
+for archive in deploy/exports/*.tar; do docker image load --input "$archive"; done
+docker compose -f deploy/docker-compose.yml up -d --pull never
 ```
 
 Services: `postgres` (pgvector/pgvector:pg16, volume `postgres-data`), `minio` (pinned release built from source,
-volume `minio-data`), `backend` (Spring Boot), `frontend` (Nginx on `AUTOOPS_HTTP_PORT`, default 8088). Startup is
+volume `minio-data`), `backend` (Spring Boot), `frontend` (Nginx on host port 8088, editable in Compose). Startup is
 ordered by health checks: Postgres `pg_isready`, MinIO `/minio/health/live`, backend `/actuator/health/readiness`.
-Compose refuses to start when a required secret is missing.
+Replace every `REPLACE:` environment value directly in `deploy/docker-compose.yml` before starting.
+Descriptions are placeholders; use `""` for unused optional values. No `.env` file is needed.
+The defaults in the reference table below are suggested values to enter manually.
 
 Flyway migrates the database on backend startup. On first start the Admin from `AUTOOPS_ADMIN_*` is created and a set
 of approved Linux commands is seeded.
@@ -27,7 +31,9 @@ of approved Linux commands is seeded.
 | | `AUTOOPS_ADMIN_USERNAME` / `AUTOOPS_ADMIN_PASSWORD` | – | first Admin only |
 | Credentials | `CREDENTIAL_ENCRYPTION_KEY` | **required** | changing it makes stored passwords unreadable |
 | AI | `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL` | OpenRouter, empty | assistant disabled when key/model empty |
-| | `AI_SSL_VERIFY` | `true` | disable only behind a trusted TLS-inspecting proxy |
+| | `AI_SSL_VERIFY` | `true` | keep enabled when using a custom CA certificate |
+| | `AI_SSL_CERT_PATH` | empty | optional PEM/DER certificate or PEM bundle; supplements JVM trust for the AI client |
+| | backend bind mount `source` | `./certs` | Compose host directory mounted read-only at `/app/certs`; relative to `deploy/` |
 | Embeddings | `EMBEDDING_PROVIDER` | `LOCAL` | `OPENAI_COMPATIBLE` needs `EMBEDDING_BASE_URL`, `EMBEDDING_API_KEY`, `EMBEDDING_MODEL` (384 dims) |
 | Storage | `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET` | `http://minio:9000`, `autoops`, **required**, `autoops` | any S3-compatible endpoint |
 | | `FILES_MAX_SIZE`, `FILES_ORPHAN_RETENTION_DAYS`, `DATASET_MAX_SIZE` | `100MB`, `7`, `20MB` | |
@@ -35,7 +41,29 @@ of approved Linux commands is seeded.
 | | `EXECUTION_WORKER_THREADS` | `24` | total concurrent machine jobs |
 | | `EXECUTION_APPROVAL_TIMEOUT_MINUTES` | `1440` | pending approvals expire afterwards |
 | | `EXECUTION_MAX_OUTPUT_BYTES` | `65536` | per stream, head + tail kept |
-| | `EXECUTION_REQUIRE_RHEL` | `false` | `true` restricts execution to RHEL-family machines; by default any Linux runs |
+
+## AI provider certificates
+
+For a private AI endpoint or TLS-inspecting proxy, place its CA certificate (or PEM CA bundle) in
+`deploy/certs/provider-ca.pem`, then edit these backend environment values directly in `deploy/docker-compose.yml`:
+
+```yaml
+AI_SSL_VERIFY: "true"
+AI_SSL_CERT_PATH: "/app/certs/provider-ca.pem"
+```
+
+Compose mounts the certificate directory read-only. To use another host directory, edit the backend bind mount `source`
+to its absolute path (on Windows, for example `C:/certs`). The backend container runs as UID 10001,
+so the directory and certificate must be readable by that user. Certificates in `deploy/certs/` are ignored by Git.
+Recreate the backend after changing configuration or certificates:
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d --pull never --force-recreate backend
+```
+
+When running Java directly, set `AI_SSL_CERT_PATH` to the certificate's local filesystem path instead.
+An empty path keeps JVM default trust; an unreadable or invalid configured certificate prevents startup.
+This setting applies to the AI assistant client, and does not configure embeddings or mutual TLS client keys.
 
 ## Reverse proxy
 

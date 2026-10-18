@@ -1,19 +1,21 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCollectionTools } from '../../features/collections/useCollectionTools';
+import { CollectionToolbar, EditCollection, FavoritesEmpty, ItemControls } from '../../features/collections/CollectionControls';
+import { useAuth } from '../../app/providers/AuthProvider';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Play, Sparkles } from 'lucide-react';
-import { ApiError, get, post } from '../../services/client';
-import type { Command, ParamType, ParameterSpec, SearchResult } from '../../types/api';
+import { get } from '../../services/client';
+import type { Command, SearchResult } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import {
-  Button, Checkbox, Code, EmptyState, ErrorAlert, Fab, Field, Loading, Modal, PageHeader, RiskBadge, SearchInput, Select, StatusBadge, Textarea, TextInput,
+  Button, Checkbox, Code, EmptyState, ErrorAlert, Fab, Loading, Modal, PageHeader, RiskBadge, SearchInput, Select, StatusBadge,
 } from '../../components/ui';
-import { useToast } from '../../components/ui/Toast';
 import RunCommandModal from '../../features/commands/RunCommandModal';
-
-const PARAM_TYPES: ParamType[] = ['STRING', 'INTEGER', 'PATH', 'SERVICE', 'PACKAGE', 'HOSTNAME', 'ENUM'];
+import CreateCommandModal from '../../features/commands/CreateCommandModal';
 
 export default function CommandsPage() {
   const { t } = useI18n();
+  const { isAdmin } = useAuth();
   const [q, setQ] = useState('');
   const [debounced, setDebounced] = useState('');
   const [category, setCategory] = useState('');
@@ -27,13 +29,14 @@ export default function CommandsPage() {
     return () => clearTimeout(h);
   }, [q]);
   const all = useQuery({ queryKey: ['commands'], queryFn: () => get<Command[]>('/commands') });
+  const tools = useCollectionTools('commands', all.data, item => isAdmin || !!all.data?.find(command => command.id === item.id)?.ownedByCurrentUser);
   const search = useQuery({
     queryKey: ['commands', 'search', debounced, category, risk],
     queryFn: () => get<SearchResult>(`/commands/search?q=${encodeURIComponent(debounced)}${category ? '&category=' + category : ''}${risk ? '&maxRisk=' + risk : ''}`),
     enabled: semantic && debounced.length > 2,
   });
   const categories = useMemo(() => [...new Set((all.data ?? []).map((c) => c.category).filter(Boolean) as string[])].sort(), [all.data]);
-  const list = useMemo(() => {
+  const searched = useMemo(() => {
     if (semantic && debounced.length > 2) {
       const ids = (search.data?.matches ?? []).map((m) => m.id);
       return ids.map((id) => all.data?.find((c) => c.id === id)).filter(Boolean) as Command[];
@@ -43,9 +46,10 @@ export default function CommandsPage() {
       && (!needle || [c.name, c.description, c.commandTemplate, c.category].join(' ').toLowerCase().includes(needle)));
   }, [all.data, search.data, semantic, debounced, category, risk]);
 
+  const list = tools.filter(searched);
   return (
     <section>
-      <PageHeader title={t('commands.title')} subtitle={t('commands.subtitle')} />
+      <PageHeader title={t('commands.title')} subtitle={t('commands.subtitle')} actions={<EditCollection tools={tools} />} />
       <Fab label={t('commands.create')} onClick={() => setCreating(true)} />
       <div className="toolbar">
         <SearchInput className="grow" aria-label={t('commands.searchPlaceholder')} placeholder={t('commands.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -64,14 +68,16 @@ export default function CommandsPage() {
           label={<><Sparkles size={14} /> {t('commands.semantic')}</>}
         />
       </div>
+      <CollectionToolbar tools={tools} visible={list} />
       {semantic && search.data && <p className="muted small">{t('commands.confidence')}: <StatusBadge status={search.data.confidence} /></p>}
       {all.isLoading || search.isFetching ? <Loading /> : all.error ? <ErrorAlert error={all.error} onRetry={() => all.refetch()} /> : !list.length ? (
-        <EmptyState title={t('commands.empty')} hint={t('commands.emptyHint')} />
+        tools.onlyFavorites && !q.trim() ? <FavoritesEmpty /> : <EmptyState title={t('commands.empty')} hint={t('commands.emptyHint')} />
       ) : (
         <div className="list">
           {list.map((c) => (
-            <article className="row clickable" key={c.id} onClick={() => setDetail(c)}>
-              <div className="grow">
+            <article className="row clickable commandCollectionRow" key={c.id} onClick={() => setDetail(c)}>
+              <ItemControls tools={tools} item={c} />
+              <div className="grow commandCollectionInfo">
                 <b>{c.name}</b>
                 <small className="muted">{c.category} · {t('source.' + c.source, undefined, c.source)}</small>
               </div>
@@ -83,7 +89,7 @@ export default function CommandsPage() {
           ))}
         </div>
       )}
-      {creating && <CreateCommand onClose={() => setCreating(false)} />}
+      {creating && <CreateCommandModal onClose={() => setCreating(false)} />}
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)} footer={
           <Button variant="primary" icon={<Play size={14} />} disabled={detail.status !== 'APPROVED'} onClick={() => { setRunning(detail); setDetail(null); }}>{t('commands.run')}</Button>
@@ -106,73 +112,5 @@ export default function CommandsPage() {
       )}
       {running && <RunCommandModal initial={{ commandId: running.id }} onClose={() => setRunning(null)} />}
     </section>
-  );
-}
-
-const PLACEHOLDER = /\{\{\s*([A-Za-z_][A-Za-z0-9_]{0,63})\s*}}/g;
-
-function CreateCommand({ onClose }: { onClose: () => void }) {
-  const { t } = useI18n();
-  const qc = useQueryClient();
-  const toast = useToast();
-  const [form, setForm] = useState({ name: '', description: '', category: 'SYSTEM', commandTemplate: '' });
-  const [params, setParams] = useState<ParameterSpec[]>([]);
-  useEffect(() => {
-    const names = [...new Set([...form.commandTemplate.matchAll(PLACEHOLDER)].map((m) => m[1]))];
-    setParams((old) => names.map((n) => old.find((p) => p.name === n) ?? { name: n, label: n, type: 'STRING', required: true }));
-  }, [form.commandTemplate]);
-  const save = useMutation({
-    mutationFn: () => post<Command>('/commands', { ...form, parameters: params }),
-    onSuccess: (c) => {
-      toast.success(c.status === 'APPROVED' ? t('commands.createdApproved') : t('commands.createdPending'));
-      qc.invalidateQueries({ queryKey: ['commands'] });
-      onClose();
-    },
-  });
-  const fe = (save.error as ApiError | null)?.fieldErrors ?? {};
-  const setParam = (i: number, patch: Partial<ParameterSpec>) => setParams((p) => p.map((x, j) => (j === i ? { ...x, ...patch } : x)));
-  const submit = (e: FormEvent) => { e.preventDefault(); save.mutate(); };
-  return (
-    <Modal wide title={t('commands.create')} onClose={onClose}>
-      <form className="stack" onSubmit={submit}>
-        <p className="muted small">{t('commands.createHint')}</p>
-        <ErrorAlert error={save.error} />
-        <div className="fieldRow">
-          <Field label={t('common.name')} error={fe.name} required><TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={200} /></Field>
-          <Field label={t('commands.category')}><TextInput value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} maxLength={80} /></Field>
-        </div>
-        <Field label={t('common.description')}><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={2000} /></Field>
-        <Field label={t('commands.template')} error={fe.commandTemplate} hint={t('commands.templateHint')} required>
-          <TextInput dir="ltr" className="mono" value={form.commandTemplate} onChange={(e) => setForm({ ...form, commandTemplate: e.target.value })} required placeholder="systemctl status {{service}}" />
-        </Field>
-        {params.length > 0 && (
-          <table className="table">
-            <thead><tr><th>{t('common.name')}</th><th>{t('params.label')}</th><th>{t('params.typeLabel')}</th><th>{t('params.required')}</th><th>{t('params.allowed')}</th></tr></thead>
-            <tbody>
-              {params.map((p, i) => (
-                <tr key={p.name}>
-                  <td><Code>{p.name}</Code></td>
-                  <td><TextInput aria-label={t('params.label')} value={p.label ?? ''} onChange={(e) => setParam(i, { label: e.target.value })} /></td>
-                  <td>
-                    <Select
-                      block aria-label={t('params.typeLabel')} value={p.type}
-                      onChange={(e) => setParam(i, { type: e.target.value as ParamType })}
-                      options={PARAM_TYPES.map((x) => ({ value: x, label: t('params.type.' + x) }))}
-                    />
-                  </td>
-                  <td><Checkbox aria-label={t('params.required')} checked={p.required !== false} onChange={(e) => setParam(i, { required: e.target.checked })} /></td>
-                  <td>{p.type === 'ENUM' && <TextInput dir="ltr" aria-label={t('params.allowed')} placeholder="a,b,c" value={(p.allowedValues ?? []).join(',')} onChange={(e) => setParam(i, { allowedValues: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} />}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        {fe.parameters && <span className="fieldError">{fe.parameters}</span>}
-        <div className="modalFooter inline">
-          <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button type="submit" variant="primary" busy={save.isPending}>{t('commands.submit')}</Button>
-        </div>
-      </form>
-    </Modal>
   );
 }

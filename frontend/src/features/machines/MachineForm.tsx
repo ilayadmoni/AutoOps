@@ -5,9 +5,10 @@ import type { Credential, Machine } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { Button, ErrorAlert, Field, Modal, NumberInput, Select, TextInput } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
+import { useMachineFolders } from './useMachineFolders';
 
 /** Values to prefill a new machine with, e.g. from an assistant proposal. */
-export type MachineDraft = { name?: string; hostname?: string; sshPort?: number; operatingSystem?: string };
+export type MachineDraft = { name?: string; hostname?: string; sshPort?: number; operatingSystem?: string; folderId?: number };
 
 /** Add or edit a machine. `initial` prefills a new one; the user still picks a credential and saves. */
 export default function MachineForm({ machine, initial, onClose, onSaved }: {
@@ -19,10 +20,12 @@ export default function MachineForm({ machine, initial, onClose, onSaved }: {
   const { t } = useI18n();
   const qc = useQueryClient();
   const toast = useToast();
+  const folders = useMachineFolders();
   const creds = useQuery({ queryKey: ['credentials'], queryFn: () => get<Credential[]>('/credentials') });
   const [form, setForm] = useState({
     name: machine?.name ?? initial?.name ?? '', hostname: machine?.hostname ?? initial?.hostname ?? '', sshPort: machine?.sshPort ?? initial?.sshPort ?? 22,
     operatingSystem: machine?.operatingSystem ?? initial?.operatingSystem ?? '', osVersion: machine?.osVersion ?? '', preferredCredentialId: machine?.preferredCredentialId ?? null as number | null,
+    folderId: machine?.folderId ?? initial?.folderId ?? null as number | null,
   });
   const save = useMutation({
     mutationFn: () => machine ? put<Machine>('/machines/' + machine.id, form) : post<Machine>('/machines', form),
@@ -35,6 +38,7 @@ export default function MachineForm({ machine, initial, onClose, onSaved }: {
     <Modal title={machine ? t('machines.edit') : t('machines.add')} onClose={onClose}>
       <form className="stack" onSubmit={submit}>
         <ErrorAlert error={save.error} />
+        <ErrorAlert error={folders.error} />
         <Field label={t('common.name')} error={fe.name} required><TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={150} /></Field>
         <div className="fieldRow">
           <Field label={t('machines.hostname')} error={fe.hostname} required><TextInput dir="ltr" value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} required /></Field>
@@ -46,6 +50,11 @@ export default function MachineForm({ machine, initial, onClose, onSaved }: {
           <Field label={t('machines.os')} hint={t('machines.osHint')}><TextInput value={form.operatingSystem} onChange={(e) => setForm({ ...form, operatingSystem: e.target.value })} /></Field>
           <Field label={t('machines.osVersion')}><TextInput dir="ltr" value={form.osVersion} onChange={(e) => setForm({ ...form, osVersion: e.target.value })} /></Field>
         </div>
+        {!!folders.data?.length && <Field label={t('machineFolders.label')}>
+          <Select name="folderId" block placeholder={t('machineFolders.root')} value={form.folderId ?? ''}
+            onChange={e => setForm({ ...form, folderId: e.target.value ? Number(e.target.value) : null })}
+            options={folders.data.map(f => ({ value: f.id, label: f.path }))} />
+        </Field>}
         <Field label={t('machines.preferredCredential')} error={fe.preferredCredentialId}>
           <Select
             block placeholder={t('common.none')}

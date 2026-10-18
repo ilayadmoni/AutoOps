@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useState, type CSSProperties, type RefObject } from 'react';
 
-export type Side = 'top' | 'bottom';
+export type Side = 'top' | 'bottom' | 'left' | 'right';
 export type Align = 'start' | 'center';
 
 const GAP = 8;
@@ -27,6 +27,23 @@ export function useFloating(open: boolean, anchor: RefObject<HTMLElement | null>
     if (matchWidth) f.style.minWidth = `${r.width}px`;
     const w = f.offsetWidth;
     const h = f.offsetHeight;
+
+    if (side === 'left' || side === 'right') {
+      const leftRoom = r.left - offset - GAP;
+      const rightRoom = vw - r.right - offset - GAP;
+      const next = side === 'right'
+        ? (rightRoom < w && leftRoom > rightRoom ? 'left' : 'right')
+        : (leftRoom < w && rightRoom > leftRoom ? 'right' : 'left');
+      const left = next === 'right' ? r.right + offset : r.left - offset - w;
+      setPlaced(next);
+      setStyle({
+        position: 'fixed',
+        top: Math.max(GAP, Math.min(r.top + r.height / 2 - h / 2, vh - h - GAP)),
+        left: Math.max(GAP, Math.min(left, vw - w - GAP)),
+        maxHeight: vh - GAP * 2,
+      });
+      return;
+    }
 
     const below = vh - r.bottom - offset - GAP;
     const above = r.top - offset - GAP;

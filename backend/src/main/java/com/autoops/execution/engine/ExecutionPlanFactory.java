@@ -35,7 +35,7 @@ public class ExecutionPlanFactory {
         }
         String name = commands.findById(e.getCommandDefinitionId()).map(c -> c.getName()).orElse("Command");
         var step = new PlanStep(COMMAND_STEP_KEY, null, name, false,
-                new StepDefinition.Command(e.getCommandDefinitionId(), parameters(e.getParameters()), e.isRunWithSudo(), COMMAND_TIMEOUT_SECONDS),
+                new StepDefinition.Command(e.getCommandDefinitionId(), parameters(e.getParameters()), e.isRunWithSudo(), COMMAND_TIMEOUT_SECONDS, null),
                 null, null);
         return new ExecutionPlan(List.of(step), COMMAND_STEP_KEY);
     }

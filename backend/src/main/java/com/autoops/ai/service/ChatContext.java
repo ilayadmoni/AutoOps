@@ -21,7 +21,9 @@ final class ChatContext {
               the user did not ask you to change.
             - A partial draft is fine: include the steps you can fill and leave unknown values empty so they show as missing.
               Never invent command, machine or file ids.
-            - If information needed to continue is missing, ask one focused question instead of guessing.
+            - Generate a descriptive name if it is blank; description is optional. These do not require a question.
+            - Once the action is known, propose the draft before asking about genuinely missing configuration.
+              An empty initial draft is not a reason to explain the schema or repeat onboarding.
             Current draft:
             """;
 

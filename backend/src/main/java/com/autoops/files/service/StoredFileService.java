@@ -9,22 +9,16 @@ import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class StoredFileService {
@@ -32,76 +26,27 @@ public class StoredFileService {
     private final StoredFileRepository repo;
     private final ObjectStorageService storage;
     private final AuditService audit;
-    private final long maxBytes;
+    private final StoredFileUpload uploads;
     private final Duration orphanRetention;
     @PersistenceContext
     private EntityManager em;
 
     public StoredFileService(StoredFileRepository repo, ObjectStorageService storage, AuditService audit,
-                             @Value("${spring.servlet.multipart.max-file-size:100MB}") DataSize maxSize,
+                             StoredFileUpload uploads,
                              @Value("${autoops.files.orphan-retention-days:7}") long retentionDays) {
         this.repo = repo;
         this.storage = storage;
         this.audit = audit;
-        this.maxBytes = maxSize.toBytes();
+        this.uploads = uploads;
         this.orphanRetention = Duration.ofDays(Math.max(1, retentionDays));
     }
 
     public record FileView(Long id, String filename, long size, String checksum, String contentType, Instant createdAt,
-                           List<String> referencedBy) {
+                           List<String> referencedBy, String folderName, int fileCount) {
     }
 
-    /**
-     * Streams the upload to object storage while computing SHA-256; metadata is saved only after the object exists,
-     * and the object is removed again if saving metadata fails.
-     */
     public FileView upload(MultipartFile file, Long userId) {
-        if (file == null || file.isEmpty()) {
-            throw ApiException.validation("File is required");
-        }
-        if (file.getSize() > maxBytes) {
-            throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "File exceeds the maximum allowed size");
-        }
-        String filename = sanitizeFilename(file.getOriginalFilename());
-        String key = "files/" + userId + "/" + UUID.randomUUID();
-        String checksum;
-        try (InputStream raw = file.getInputStream(); DigestInputStream in = new DigestInputStream(raw, MessageDigest.getInstance("SHA-256"))) {
-            storage.put(key, in, file.getSize(), safeContentType(file.getContentType()));
-            checksum = HexFormat.of().formatHex(in.getMessageDigest().digest());
-        } catch (ObjectStorageService.StorageException e) {
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "STORAGE_UNAVAILABLE", e.getMessage());
-        } catch (Exception e) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "UPLOAD_FAILED", "Unable to read the uploaded file");
-        }
-        // The same bytes under the same name are already stored: reuse that file instead of keeping a second copy.
-        var existing = repo.findFirstByOriginalFilenameAndChecksumAndDeletedAtIsNullOrderByIdAsc(filename, checksum);
-        if (existing.isPresent()) {
-            try {
-                storage.delete(key);
-            } catch (RuntimeException cleanup) {
-                log.warn("Could not remove duplicate object {}", key);
-            }
-            return view(existing.get());
-        }
-        try {
-            StoredFile stored = new StoredFile();
-            stored.setOriginalFilename(filename);
-            stored.setObjectKey(key);
-            stored.setSize(file.getSize());
-            stored.setChecksum(checksum);
-            stored.setContentType(safeContentType(file.getContentType()));
-            stored.setCreatedBy(userId);
-            stored = repo.save(stored);
-            audit.record(userId, "FILE_UPLOADED", "FILE", stored.getId(), Map.of("filename", filename, "size", file.getSize(), "sha256", checksum));
-            return view(stored);
-        } catch (RuntimeException e) {
-            try {
-                storage.delete(key);
-            } catch (RuntimeException cleanup) {
-                log.warn("Could not remove object {} after metadata failure", key);
-            }
-            throw e;
-        }
+        return view(uploads.store(file, userId, null, null, 0));
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +54,7 @@ public class StoredFileService {
         // Collapse copies of the same file (name + content): prefer one a workflow uses, else the newest.
         Map<String, FileView> unique = new java.util.LinkedHashMap<>();
         for (StoredFile f : repo.findByDeletedAtIsNullOrderByIdDesc()) {
-            String key = f.getOriginalFilename() + "|" + f.getChecksum();
+            String key = f.getFolderName() == null ? f.getOriginalFilename() + "|" + f.getChecksum() : "folder:" + f.getId();
             FileView current = unique.get(key);
             if (current == null) {
                 unique.put(key, view(f));
@@ -184,7 +129,7 @@ public class StoredFileService {
 
     private FileView view(StoredFile f) {
         return new FileView(f.getId(), f.getOriginalFilename(), f.getSize(), f.getChecksum(), f.getContentType(), f.getCreatedAt(),
-                activeReferences(f.getId()));
+                activeReferences(f.getId()), f.getFolderName(), f.getFolderFileCount());
     }
 
     static String sanitizeFilename(String name) {
@@ -198,10 +143,4 @@ public class StoredFileService {
         return n.length() > 200 ? n.substring(n.length() - 200) : n;
     }
 
-    private static String safeContentType(String type) {
-        if (type == null || type.length() > 200 || !type.matches("^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+(;.*)?$")) {
-            return "application/octet-stream";
-        }
-        return type;
-    }
 }

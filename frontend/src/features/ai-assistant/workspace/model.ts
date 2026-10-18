@@ -46,6 +46,17 @@ export type Action =
 
 const union = (a: Ref[], b: Ref[]) => [...new Map([...a, ...b].map((r) => [r.id, r])).values()];
 
+/** A missing field is resolved once its step is gone or the user has filled the value (e.g. picked a command). */
+function stillMissing(m: MissingField, nodes: WorkflowNode[]) {
+  if (!m.nodeKey) return true;
+  const node = nodes.find((n) => n.key === m.nodeKey);
+  if (!node) return false;
+  if (m.field === 'commandDefinitionId' && node.customCommand?.trim()) return false;
+  let value: unknown = node;
+  for (const part of m.field.split('.')) value = value == null ? undefined : (value as Record<string, unknown>)[part];
+  return value == null || value === '';
+}
+
 export function reducer(s: WorkspaceState, a: Action): WorkspaceState {
   switch (a.type) {
     case 'load': return a.state;
@@ -54,8 +65,7 @@ export function reducer(s: WorkspaceState, a: Action): WorkspaceState {
     case 'meta': return { ...s, name: a.name ?? s.name, description: a.description ?? s.description, revision: s.revision + 1 };
     case 'nodes': {
       const nodes = a.update(s.nodes);
-      const keys = new Set(nodes.map((n) => n.key));
-      return { ...s, nodes, errors: {}, revision: s.revision + 1, missing: s.missing.filter((m) => !m.nodeKey || keys.has(m.nodeKey)) };
+      return { ...s, nodes, errors: {}, revision: s.revision + 1, missing: s.missing.filter((m) => stillMissing(m, nodes)) };
     }
     case 'apply': return { ...s, ...a.proposal, started: true, errors: {}, failure: null, pending: null, revision: s.revision + 1 };
     case 'pending': return { ...s, pending: a.proposal };

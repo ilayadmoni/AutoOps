@@ -5,8 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 // fileURLToPath, not URL.pathname: on Windows the latter yields '/D:/...' and join() then doubles the drive letter.
 const root = fileURLToPath(new URL('../src', import.meta.url));
-const en = readFileSync(join(root, 'lib/i18n/en.ts'), 'utf8');
-const keys = new Set([...en.matchAll(/'([A-Za-z0-9_.]+)':/g)].map((m) => m[1]));
+const en = readFileSync(join(root, 'lib/i18n/en.ts'), 'utf8')
+  + readFileSync(join(root, 'lib/i18n/machineImport.ts'), 'utf8')
+  + readFileSync(join(root, 'lib/i18n/environment.ts'), 'utf8')
+  + readFileSync(join(root, 'lib/i18n/chatActions.ts'), 'utf8');
+const dictionaries = en + readFileSync(join(root, 'lib/i18n/machineConnection.ts'), 'utf8') + readFileSync(join(root, 'lib/i18n/folderPackages.ts'), 'utf8') + readFileSync(join(root, 'lib/i18n/enOperations.ts'), 'utf8')
+  + readFileSync(join(root, 'lib/i18n/sidebar.ts'), 'utf8');
+const keys = new Set([...dictionaries.matchAll(/'([A-Za-z0-9_.]+)':/g)].map((m) => m[1]));
 const missing = new Set();
 const walk = (dir) => {
   for (const f of readdirSync(dir)) {

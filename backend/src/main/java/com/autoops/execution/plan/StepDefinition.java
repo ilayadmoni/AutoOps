@@ -6,7 +6,8 @@ import java.util.Map;
 public sealed interface StepDefinition permits StepDefinition.Command, StepDefinition.FileTransfer, StepDefinition.WaitUntil {
     String type();
 
-    record Command(Long commandDefinitionId, Map<String, String> parameters, boolean runWithSudo, int timeoutSeconds) implements StepDefinition {
+    /** Either an approved Command Bank entry ({@code commandDefinitionId}) or the step's own {@code customCommand}, never both. */
+    record Command(Long commandDefinitionId, Map<String, String> parameters, boolean runWithSudo, int timeoutSeconds, String customCommand) implements StepDefinition {
         public String type() { return "COMMAND"; }
     }
 

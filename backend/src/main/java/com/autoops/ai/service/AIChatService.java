@@ -75,6 +75,7 @@ public class AIChatService {
         } catch (AIProvider.AIUnavailableException e) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "AI_UNAVAILABLE", e.getMessage());
         }
+        answer = recoverTextQuestion(json, answer, rawOperations);
         List<AIOperation> operations = new ArrayList<>();
         for (Map<String, Object> raw : rawOperations) {
             validator.validate(raw, userId).ifPresent(operations::add);

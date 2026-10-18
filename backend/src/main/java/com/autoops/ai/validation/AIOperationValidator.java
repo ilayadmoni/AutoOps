@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  */
 @Service
 public class AIOperationValidator {
-    public static final Set<String> SUPPORTED = Set.of("REPLACE_WORKFLOW_DRAFT", "PROPOSE_COMMAND_RUN", "PROPOSE_NEW_COMMAND", "PROPOSE_MACHINE", "ASK_USER");
+    public static final Set<String> SUPPORTED = Set.of("REPLACE_WORKFLOW_DRAFT", "PROPOSE_COMMAND_RUN", "PROPOSE_NEW_COMMAND", "PROPOSE_MACHINE", "ASK_USER", "OFFER_ACTION_FORM");
     private static final Pattern HOST = Pattern.compile(MachineDtos.HOST_PATTERN);
     private final WorkflowService workflows;
     private final CommandService commands;
@@ -120,6 +120,11 @@ public class AIOperationValidator {
                     return Optional.empty();
                 }
                 payload = new LinkedHashMap<>(question.get());
+            }
+            case "OFFER_ACTION_FORM" -> {
+                var form = ActionFormPayload.normalize(payload);
+                if (form.isEmpty()) return Optional.empty();
+                payload = new LinkedHashMap<>(form.get());
             }
             default -> {
                 return Optional.empty();
