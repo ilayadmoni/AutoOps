@@ -26,14 +26,18 @@ docker info >/dev/null
 "${compose[@]}" pull --ignore-buildable
 "${compose[@]}" build
 
+echo "All images built. Saving .tar archives to $script_dir/exports..."
 mkdir -p "$script_dir/exports"
 tmp_dir="$(mktemp -d "$script_dir/exports/.export-XXXXXX")"
 trap 'rm -rf -- "$tmp_dir"' EXIT
 while IFS=$'\t' read -r service image; do
+  # Native Windows Python emits CRLF; remove the carriage return before calling Docker.
+  image="${image%$'\r'}"
   [[ -n "$service" ]] || continue
   [[ -n "$image" && "$image" != *$'\n'* ]] || { echo "Expected one image for $service" >&2; exit 1; }
   echo "Exporting $service ($image)..."
   docker image save --output "$tmp_dir/$service.tar" "$image"
   mv -- "$tmp_dir/$service.tar" "$script_dir/exports/$service.tar"
+  echo "Saved $script_dir/exports/$service.tar"
 done <<< "$image_map"
 echo "Images exported to $script_dir/exports"
