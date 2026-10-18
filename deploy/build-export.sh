@@ -3,26 +3,17 @@
 set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-repo_dir="$(dirname -- "$script_dir")"
-
-if [[ $# -gt 1 || ${1:-} == --help || ${1:-} == -h ]]; then
-  echo "Usage: $0 [env-file]"
-  echo "Defaults to the repository .env, then deploy/.env. Exports to deploy/exports/."
-  [[ $# -le 1 ]] && exit 0 || exit 1
+if [[ $# -ne 0 ]]; then
+  echo "Usage: $0"
+  echo "Builds images and exports to deploy/exports/. No env file is needed."
+  [[ $# -eq 1 && ( $1 == --help || $1 == -h ) ]] && exit 0 || exit 1
 fi
 
-if [[ $# -eq 1 ]]; then
-  env_file="$1"
-elif [[ -f "$repo_dir/.env" ]]; then
-  env_file="$repo_dir/.env"
-else
-  env_file="$script_dir/.env"
-fi
-[[ -f "$env_file" ]] || { echo "Missing env file: $env_file. Copy .env.example and fill required values." >&2; exit 1; }
 command -v docker >/dev/null || { echo "Docker is required." >&2; exit 1; }
 command -v python3 >/dev/null || { echo "Python 3 is required to read the Compose image mapping." >&2; exit 1; }
 docker compose version >/dev/null
-compose=(docker compose --env-file "$env_file" -f "$script_dir/docker-compose.yml" -f "$script_dir/docker-compose.build.yml")
+export COMPOSE_DISABLE_ENV_FILE=1
+compose=(docker compose -f "$script_dir/docker-compose.yml" -f "$script_dir/docker-compose.build.yml")
 
 # Validate before building; never print the resolved configuration (contains secrets).
 "${compose[@]}" config --quiet

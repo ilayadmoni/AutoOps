@@ -5,7 +5,7 @@ services:
       context: ..
       dockerfile: deploy/minio/Dockerfile
       args:
-        MINIO_RELEASE: ${MINIO_RELEASE:-RELEASE.2025-10-15T17-29-55Z}
+        MINIO_RELEASE: RELEASE.2025-10-15T17-29-55Z
   backend:
     build:
       context: ..
