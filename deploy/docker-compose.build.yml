@@ -1,4 +1,4 @@
-# Build override used only on the build host by build-export.sh.
+# Build override for quick installers, manual source builds and build-export.sh.
 services:
   minio:
     build:

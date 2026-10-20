@@ -32,3 +32,8 @@ skills-lock.json
 
 # Exported deployment images
 /deploy/exports/
+
+# Quick-install private configuration (contains generated secrets and API keys)
+/deploy/docker-compose.local.yml
+__pycache__/
+*.pyc

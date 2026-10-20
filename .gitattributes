@@ -1,0 +1,2 @@
+# Shell helpers are executed in Linux containers, including on Windows checkouts.
+*.sh text eol=lf

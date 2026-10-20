@@ -1,220 +1,184 @@
 <div align="center">
 
-<img src=".github/assets/banner.svg" alt="AutoOps — secure, AI-assisted automation for Linux fleets" width="100%"/>
+<img src=".github/assets/banner.svg" alt="AutoOps — AI-assisted automation for Linux servers" width="100%"/>
 
-<br/>
+**Describe the task. Review the workflow. Run across your servers.**
 
-[![Java](https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](#tech-stack)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.5-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](#tech-stack)
-[![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#tech-stack)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](#tech-stack)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16_+_pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](#tech-stack)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#quick-start-docker-compose)
+[![Java](https://img.shields.io/badge/Java_21-ED8B00?logo=openjdk&logoColor=white)](#tech-stack) [![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.5-6DB33F?logo=springboot&logoColor=white)](#tech-stack) [![React](https://img.shields.io/badge/React_19-20232A?logo=react&logoColor=61DAFB)](#tech-stack) [![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white)](#installation)
 
-**[What it does](#what-it-does)** · **[How a run works](#how-a-run-works)** · **[Architecture](#architecture)** · **[Engineering highlights](#engineering-highlights)** · **[Quick start](#quick-start-docker-compose)** · **[Docs](#documentation)**
+[Features](#what-you-can-do) · [Installation](#installation) · [AI setup](docs/AI_SETUP.md) · [First workflow](docs/FIRST_RUN.md) · [Documentation](#documentation)
 
 </div>
 
----
+## What is AutoOps?
 
-## The problem
+AutoOps is a self-hosted application for managing Linux machines over SSH. It helps reduce tedious, repetitive work when you manage many servers. Select your targets, prepare one workflow and follow one execution with preflight checks, approvals and results for each machine.
 
-Operations teams that look after fleets of Linux servers often work by SSH-ing into each box and pasting commands
-from a wiki. Nothing checks those commands first, nobody signs off on risky ones, and nothing records what ran where.
+You can build workflows manually or describe the task to an AI assistant. Tag your servers with `@`, review the proposed steps, save the workflow and explicitly start the run. The assistant can propose commands, machines and workflows; it does not independently save those proposals or execute them.
 
-**AutoOps replaces that with one controlled path.** Commands come from an approved **Command Bank**. They can be
-chained into typed **workflows**, and they run through a central **execution engine** with preflight checks,
-approval gates, live progress and a full audit history. An **AI assistant** can find commands, draft workflows
-and explain failures, but it never executes anything itself.
+## Demo
 
-<table>
-<tr>
-<td align="center" width="25%"><h3>156</h3><sub>Java classes in a modular Spring Boot monolith</sub></td>
-<td align="center" width="25%"><h3>17</h3><sub>versioned Flyway migrations</sub></td>
-<td align="center" width="25%"><h3>11</h3><sub>AI tools, all read / validate / propose only</sub></td>
-<td align="center" width="25%"><h3>EN · HE</h3><sub>full English and Hebrew (RTL) UI</sub></td>
-</tr>
-</table>
+The demo follows a disk-space check from a regular terminal to an AI-created workflow running on three Linux servers in parallel.
 
-## What it does
+[![Watch the AutoOps demo](.github/assets/demo-poster.jpg)](.github/assets/autoops-demo.mp4)
 
-<table>
-<tr>
-<td width="50%" valign="top">
+**[Watch / download the full-quality demo](https://github.com/ilayadmoni/AutoOps/raw/refs/heads/main/.github/assets/autoops-demo.mp4)** — 45 seconds · 1080 × 1350 · voiceover and subtitles.
 
-### 📚 Command Bank
-A catalog of reviewed shell commands with typed parameter schemas. Only **APPROVED** commands can run.
-Parameters are validated, then quoted and resolved **on the server**. The browser never sends a raw shell string.
+## What you can do
 
-</td>
-<td width="50%" valign="top">
+| Feature | Details |
+| --- | --- |
+| **AI operations chat** | Describe tasks, tag machines, attach stored files, answer clarification questions and review workflow proposals alongside a visual preview. |
+| **Command Bank** | Search Linux commands, create entries, supply typed parameters and preview their server-resolved command. Referenced Command Bank entries must be approved to run. |
+| **Visual workflows** | Combine Command, File Transfer and Wait Until steps, including custom shell commands, success/failure branches and per-step settings. |
+| **Execute across machines** | Preflight checks, concurrency of up to three machines per execution, approval gates, live progress, stop, retry and stored stdout/stderr with exit codes. |
+| **Machine inventory** | SSH connection checks, folders, favorites and session imports, with encrypted password credentials. |
+| **SSH host trust** | Explicit fingerprint confirmation and first-use pinning during preflight for eligible new machines. Changed, revoked or retargeted trust requires manual review. |
+| **Files and folders** | S3-compatible storage, folder packages and SFTP transfers with checksum verification. |
+| **Administration** | User management, dataset imports/review, environment overview and a sanitized audit log. |
+| **Interface** | English and Hebrew, LTR/RTL layouts, light/dark themes and persisted conversations. |
 
-### 🧩 Typed workflows
-Multi-step plans with success and failure edges. A step can run a command, transfer a file
-(SFTP + SHA-256 verification) or *wait until* a service is active, a file exists or a command succeeds.
+Custom commands are shell instructions reviewed by the operator; validation and risk gates do not make arbitrary shell code harmless. The backend enforces ownership, command resolution, host verification and approvals.
 
-</td>
-</tr>
-<tr>
-<td valign="top">
+## Installation
 
-### ⚙️ One execution engine
-Command runs and workflow runs share the same path: **preflight → approval gate → run → aggregate**.
-It runs on several machines at once, with stop and retry, bounded output capture and safe recovery after a restart.
+### Quick install — Windows and macOS
 
-</td>
-<td valign="top">
+Install **Git** and **Docker Desktop**, start Docker Desktop with Linux containers, then clone the repository:
 
-### 🔐 Pinned SSH host trust
-The user confirms a host's fingerprint once. After that, every session must present exactly that key.
-A changed key aborts before authentication and blocks all remote work until someone re-confirms it.
-
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-### 🤖 AI assistant that proposes, never executes
-Native tool calling over an OpenAI-compatible API. It can search commands, draft workflows and explain
-failed runs. Every proposal is re-validated in Java and then **reviewed by a human** in the normal UI.
-
-</td>
-<td valign="top">
-
-### 🧾 Approvals and audit
-Risk is classified on the server. HIGH-risk runs always need an acknowledged approval. Security events,
-from logins to host-key mismatches, are written to a sanitized audit log that admins can view.
-
-</td>
-</tr>
-</table>
-
-## How a run works
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Op as Operator
-    participant UI as React SPA
-    participant API as Spring Boot API
-    participant DB as PostgreSQL
-    participant Host as Linux machines
-
-    Op->>UI: Pick an approved command and target machines
-    UI->>API: POST /api/executions (command id + params, no shell text)
-    API->>API: Resolve and quote params · classify risk
-    API->>DB: Persist Execution, MachineRuns, StepRuns
-    API->>Host: Preflight over SSH (pinned host key, auth, Linux, sudo)
-    alt HIGH risk or manual mode
-        API-->>UI: ApprovalRequest pending
-        Op->>UI: Approve (acknowledge risk)
-        UI->>API: Approve
-    end
-    API->>Host: Run steps (max 3 machines in parallel)
-    Host-->>API: exit code + bounded stdout/stderr
-    API->>DB: Persist results · audit log
-    API-->>UI: Live progress → SUCCESS / PARTIAL / FAILED
+```bash
+git clone https://github.com/ilayadmoni/AutoOps.git
+cd AutoOps
 ```
+
+**Windows — PowerShell 5.1 or later:**
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+**macOS — Terminal:**
+
+```bash
+bash install.sh
+```
+
+The interactive installer asks for your HTTPS hostname/port, administrator username/password and AI provider base URL, API key and model ID. **Passwords and API keys are entered privately at runtime**, never shipped in the repository. Choose `n` at the AI prompt to install without AI.
+
+It generates independent database/storage passwords and JWT/encryption keys, creates a local HTTPS CA/certificate, builds the images and waits for service readiness. Python, Bash and OpenSSL run inside a temporary Docker helper; no host installation of these tools is required for the quick path.
+
+Trust `deploy/tls/ca.crt` on your device, then open the HTTPS address you selected and sign in with your administrator credentials. See [certificate trust instructions](docs/QUICK_INSTALL.md#trust-the-local-certificate).
+
+Settings are saved in **`deploy/docker-compose.local.yml`**, which is excluded from Git. Re-running the installer reuses that file and preserves secrets. Back it up together with `deploy/tls/`; changing the encryption key makes saved SSH credentials unreadable. Existing deployments should follow the [update guide](docs/DEPLOYMENT.md), not regenerate secrets.
+
+[Quick-install details and troubleshooting](docs/QUICK_INSTALL.md) · [Complete manual installation guide](docs/INSTALLATION.md)
+
+### Manual installation
+
+The manual path below uses Bash and host OpenSSL; on Windows, use WSL 2 with Docker Desktop integration. The quick installer above works directly in PowerShell.
+
+### What you need
+
+- **Docker with Docker Compose** and a running Docker daemon using Linux containers. Install [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Engine with the Compose plugin](https://docs.docker.com/compose/install/).
+- **Git, Bash and OpenSSL** for cloning and the certificate script. The offline image-export helper also needs Python 3.
+- **An OpenRouter API key or another compatible AI provider** to enable the assistant. The provider/model must support Chat Completions and native tool calling. The rest of AutoOps works without AI.
+- **A reachable Linux server with SSH** for running tasks. The backend container must be able to reach its address and SSH port; the currently implemented credentials use a username and password.
+- Internet access for the first image/dependency build and for cloud AI requests. Offline deployment from exported images is also supported.
+
+Java, Maven, Node.js and Go are installed inside the build images; they are not host requirements for the Docker installation. Native development has [separate prerequisites](docs/DEVELOPMENT.md).
+
+### Installation at a glance
+
+```bash
+git clone https://github.com/ilayadmoni/AutoOps.git
+cd AutoOps
+mkdir -p deploy/certs
+bash deploy/generate-tls-cert.sh localhost
+# Configure ALL REPLACE values in deploy/docker-compose.yml.
+# See docs/CONFIGURATION.md for complete values and secret generation.
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.build.yml pull postgres
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.build.yml build
+docker compose -f deploy/docker-compose.yml config --quiet
+docker compose -f deploy/docker-compose.yml up -d --pull never
+docker compose -f deploy/docker-compose.yml ps
+```
+
+Install `deploy/tls/ca.crt` as a trusted root on your client device, then open **https://localhost/**. Sign in with the administrator username/password you configured. For another device or hostname, generate the certificate for that host and ensure its DNS/IP resolves to the Docker host.
+
+**Configuration is currently explicit in Compose:** fill the YAML values directly. Copying `.env.example` to `.env` does **not** replace the literal `REPLACE:` values in the supplied Compose file. Keep the configured YAML private; do not commit credentials or API keys.
+
+### Configure AI
+
+In the backend environment in `deploy/docker-compose.yml`, set:
+
+```yaml
+AI_BASE_URL: "https://openrouter.ai/api/v1"
+AI_API_KEY: "YOUR_PROVIDER_API_KEY"
+AI_MODEL: "YOUR_EXACT_TOOL_CAPABLE_MODEL_ID"
+AI_SSL_VERIFY: "true"
+AI_SSL_CERT_PATH: ""
+```
+
+Get your OpenRouter key and model ID using the [AI provider setup guide](docs/AI_SETUP.md). It also explains other OpenAI-compatible providers, local endpoints, provider billing, TLS and testing. Use the API base URL, without `/chat/completions`; AutoOps appends that path.
+
+After changing settings, recreate the backend:
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d --pull never --force-recreate backend
+```
+
+Leave `AI_API_KEY` and `AI_MODEL` empty to disable the assistant. Keep `EMBEDDING_PROVIDER: "LOCAL"` for offline lexical/hash embeddings; chat AI and command-search embeddings are configured separately.
+
+## Your first workflow
+
+1. Sign in, create an SSH credential and add a machine using an address reachable from the backend container.
+2. Discover its SSH fingerprint, compare it with the host's own fingerprint and confirm it; run the connection test.
+3. Add a second machine if you want to try a multi-server run.
+4. Open the assistant, select the machines with `@` and ask: **"Build a workflow to check disk space with df -h on these servers."**
+5. Review the draft, save it, confirm targets and start the workflow. Follow preflight, any required approval and both results.
+
+See [the first-run walkthrough](docs/FIRST_RUN.md) for the manual path and connection troubleshooting.
 
 ## Architecture
 
 ```mermaid
-graph LR
-    B([🌐 Browser<br/>React 19 SPA]) -->|HTTPS| N[Nginx]
-    N --> A
-
-    subgraph A[Spring Boot 3.5 · Java 21]
-        direction TB
-        SEC[JWT auth · ownership · validation]
-        RISK[Risk classification · approval policy]
-        RES[Server-side command resolution]
-        ENG[Execution engine]
-        AI[AI chat service<br/>read / validate / propose tools]
-    end
-
-    A --> PG[(PostgreSQL 16<br/>+ pgvector)]
-    A --> S3[(MinIO · S3)]
-    AI -.->|no secrets| LLM[OpenRouter / OpenAI-compatible]
-    ENG ==>|SSH / SFTP<br/>pinned host key| R[🖥️ Linux fleet]
-
-    style A fill:#0d1410,stroke:#3ee27a,color:#fff
-    style R fill:#16c062,color:#fff
+flowchart LR
+    Browser[React SPA] -->|HTTPS :443| Nginx
+    Nginx -->|API and SSE| Backend[Spring Boot / Java 21]
+    Backend --> DB[(PostgreSQL + pgvector)]
+    Backend --> Files[(MinIO / S3)]
+    Backend -->|Chat Completions + tools| AI[OpenRouter / compatible provider]
+    Backend -->|SSH / SFTP| Fleet[Linux machines]
 ```
 
-The trust boundary is simple: **the browser and the AI propose, Spring Boot decides.** Authorization, ownership,
-validation, risk classification, approval policy, command resolution and SSH host verification all happen on the
-server. The AI has no SQL, shell, SSH, HTTP or filesystem tools and never sees credentials. Everything works without AI too.
-
-## Engineering highlights
-
-| Area | What I built | Why it matters |
-| --- | --- | --- |
-| **Command safety** | `StepResolver` re-resolves each step at creation, in preflight and right before it runs | A command that is un-approved halfway through a run can't sneak through |
-| **Host trust** | OpenSSH `SHA256:` fingerprints, constant-time comparison, a per-session key repository holding only the trusted key | Stops machine-in-the-middle attacks on every SSH session |
-| **Secrets** | Machine passwords encrypted with AES-256-GCM (random IV). They are never returned, logged or sent to the AI | A database leak doesn't expose server credentials |
-| **Sessions** | Short-lived JWT access tokens plus rotating opaque refresh tokens (SHA-256 hashed). Reusing an old token revokes every session | Stolen refresh tokens are caught and shut down |
-| **Concurrency** | Parallel preflight and run (1–3 machines) with `STOP_NEW_MACHINES` / `CONTINUE` failure policies | Mistakes don't spread silently across the fleet |
-| **Resilience** | Stop, retry of the latest failed step, and `ExecutionRecovery` for in-flight runs on startup | No run is left stuck in a half-finished state |
-| **AI guardrails** | At most 3 tool rounds, bounded context, and Java re-validation of every proposed operation (`AIOperationValidator`) | The model helps, but it can't change anything by itself |
-| **i18n** | English and Hebrew as equal UIs with correct LTR/RTL. Paths, code and addresses stay LTR | Built for real bilingual operations teams |
+The browser and assistant submit requests; the backend controls execution. Stored SSH passwords are encrypted with AES-256-GCM and excluded from AI tool responses. Chat prompts, machine metadata and selected tool results can go to the configured AI provider. Review what you include in messages and outputs.
 
 ## Tech stack
 
 | Layer | Technology |
-|---|---|
-| Frontend | React 19, TypeScript, Vite, TanStack Query, React Router, Lucide, English/Hebrew (RTL) |
-| Backend | Java 21, Spring Boot 3.5, Spring Security (JWT + rotating refresh cookie), JPA, Flyway |
-| Data | PostgreSQL 16 + pgvector, MinIO (S3) |
-| Remote | JSch SSH/SFTP with pinned host keys |
-| AI | OpenRouter / OpenAI-compatible chat completions with native tool calling (optional) |
-| Delivery | Docker Compose, Nginx, GitHub Actions CI (Maven tests + frontend type-check/build) |
-
-## Quick start (Docker Compose)
-
-```bash
-./deploy/build-export.sh
-# On the target host: copy the exports, Compose file and certificate script.
-bash deploy/generate-tls-cert.sh autoops.example.com
-# Edit all REPLACE values in deploy/docker-compose.yml.
-for archive in deploy/exports/*.tar; do docker image load --input "$archive"; done
-docker compose -f deploy/docker-compose.yml up -d --pull never
-```
-
-Trust `deploy/tls/ca.crt` on your client device, then open `https://autoops.example.com/`
-(using the DNS name or IPv4 address supplied to the certificate script) and sign in with
-`AUTOOPS_ADMIN_USERNAME` / `AUTOOPS_ADMIN_PASSWORD`.
-Then: add a credential → add a machine → **Trust host key** → **Test** → run a command from the Command Bank.
-
-<details>
-<summary><b>Local development</b></summary>
-
-```bash
-# backend (needs PostgreSQL with pgvector, and MinIO or another S3 endpoint)
-cd backend && JWT_SECRET=... CREDENTIAL_ENCRYPTION_KEY=... MINIO_SECRET_KEY=... COOKIE_SECURE=false mvn spring-boot:run
-# frontend (proxies /api to localhost:8080)
-cd frontend && npm ci && npm run dev
-```
-
-Checks: `cd backend && mvn test` and `cd frontend && npm run build` (includes an i18n key check and type check).
-
-</details>
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite 7, TanStack Query, React Router, React Flow, Motion, Lucide |
+| Backend | Java 21, Spring Boot 3.5, Spring Security, JPA, Flyway |
+| Data and storage | PostgreSQL 16 + pgvector, MinIO/S3-compatible storage |
+| Remote operations | JSch SSH/SFTP, host-key pinning, preflight and approval policy |
+| Delivery | Docker Compose, Nginx HTTPS, GitHub Actions backend tests and frontend build |
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Execution engine](docs/EXECUTION_ENGINE.md)
-- [Security](docs/SECURITY.md) · [Deployment & configuration](docs/DEPLOYMENT.md) · [AI](docs/AI.md)
-- [Database](docs/DATABASE.md) · [Frontend](docs/FRONTEND.md) · [Prompts](docs/PROMPTS.md)
-- [V1 completion plan and progress](docs/CODE_AGENT_MASTER_PLAN.md)
+| Start or operate | Understand or develop |
+| --- | --- |
+| [Installation](docs/INSTALLATION.md) | [Architecture](docs/ARCHITECTURE.md) |
+| [Configuration values](docs/CONFIGURATION.md) | [API](docs/API.md) |
+| [AI provider setup](docs/AI_SETUP.md) | [AI behavior](docs/AI.md) |
+| [First login and workflow](docs/FIRST_RUN.md) | [Execution engine](docs/EXECUTION_ENGINE.md) |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | [Security](docs/SECURITY.md) |
+| [Deployment, backups and updates](docs/DEPLOYMENT.md) | [Native development](docs/DEVELOPMENT.md) |
+| [Offline image export](deploy/README.md) | [Database](docs/DATABASE.md) · [Frontend](docs/FRONTEND.md) · [Prompts](docs/PROMPTS.md) |
+
+For checks and contribution workflows, see [development instructions](docs/DEVELOPMENT.md). The [documentation index](docs/README.md) lists the remaining references and historical implementation plan.
 
 ---
 
-<div align="center">
+**Built by [Ilay Admoni](https://github.com/ilayadmoni)** — Computer Science student and software engineer, drawing on hands-on Linux and VMware infrastructure experience.
 
-**Built by [Ilay Admoni](https://github.com/ilayadmoni)**: Computer Science student and software engineer.<br/>
-AutoOps grew out of years of hands-on work running Linux and VMware infrastructure.
-
-[![GitHub](https://img.shields.io/badge/GitHub-ilayadmoni-181717?style=flat-square&logo=github)](https://github.com/ilayadmoni)
-[![Email](https://img.shields.io/badge/Email-ilayadmoni9%40gmail.com-EA4335?style=flat-square&logo=gmail&logoColor=white)](mailto:ilayadmoni9@gmail.com)
-&nbsp;·&nbsp; See also **[HeartNote](https://github.com/ilayadmoni/HeartNote)**, a production full-stack app on AWS
-
-</div>
+[GitHub](https://github.com/ilayadmoni) · [Email](mailto:ilayadmoni9@gmail.com) · [LinkedIn](https://www.linkedin.com/in/ilay-admoni-11010145252572577252/)

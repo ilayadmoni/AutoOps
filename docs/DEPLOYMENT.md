@@ -1,102 +1,81 @@
-# Deployment and configuration
+# Deployment and operations
 
-## Docker Compose
+For a new installation, follow [INSTALLATION.md](INSTALLATION.md), [CONFIGURATION.md](CONFIGURATION.md) and [AI_SETUP.md](AI_SETUP.md). For image transport to another host, use the [deployment README](../deploy/README.md).
 
-```bash
-./deploy/build-export.sh
-# On the target host, after copying the exports, Compose file and certificate script:
-bash deploy/generate-tls-cert.sh autoops.example.com
-# Edit every REPLACE value in deploy/docker-compose.yml before starting.
-for archive in deploy/exports/*.tar; do docker image load --input "$archive"; done
-docker compose -f deploy/docker-compose.yml up -d --pull never
-```
+**Quick-installer deployments:** use `-f deploy/docker-compose.local.yml` in place of `-f deploy/docker-compose.yml` in every command below. Preserve/back up that private configuration and the TLS directory with your data; do not rerun first-time secret generation against existing volumes.
 
-Services: `postgres` (pgvector/pgvector:pg16, volume `postgres-data`), `minio` (pinned release built from source,
-volume `minio-data`), `backend` (Spring Boot), `frontend` (Nginx HTTPS on host port 443). Startup is
-ordered by health checks: Postgres `pg_isready`, MinIO `/minio/health/live`, backend `/actuator/health/readiness`.
-Replace every `REPLACE:` environment value directly in `deploy/docker-compose.yml` before starting.
-Descriptions are placeholders; use `""` for unused optional values. No `.env` file is needed.
-The defaults in the reference table below are suggested values to enter manually.
+## Services and network
 
-Flyway migrates the database on backend startup. On first start the Admin from `AUTOOPS_ADMIN_*` is created and a set
-of approved Linux commands is seeded.
+| Service | Image/runtime | Persistent state |
+| --- | --- | --- |
+| `postgres` | `pgvector/pgvector:pg16` | `postgres-data` volume |
+| `minio` | MinIO built from the pinned source release | `minio-data` volume |
+| `backend` | Spring Boot / Java 21, UID 10001, internal port 8080 | Database and S3 state, not container filesystem |
+| `frontend` | Nginx serving the Vite build, HTTPS on published host port 443 | Read-only TLS bind mounts |
 
-## Configuration reference
+Startup waits for Postgres (`pg_isready`) and MinIO (`/minio/health/live`), then backend readiness. Flyway runs on backend startup. Bootstrap creates the configured administrator only when none exists. Runtime Compose uses explicit environment values: `.env.example` is not automatically wired into it.
 
-| Group | Variable | Default | Notes |
-|---|---|---|---|
-| Database | `DATABASE_URL` | `jdbc:postgresql://postgres:5432/autoops` | |
-| | `DATABASE_USERNAME` / `DATABASE_PASSWORD` | `autoops` / **required** | |
-| Auth | `JWT_SECRET` | **required** | ≥ 32 bytes |
-| | `JWT_ACCESS_EXPIRATION` / `JWT_REFRESH_EXPIRATION` | `900000` / `604800000` | milliseconds |
-| | `COOKIE_SECURE` | `true` | `false` only for plain-HTTP access from another host |
-| | `AUTOOPS_ADMIN_USERNAME` / `AUTOOPS_ADMIN_PASSWORD` | – | first Admin only |
-| Credentials | `CREDENTIAL_ENCRYPTION_KEY` | **required** | changing it makes stored passwords unreadable |
-| AI | `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL` | OpenRouter, empty | assistant disabled when key/model empty |
-| | `AI_SSL_VERIFY` | `true` | keep enabled when using a custom CA certificate |
-| | `AI_SSL_CERT_PATH` | empty | optional PEM/DER certificate or PEM bundle; supplements JVM trust for the AI client |
-| | backend bind mount `source` | `./certs` | Compose host directory mounted read-only at `/app/certs`; relative to `deploy/` |
-| Embeddings | `EMBEDDING_PROVIDER` | `LOCAL` | `OPENAI_COMPATIBLE` needs `EMBEDDING_BASE_URL`, `EMBEDDING_API_KEY`, `EMBEDDING_MODEL` (384 dims) |
-| Storage | `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET` | `http://minio:9000`, `autoops`, **required**, `autoops` | any S3-compatible endpoint |
-| | `FILES_MAX_SIZE`, `FILES_ORPHAN_RETENTION_DAYS`, `DATASET_MAX_SIZE` | `100MB`, `7`, `20MB` | |
-| Execution | `EXECUTION_MAX_CONCURRENCY` | `3` | per-execution upper bound (never above 3) |
-| | `EXECUTION_WORKER_THREADS` | `24` | total concurrent machine jobs |
-| | `EXECUTION_APPROVAL_TIMEOUT_MINUTES` | `1440` | pending approvals expire afterwards |
-| | `EXECUTION_MAX_OUTPUT_BYTES` | `65536` | per stream, head + tail kept |
+Only frontend HTTPS is published by the supplied stack. Database, S3 and Java ports stay on the Compose network. The backend needs routes to target SSH servers and the configured AI endpoint. Cloud AI requires provider connectivity even when application images were installed offline.
 
-## AI provider certificates
-
-For a private AI endpoint or TLS-inspecting proxy, place its CA certificate (or PEM CA bundle) in
-`deploy/certs/provider-ca.pem`, then edit these backend environment values directly in `deploy/docker-compose.yml`:
-
-```yaml
-AI_SSL_VERIFY: "true"
-AI_SSL_CERT_PATH: "/app/certs/provider-ca.pem"
-```
-
-Compose mounts the certificate directory read-only. To use another host directory, edit the backend bind mount `source`
-to its absolute path (on Windows, for example `C:/certs`). The backend container runs as UID 10001,
-so the directory and certificate must be readable by that user. Certificates in `deploy/certs/` are ignored by Git.
-Recreate the backend after changing configuration or certificates:
+## Health and logs
 
 ```bash
+docker compose -f deploy/docker-compose.yml ps
+docker compose -f deploy/docker-compose.yml logs --tail=100 backend
+curl --cacert deploy/tls/ca.crt https://localhost/actuator/health
+```
+
+Use the configured hostname and port. Nginx exposes `/actuator/health`; readiness/liveness endpoints are checked directly inside the backend container. A healthy backend does not prove AI key validity or target SSH access. Check those with an actual chat and connection test.
+
+Nginx disables buffering for execution SSE events and sets long read timeouts. An additional reverse proxy/load balancer must preserve that behavior. The upload limit is `110m`; align backend file/dataset limits before changing it.
+
+## Apply configuration changes
+
+```bash
+docker compose -f deploy/docker-compose.yml config --quiet
 docker compose -f deploy/docker-compose.yml up -d --pull never --force-recreate backend
 ```
 
-When running Java directly, set `AI_SSL_CERT_PATH` to the certificate's local filesystem path instead.
-An empty path keeps JVM default trust; an unreadable or invalid configured certificate prevents startup.
-This setting applies to the AI assistant client, and does not configure embeddings or mutual TLS client keys.
+Use this for changed backend environment values or provider CA certificates. A plain container restart does not reload environment values. Keep TLS verification enabled; provider certificate setup is in [configuration](CONFIGURATION.md#provider-ca-certificates). The configured YAML contains secrets and should not be committed/shared.
 
-## Reverse proxy
+## Backups
 
-`deploy/nginx/nginx.conf` serves the SPA, proxies `/api`, and has a dedicated location for
-`/api/executions/{id}/events` with buffering disabled and a one-hour read timeout (the backend also sends
-`X-Accel-Buffering: no` and periodic keep-alive comments). Uploads are limited by `client_max_body_size`.
-Production Nginx terminates TLS on port 443 and the backend sets a `Secure` refresh cookie.
-Run `bash deploy/generate-tls-cert.sh <DNS-name-or-IPv4-address>` on the deployment host before starting
-Compose. This creates a private CA and a server certificate with a matching subject alternative name
-in `deploy/tls/`. Install `deploy/tls/ca.crt` on client devices to trust the site. Protect and back up
-`deploy/tls/ca.key`; it is not mounted in Nginx. The server certificate lasts one year.
-Replacing the generated CA requires installing the new `ca.crt` on client devices. To use an existing
-certificate instead, place its PEM certificate and private key at `deploy/tls/server.crt` and
-`deploy/tls/server.key`. Compose mounts those two files read-only. Only port 443 is exposed.
+Back up **both** PostgreSQL and MinIO, plus the matching credential-encryption secret and deployment configuration. Historical workflow/file references in the database depend on the stored objects. Preserve secrets in a separate protected backup, not in a public repository.
 
-## Health
+For a database dump from the running PostgreSQL service (Bash, repository root):
 
-- `GET /actuator/health` (also exposed through Nginx), `/actuator/health/liveness`, `/actuator/health/readiness`.
+```bash
+mkdir -p backups
+docker compose -f deploy/docker-compose.yml exec -T postgres \
+  sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > backups/autoops.dump
+```
 
-## Manual verification checklist
+Confirm the dump succeeded and keep it private. For MinIO, use an S3-aware backup/mirror or a consistent snapshot of the storage volume while writes are quiesced. A complete recovery plan must restore database/object state from a compatible point in time; do not copy a live PostgreSQL data directory as a substitute for a database backup.
 
-1. Sign in as the bootstrapped Admin; reload the page (session restored); sign out; refresh fails afterwards.
-2. Create a credential; confirm the list never shows the password; rotate it; deletion is refused while a machine uses it.
-3. Add a machine, discover and confirm the fingerprint (compare with `ssh-keygen -lf /etc/ssh/ssh_host_*_key.pub`),
-   run **Test**. Replace the server key: tests and executions are blocked and the machine shows *Key changed*.
-4. Run a LOW risk command (e.g. *Show disk usage*): preflight passes, stdout and exit code are shown, SUCCESS.
-5. Run against an untrusted machine: preflight fails, no step runs.
-6. Run *Install package* (HIGH): approval requires acknowledgement; reject cancels with no step run; approve runs.
-7. Build Command → Wait → File workflow, save, reload, edit, run; failure branches are followed; all steps appear.
-8. Upload a file; it is used by a file-transfer step with checksum verification; another user cannot access it.
-9. Ask the assistant for a command and for a workflow; review the proposal in the builder; nothing runs on its own.
-10. As Admin upload a CSV or JSON dataset, review the preview, confirm; commands appear with source DATASET.
-11. Stop a running workflow during a wait: it ends CANCELLED; retry a failed step: a new attempt runs.
-12. As a USER, `/api/admin/**` returns 403 and other users' resources return 404.
+Keep `CREDENTIAL_ENCRYPTION_KEY` with the matching backup. Rotating it without migrating stored ciphertext makes SSH passwords unreadable. Test restores in a separate environment before relying on them. The `backups/` directory is not inherently a secure storage location; use protected backup storage and do not commit its contents.
+
+## Updates
+
+1. Record the current revision/image versions and preserve the private configured Compose file.
+2. Back up database, object storage and secrets; review migration changes in the target release.
+3. Obtain the new source/release, merge new configuration fields into your private copy and build/load the matching images.
+4. Recreate services with `docker compose -f deploy/docker-compose.yml up -d --pull never`.
+5. Confirm health, login/session restoration, SSH trust and a safe test execution. Check AI proposals if enabled.
+
+Restart recovery marks interrupted executions failed/cancelled rather than resuming arbitrary remote commands. Schedule updates away from active work. Rolling back an image alone does not undo database migrations; schema rollback/recovery needs a tested restore or migration plan.
+
+## Certificates
+
+`deploy/generate-tls-cert.sh` creates a private CA and one DNS/IP server certificate. The CA lasts ten years and the server certificate one year. The script refuses to overwrite existing files. Monitor expiry and prepare renewal before the server certificate expires.
+
+For a replacement generated set, preserve the old set privately and create the replacement in a controlled location; clients must trust the replacement CA. Alternatively provision a certificate/chain and private key from your chosen CA at `deploy/tls/server.crt` and `server.key`. Keep `ca.key` private; it is not mounted into Nginx.
+
+After replacing the mounted TLS files, recreate the frontend to load the new certificate:
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d --pull never --force-recreate frontend
+```
+
+## Stop and persistence
+
+`docker compose ... stop` preserves containers and volumes; `down` removes containers/network but normally retains named volumes. **`down -v` deletes the database and uploaded files.** Do not use it as an update or troubleshooting shortcut. Follow [first run](FIRST_RUN.md) for checks after installation and [troubleshooting](TROUBLESHOOTING.md) for failures.

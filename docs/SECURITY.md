@@ -15,6 +15,9 @@
 - The application refuses to start without `JWT_SECRET` (≥ 32 bytes) and `CREDENTIAL_ENCRYPTION_KEY`.
 
 ## SSH host trust
+- Eligible new machines can have their first observed key pinned automatically during execution preflight (trust on first use).
+  This is not independent identity verification. Explicit fingerprint confirmation is available before running;
+  revoked, changed or retargeted machines require manual trust review.
 - Fingerprints are OpenSSH `SHA256:` over the raw public-key blob.
 - Discovery and confirmation are server-side; confirmation re-probes and compares in constant time.
 - Every session uses a host-key repository containing only the trusted key, with strict checking and the key type
@@ -24,7 +27,9 @@
 ## Authorization
 - Ownership is enforced in services; other users' machines, credentials, files, workflows, executions and
   conversations answer 404. `/api/admin/**` requires ADMIN; the SPA also hides and guards admin routes.
-- Commands run only if APPROVED. Risk is computed server-side; HIGH risk always requires an acknowledged approval.
+- Referenced Command Bank entries run only if APPROVED; current user-created entries are approved immediately.
+  Workflow command steps can also contain user-reviewed custom shell text. Risk is computed server-side;
+  HIGH risk always requires acknowledged approval. Validation is not a sandbox for arbitrary shell code.
 
 ## Audit
 Security-relevant actions (logins, user admin, credentials, machines, host trust and mismatches, commands,

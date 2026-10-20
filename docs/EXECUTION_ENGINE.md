@@ -6,8 +6,9 @@
 ## Plan
 
 `ExecutionPlanFactory` rebuilds the plan from persisted data: a single command step, or the workflow's typed steps
-with success/failure edges. `StepResolver` resolves each step server-side — the command must still be APPROVED,
-parameters are validated against the command's schema and quoted, files must belong to the owner — at creation
+with success/failure edges. `StepResolver` resolves each step server-side — referenced commands must still be APPROVED,
+parameters are validated against their schema and quoted, custom workflow shell commands are validated/classified,
+and files must belong to the owner — at creation
 (fail fast), in preflight, and again immediately before the step runs.
 
 ## Phases
@@ -27,7 +28,7 @@ parameters are validated against the command's schema and quoted, files must bel
 
 ## Steps
 
-- **Command**: approved template + validated parameters; optional sudo applied by the engine
+- **Command**: approved template + validated parameters, or reviewed custom command text in a workflow; optional sudo applied by the engine
   (`sudo -S` with the password on stdin; the wrapped command's stdin is `/dev/null`). Timeout 1–3600 s.
 - **File transfer**: SFTP to a temporary path, SHA-256 verified on the machine, then moved into place with a fixed
   command (`mv`, or `cp` under sudo for privileged destinations). Overwrite is refused unless enabled.

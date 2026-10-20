@@ -1,30 +1,41 @@
-# AI assistant
+# AI assistant behavior
 
-The assistant (`AIChatService`) talks to an OpenRouter / OpenAI-compatible endpoint using native tool calling
-(assistant `tool_calls` and `tool`-role results). It can run at most three tool rounds per message; then it must
-answer without tools. Context is bounded (recent history, draft summary, tool results). It is optional: when
-`AI_API_KEY`/`AI_MODEL` are empty `/api/ai/status` reports `configured: false` and the UI points to manual paths.
+For API key/model installation instructions, use [AI_SETUP.md](AI_SETUP.md). The backend's `AIChatService` uses native tool calling over an OpenRouter/OpenAI-compatible Chat Completions endpoint. It permits at most **six tool rounds** per message, then requests a final answer without offering tools. Recent conversation history, draft context and tool results are bounded.
 
-## Tools (read / validate / propose only)
+The assistant is optional. Missing key or model makes `/api/ai/status` return `configured: false`; this status checks configuration presence, not provider connectivity. Manual operations work without AI.
 
-`list_machines`, `get_machine`, `search_commands`, `list_workflows`, `get_workflow`, `validate_workflow_draft`,
-`propose_workflow_draft`, `propose_command_run`, `get_execution` (sanitized failure context: statuses, preflight,
-exit codes, bounded output), `list_recent_executions`, `list_files` (metadata only). Tools act as the calling user,
-so ownership rules apply. There are no SQL, shell, SSH, HTTP or filesystem tools.
+## Tools
 
-## Operations
+All tools execute under the calling user's ownership rules. They read application resources, validate drafts, ask questions or propose actions; none independently starts SSH work or saves a proposed resource.
 
-Proposal tools return operations that Java re-validates (`AIOperationValidator`) before the client sees them:
+| Group | Tools |
+| --- | --- |
+| Machines | `list_machines`, `get_machine`, `propose_machine` |
+| Commands | `search_commands`, `propose_command`, `propose_command_run` |
+| Workflows | `list_workflows`, `get_workflow`, `validate_workflow_draft`, `propose_workflow_draft` |
+| Execution context | `get_execution`, `list_recent_executions` |
+| Stored files/folders | `list_files` (metadata) |
+| Guided input | `ask_user`, `offer_action_form` |
 
-- `REPLACE_WORKFLOW_DRAFT` — validated with the workflow validator; problems are returned as `missingFields`.
-  The user opens it in the Workflow Builder, edits, validates and saves through the normal API.
-- `PROPOSE_COMMAND_RUN` — command must be approved, parameters are previewed, foreign machines are dropped.
-  The user reviews it in the Run dialog and starts it like any manual run (preflight and approvals apply).
+The system prompt guides five starts: find/add a Linux command, add a server, build a workflow, run an existing workflow through its form, or add credentials through the secure form. Tool availability is not a promise that every arbitrary question is within the prompt's supported scope. There are no general-purpose shell, SQL, SSH, arbitrary-HTTP or filesystem tools.
 
-Chat response: `{conversationId, messageId, message, operations[], missingFields[], toolsUsed[]}`.
-Nothing is saved or executed because the assistant proposed it.
+## User-reviewed operations
 
-## Conversations
+`AIOperationValidator` re-validates proposed payloads before returning them:
 
-Conversations and messages are stored per user (`/api/ai/conversations`) and can be resumed or deleted. History is
-context for the model only, never authoritative workflow state.
+- `REPLACE_WORKFLOW_DRAFT`: update a draft preview; the user reviews, validates and saves through normal workflow APIs. Command nodes may reference approved entries or contain custom command text.
+- `PROPOSE_COMMAND_RUN`: review the command/parameters/targets in the normal run dialog; preflight and approvals still apply.
+- `PROPOSE_NEW_COMMAND`: review/add the Command Bank entry through the UI. The current command-creation implementation approves new entries immediately; execution risk gates remain separate.
+- `PROPOSE_MACHINE`: review the machine form and select credentials before saving.
+- `ASK_USER`: one clarification question with options; ends the tool loop so the user's next reply supplies the answer.
+- `OFFER_ACTION_FORM`: open the saved-workflow run form or secure credential form. Passwords belong in that form, not chat.
+
+Workflow proposals do not automatically save or run. Even when targets are tagged, the user must confirm/start the execution.
+
+## Attachments, context and conversations
+
+The `@` picker attaches actual machine IDs; file attachments reference previously stored resources. Backend attachment context provides owned resource metadata, not SSH passwords. Chat messages and selected tool outputs can be sent to the configured provider, so users must consider the contents of prompts and execution output.
+
+Per-user conversations are persisted through `/api/ai/conversations` and can be resumed/deleted. History informs the model but is not authoritative workflow state. Workflow changes still use the validated draft/API path.
+
+See [prompts](PROMPTS.md), [security](SECURITY.md) and [the first AI workflow](FIRST_RUN.md#build-the-same-workflow-with-ai).

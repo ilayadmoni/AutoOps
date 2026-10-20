@@ -9,4 +9,8 @@
 deploy/exports
 deploy/certs
 deploy/tls
+deploy/docker-compose.local.yml
+.cache
+video-demo
+.github/assets/*.mp4
 **/*.log
