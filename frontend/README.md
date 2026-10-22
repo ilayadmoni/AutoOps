@@ -24,7 +24,10 @@ AI keys and SSH passwords belong on the backend, not in Vite environment variabl
 | `npm run typecheck` | TypeScript check |
 | `npm run i18n:check` | Validate translation-key usage |
 | `npm run test:ui` | Node-based UI integration tests |
+| `npm run test:fleet` | Folder-selection/paging logic and Playwright tests for moves, relative imports and workflow history |
 | `npm run preview` | Vite production-build preview; not the Docker HTTPS/API deployment |
+
+For `test:fleet`, start Vite first and have Google Chrome installed. All browser-test API calls are intercepted with deterministic fixtures; no real machines are changed and no SSH connections are made. Set `AUTOOPS_UI_URL` to use another Vite URL. Screenshots are written under the repository's ignored `.cache/fleet-ui/` directory.
 
 ## Source layout
 

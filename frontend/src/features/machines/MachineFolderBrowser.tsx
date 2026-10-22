@@ -1,9 +1,9 @@
-import { ChevronRight, Folder, Trash2 } from 'lucide-react';
+import { ChevronRight, Folder, FolderInput, MoreHorizontal, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../app/providers/I18nProvider';
 import type { Machine, MachineFolder } from '../../types/api';
-import { Checkbox, IconButton } from '../../components/ui';
+import { Checkbox, IconButton, Menu } from '../../components/ui';
 import type { useMachineSelection } from './useMachineSelection';
 
 export function folderLocation(id: number | null) { return id === null ? '?' : '?folder=' + id; }
@@ -31,9 +31,9 @@ export function MachineBreadcrumbs({ current, folders, onNavigate }: {
   </nav>;
 }
 
-export function MachineFolderCard({ folder, folders, machines, onNavigate, onDelete, selection, favorite }: {
+export function MachineFolderCard({ folder, folders, machines, onNavigate, onDelete, onMove, selection, favorite }: {
   folder: MachineFolder; folders: MachineFolder[]; machines: Machine[]; onNavigate: () => void;
-  onDelete: () => void;
+  onDelete: () => void; onMove: () => void;
   favorite?: ReactNode;
   selection: Pick<ReturnType<typeof useMachineSelection>, 'ids' | 'busy' | 'active' | 'selectVisible'>;
 }) {
@@ -45,8 +45,11 @@ export function MachineFolderCard({ folder, folders, machines, onNavigate, onDel
   const children = folders.filter(f => f.parentId === folder.id).length;
   return <div className={'machineFolderItem' + (selection.active ? ' selecting' : '') + (favorite ? ' favoritable' : '')}>
     {favorite && <span className="machineFolderFavorite">{favorite}</span>}
-    <IconButton className="machineFolderDelete" danger label={t('machineFolders.delete', { name: folder.name })}
-      disabled={selection.busy} onClick={onDelete}><Trash2 size={16} /></IconButton>
+    <Menu label={t('fleet.folderActions', { name: folder.name })} items={[
+      { key: 'move', label: t('fleet.move'), icon: <FolderInput />, onSelect: onMove },
+      { key: 'delete', label: t('common.delete'), icon: <Trash2 />, danger: true, onSelect: onDelete },
+    ]} trigger={<IconButton className="machineFolderDelete" disabled={selection.busy}
+      label={t('fleet.folderActions', { name: folder.name })}><MoreHorizontal size={16} /></IconButton>} />
     {selection.active && <Checkbox className="machineFolderSelect" aria-label={t('machinesBulk.selectFolder', { name: folder.name })}
       checked={count > 0 && selectedCount === count} indeterminate={selectedCount > 0 && selectedCount < count}
       disabled={selection.busy || count === 0} onChange={event => selection.selectVisible(members, event.target.checked)} />}

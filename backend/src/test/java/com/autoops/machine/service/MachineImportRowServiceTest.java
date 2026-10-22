@@ -62,4 +62,13 @@ class MachineImportRowServiceTest {
         verify(credentials, never()).list(anyLong());
         verify(machines).create(eq(1L), argThat(x -> x.preferredCredentialId().equals(31L)));
     }
+
+    @Test void importsFoldersBelowTheRequestedDestination() {
+        setup();
+        when(folders.ensureRelativePath("Lab/Apps", 8L)).thenReturn(19L);
+        service.create(1L, row, new Selection(0, null), 8L);
+        verify(folders).ensureRelativePath("Lab/Apps", 8L);
+        verify(machines).create(eq(1L), argThat(x -> x.folderId().equals(19L)));
+        verify(folders, never()).ensurePath(anyString());
+    }
 }

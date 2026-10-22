@@ -18,7 +18,9 @@ public final class MachineImportDtos {
         public Selection(int index, CredentialDtos.CreateCredential credential) { this(index, credential, null); }
         @Override public String toString() { return "Selection[index=" + index + "]"; }
     }
-    public record Request(@NotEmpty @Size(max = 2000) List<@NotNull @Valid Selection> selections) {}
+    public record Request(@NotEmpty @Size(max = 2000) List<@NotNull @Valid Selection> selections, @Positive Long baseFolderId) {
+        public Request(List<Selection> selections) { this(selections, null); }
+    }
     public record Outcome(int index, String name, String status, String reason, Long machineId) {}
     public record Result(long imported, long skipped, long failed, List<Outcome> outcomes) {}
 }

@@ -24,4 +24,5 @@ public class MachineFolder {
     public String getName() { return name; }
     public String getPath() { return path; }
     public Long getParentId() { return parentId; }
+    public void moveTo(String path, Long parentId) { this.path = path; this.parentId = parentId; }
 }

@@ -5,10 +5,11 @@ import ImportFolderGroups from './ImportFolderGroups';
 import { revealInvalidCredential } from './sessionFolders';
 import ImportResults from './ImportResults';
 import { useMachineImport } from './useMachineImport';
+import type { MachineFolder } from '../../../types/api';
 
-export default function MachineImportDialog({ onClose }: { onClose: () => void }) {
+export default function MachineImportDialog({ onClose, baseFolder }: { onClose: () => void; baseFolder?: MachineFolder }) {
   const { t } = useI18n();
-  const state = useMachineImport();
+  const state = useMachineImport(baseFolder?.id ?? null);
   const eligible = state.rows.filter(row => !row.skipReason);
   const close = () => { if (!state.busy) onClose(); };
   return <Modal wide title={t(state.result ? 'machineImport.done' : 'machineImport.title')} onClose={close}>
@@ -17,6 +18,7 @@ export default function MachineImportDialog({ onClose }: { onClose: () => void }
       <ErrorAlert error={state.error} />
       {state.result ? <ImportResults result={state.result} /> : <>
         <p className="muted">{t('machineImport.explain')}</p>
+        <p className="muted small">{t('fleet.importLocation', { path: baseFolder?.path ?? '/' })}</p>
         <FilePicker accept=".mxtsessions" disabled={state.busy} onPick={file => void state.pick(file)}>
           {open => <div className="importFile">
             <Button icon={<Upload size={18} />} onClick={open} busy={state.busy}>{t(state.file ? 'machineImport.another' : 'machineImport.pick')}</Button>

@@ -1,0 +1,22 @@
+.runFolderList { max-height: 300px; gap: var(--s2); }
+.runFolderGroup { position: relative; min-width: 0; }
+.runFolderSelect { position: absolute; z-index: 1; inset-inline-start: 10px; top: 10px; }
+.runFolder { border-bottom: 1px solid var(--border); }
+.runFolder > summary {
+  display: flex; align-items: center; gap: var(--s2); list-style: none; cursor: pointer;
+  min-height: 42px; padding: 8px; padding-inline-start: 40px;
+}
+.runFolder > summary::-webkit-details-marker { display: none; }
+.runFolder > summary:hover { background: var(--surface-2); }
+.runFolder > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.runFolderName { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.runFolder > summary > small { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.runFolder[open] > summary > .runFolderChevron { transform: rotate(90deg); }
+[dir="rtl"] .runFolderChevron { transform: rotate(180deg); }
+[dir="rtl"] .runFolder[open] > summary > .runFolderChevron { transform: rotate(90deg); }
+.runFolderContents { display: grid; gap: var(--s1); padding: 4px 4px 10px; padding-inline-start: 20px; }
+.runFolderContents .check.boxed { min-height: 40px; }
+@media (pointer: coarse) {
+  .runFolder > summary, .runFolderContents .check.boxed { min-height: 48px; }
+  .runFolderSelect { top: 13px; }
+}

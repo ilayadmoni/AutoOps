@@ -6,7 +6,7 @@ import { useI18n } from '../../../app/providers/I18nProvider';
 import type { CredentialDraft, ImportResult, ImportRow } from './types';
 
 /** Password drafts stay in this dialog only, never in local storage or the mutation cache. */
-export function useMachineImport() {
+export function useMachineImport(baseFolderId: number | null = null) {
   const qc = useQueryClient();
   const credentials = useImportCredentials();
   const { t } = useI18n();
@@ -90,7 +90,7 @@ export function useMachineImport() {
       }
       const body = new FormData();
       body.append('file', file);
-      body.append('selection', new Blob([JSON.stringify({ selections: [...selected].map(index => ({
+      body.append('selection', new Blob([JSON.stringify({ baseFolderId, selections: [...selected].map(index => ({
         index, credential: drafts[index] ?? null,
         existingCredentialId: drafts[index] ? null : credentials.ids[index] ?? credentials.defaultId
           ?? matchingCredentials(rows.find(row => row.index === index)!, credentials.query.data ?? []).at(0)?.id ?? null,

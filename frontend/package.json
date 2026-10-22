@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "node scripts/check-i18n.mjs && tsc && vite build",
     "test:ui": "node --test scripts/ui-integration.test.mjs",
+    "test:fleet": "node --test scripts/machine-tree.test.mjs scripts/execution-paging.test.mjs && node scripts/fleet-execution.e2e.mjs && node scripts/fleet-moves.e2e.mjs && node scripts/fleet-history.e2e.mjs",
     "typecheck": "tsc",
     "i18n:check": "node scripts/check-i18n.mjs",
     "preview": "vite preview"

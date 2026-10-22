@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react';
-import { MoreHorizontal, Pencil, Play, PlugZap, ShieldAlert, Trash2 } from 'lucide-react';
+import { FolderInput, MoreHorizontal, Pencil, Play, PlugZap, ShieldAlert, Trash2 } from 'lucide-react';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { Button, Card, Checkbox, Code, IconButton, Menu, StatusBadge } from '../../components/ui';
 import { formatDate } from '../../utils/format';
 import type { Credential, Machine } from '../../types/api';
 import { TrustBadge } from './MachineTrust';
 
-export default function MachineCard({ machine: m, folderPath, credential, credentialLoading, credentialError, onRun, onTest, onEdit, onDelete, selected, selectionDisabled, onSelect, favorite }: {
+export default function MachineCard({ machine: m, folderPath, credential, credentialLoading, credentialError, onRun, onTest, onEdit, onDelete, onMove, selected, selectionDisabled, onSelect, favorite }: {
   machine: Machine; folderPath?: string; favorite?: ReactNode;
   credential?: Credential; credentialLoading?: boolean; credentialError?: boolean;
   onRun: () => void; onTest: () => void; onEdit: () => void; onDelete: () => void;
+  onMove: () => void;
   selected?: boolean; selectionDisabled?: boolean; onSelect?: () => void;
 }) {
   const { t, lang } = useI18n();
@@ -34,6 +35,7 @@ export default function MachineCard({ machine: m, folderPath, credential, creden
       <Button small icon={<PlugZap size={14} />} onClick={onTest}>{t('connection.action')}</Button>
       <Menu label={t('common.more')} items={[
         { key: 'edit', icon: <Pencil />, label: t('common.edit'), onSelect: onEdit },
+        { key: 'move', icon: <FolderInput />, label: t('fleet.move'), onSelect: onMove },
         { key: 'delete', icon: <Trash2 />, label: t('common.delete'), danger: true, onSelect: onDelete },
       ]} trigger={<IconButton label={t('common.more')}><MoreHorizontal size={16} /></IconButton>} />
     </div>

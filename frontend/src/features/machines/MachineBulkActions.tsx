@@ -1,12 +1,12 @@
-import { Trash2 } from 'lucide-react';
+import { FolderInput, Trash2 } from 'lucide-react';
 import type { Machine } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
 import { Button, ConfirmDialog } from '../../components/ui';
 import type { useMachineSelection } from './useMachineSelection';
 import '../../assets/styles/machine-selection.css';
 
-export default function MachineBulkActions({ selection, visible }: {
-  selection: ReturnType<typeof useMachineSelection>; visible: Machine[];
+export default function MachineBulkActions({ selection, visible, onMove }: {
+  selection: ReturnType<typeof useMachineSelection>; visible: Machine[]; onMove: () => void;
 }) {
   const { t } = useI18n();
   return (
@@ -17,6 +17,8 @@ export default function MachineBulkActions({ selection, visible }: {
           <Button small disabled={selection.busy || !selection.selected.length} onClick={selection.clear}>{t('machinesBulk.clear')}</Button>
           <span className="muted small" role="status">{t('machinesBulk.selected', { n: selection.selected.length })}</span>
           <div className="row gap wrap">
+            <Button small icon={<FolderInput size={14} />} disabled={selection.busy || !selection.selected.length}
+              onClick={onMove}>{t('fleet.move')}</Button>
             <Button small variant="danger" icon={<Trash2 size={14} />} busy={selection.busy} disabled={!selection.selected.length}
               onClick={selection.review}>{t('machinesBulk.deleteSelected', { n: selection.selected.length })}</Button>
           </div>

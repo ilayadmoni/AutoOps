@@ -42,7 +42,7 @@ export default function RunWorkflowModal({ workflowId, name, initialMachineIds =
       <div className="stack">
         <ErrorAlert error={run.error} />
         <p className="muted small">{t('workflows.runHint')}</p>
-        <RunOptionsForm value={options} onChange={setOptions} errors={(run.error as ApiError | null)?.fieldErrors} />
+        <RunOptionsForm value={options} onChange={setOptions} errors={(run.error as ApiError | null)?.fieldErrors} historyWorkflowId={workflowId} />
       </div>
     </Modal>
   );

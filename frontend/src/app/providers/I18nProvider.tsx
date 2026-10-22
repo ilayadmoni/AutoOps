@@ -9,10 +9,11 @@ import { enFolders, heFolders } from '../../lib/i18n/folderPackages';
 
 import { enConnection, heConnection } from '../../lib/i18n/machineConnection';
 import { enSidebar, heSidebar } from '../../lib/i18n/sidebar';
+import { enFleet, heFleet } from '../../lib/i18n/fleet';
 
 export type Lang = 'en' | 'he';
 const DICTS: Record<Lang, Record<string, string>> = {
-  en: { ...en, ...enImport, ...enEnvironment, ...enChatActions, ...enFolders, ...enConnection, ...enSidebar }, he: { ...he, ...heImport, ...heEnvironment, ...heChatActions, ...heFolders, ...heConnection, ...heSidebar },
+  en: { ...en, ...enImport, ...enEnvironment, ...enChatActions, ...enFolders, ...enConnection, ...enSidebar, ...enFleet }, he: { ...he, ...heImport, ...heEnvironment, ...heChatActions, ...heFolders, ...heConnection, ...heSidebar, ...heFleet },
 };
 type Vars = Record<string, string | number>;
 

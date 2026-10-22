@@ -14,7 +14,8 @@ import static org.mockito.Mockito.*;
 class MachineImportServiceTest {
     private final MachineRepository repo = mock(MachineRepository.class);
     private final MachineImportRowService writer = mock(MachineImportRowService.class);
-    private final MachineImportService service = new MachineImportService(new MobaSessionParser(), repo, writer);
+    private final MachineFolderService folders = mock(MachineFolderService.class);
+    private final MachineImportService service = new MachineImportService(new MobaSessionParser(), repo, writer, folders);
     private byte[] file(String entries) { return ("[Bookmarks]\nSubRep=Lab\n" + entries).getBytes(StandardCharsets.UTF_8); }
     private String session(String name, String host) { return MobaSessionParserTest.session(name, "0", host, "22", "ops"); }
 
@@ -34,9 +35,9 @@ class MachineImportServiceTest {
 
     @Test void respectsSelectionSkipsWindowsAndContinuesAfterRowFailure() {
         when(repo.findByDeletedAtIsNullOrderByNameAsc()).thenReturn(List.of());
-        when(writer.create(eq(7L), argThat(r -> r.index() == 0), any()))
+        when(writer.create(eq(7L), argThat(r -> r.index() == 0), any(), isNull()))
                 .thenReturn(new Outcome(0, "Good", "IMPORTED", null, 91L));
-        when(writer.create(eq(7L), argThat(r -> r.index() == 1), any())).thenThrow(new RuntimeException("PRIVATE DATA"));
+        when(writer.create(eq(7L), argThat(r -> r.index() == 1), any(), isNull())).thenThrow(new RuntimeException("PRIVATE DATA"));
         var result = service.execute(7L, file(session("Good", "one") + session("Fails", "two")
                 + session("Not chosen", "three") + MobaSessionParserTest.session("Windows", "4", "four", "3389", "u")),
                 new Request(List.of(new Selection(0, null), new Selection(1, null), new Selection(3, null))));
@@ -47,7 +48,7 @@ class MachineImportServiceTest {
         assertEquals("NOT_SELECTED", result.outcomes().get(2).reason());
         assertEquals("WINDOWS", result.outcomes().get(3).reason());
         assertFalse(result.toString().contains("PRIVATE DATA"));
-        verify(writer, times(2)).create(eq(7L), any(), any());
+        verify(writer, times(2)).create(eq(7L), any(), any(), isNull());
     }
 
     @Test void rejectsInvalidAndRepeatedSelectionsBeforeWritingAnything() {
@@ -56,5 +57,13 @@ class MachineImportServiceTest {
         assertThrows(ApiException.class, () -> service.execute(1L, file, new Request(List.of(new Selection(9, null)))));
         assertThrows(ApiException.class, () -> service.execute(1L, file, new Request(List.of(new Selection(0, null), new Selection(0, null)))));
         verifyNoInteractions(writer);
+    }
+
+    @Test void passesTheCurrentFolderToEverySelectedImport() {
+        when(repo.findByDeletedAtIsNullOrderByNameAsc()).thenReturn(List.of());
+        when(writer.create(eq(7L), any(), any(), eq(8L))).thenReturn(new Outcome(0, "VM", "IMPORTED", null, 91L));
+        service.execute(7L, file(session("VM", "new-host")), new Request(List.of(new Selection(0, null)), 8L));
+        verify(folders).requireExists(8L);
+        verify(writer).create(eq(7L), any(), any(), eq(8L));
     }
 }

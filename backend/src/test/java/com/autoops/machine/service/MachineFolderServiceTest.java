@@ -44,4 +44,13 @@ class MachineFolderServiceTest {
         ReflectionTestUtils.setField(folder, "id", id);
         return folder;
     }
+
+    @Test void importsRelativeToCurrentFolderAndKeepsUnfiledSessionsInIt() {
+        when(repo.findById(8L)).thenReturn(Optional.of(folder(8L, "Test", "Test", null)));
+        when(repo.findByPath("Test/Lab/Apps")).thenReturn(Optional.of(folder(9L, "Apps", "Test/Lab/Apps", 10L)));
+        assertEquals(9L, service.ensureRelativePath("Lab/Apps", 8L));
+        assertEquals(8L, service.ensureRelativePath("", 8L));
+        assertThrows(com.autoops.common.error.ApiException.class, () -> service.ensureRelativePath("Lab", 99L));
+        verify(repo, never()).findByPath("Lab/Apps");
+    }
 }

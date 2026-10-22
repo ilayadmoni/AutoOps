@@ -35,6 +35,7 @@ public class MachineFolderService {
     /** Called inside the import row's transaction and import lock. Paths are logical, never disk paths. */
     public Long ensurePath(String path) {
         if (path.isEmpty()) return null;
+        if (path.length() > 1000) throw ApiException.validation("Folder path exceeds 1000 characters");
         return repo.findByPath(path).map(MachineFolder::getId).orElseGet(() -> {
             int split = path.lastIndexOf('/');
             Long parent = split < 0 ? null : ensurePath(path.substring(0, split));
@@ -43,9 +44,16 @@ public class MachineFolderService {
         });
     }
 
+    public Long ensureRelativePath(String path, Long baseId) {
+        if (baseId == null) return ensurePath(path);
+        MachineFolder base = repo.findById(baseId).orElseThrow(() -> ApiException.notFound("Machine folder"));
+        return path.isEmpty() ? baseId : ensurePath(base.getPath() + "/" + path);
+    }
+
     /** Removes a folder subtree while keeping its machines in the deleted folder's parent. */
     @Transactional
     public void delete(Long userId, Long id) {
+        MachineFolderLock.acquire(jdbc);
         MachineFolder root = repo.findById(id).orElseThrow(() -> ApiException.notFound("Machine folder"));
         List<MachineFolder> subtree = repo.findAllByOrderByPathAsc().stream()
                 .filter(f -> f.getPath().equals(root.getPath()) || f.getPath().startsWith(root.getPath() + "/"))

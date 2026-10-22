@@ -11,11 +11,13 @@ public class MachineImportService {
     private final MobaSessionParser parser;
     private final MachineRepository repo;
     private final MachineImportRowService writer;
+    private final MachineFolderService folders;
 
-    public MachineImportService(MobaSessionParser parser, MachineRepository repo, MachineImportRowService writer) {
+    public MachineImportService(MobaSessionParser parser, MachineRepository repo, MachineImportRowService writer, MachineFolderService folders) {
         this.parser = parser;
         this.repo = repo;
         this.writer = writer;
+        this.folders = folders;
     }
 
     public Preview preview(byte[] file) {
@@ -28,6 +30,7 @@ public class MachineImportService {
     }
 
     public Result execute(Long userId, byte[] file, Request request) {
+        folders.requireExists(request.baseFolderId());
         List<Row> rows = preview(file).rows();
         Map<Integer, Selection> selections = new HashMap<>();
         for (Selection selection : request.selections()) {
@@ -42,7 +45,7 @@ public class MachineImportService {
                 outcomes.add(new Outcome(row.index(), row.name(), "SKIPPED", reason, null));
                 continue;
             }
-            try { outcomes.add(writer.create(userId, row, selection)); }
+            try { outcomes.add(writer.create(userId, row, selection, request.baseFolderId())); }
             catch (ApiException e) {
                 String reasonCode = java.util.Set.of("CREDENTIAL_AMBIGUOUS", "CREDENTIAL_USERNAME_MISMATCH").contains(e.code())
                         ? e.code() : "IMPORT_FAILED";

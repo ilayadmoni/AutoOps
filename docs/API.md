@@ -29,8 +29,14 @@ Stack traces and exception names are never returned.
 |---|---|---|
 | GET/POST | `/credentials` | List / create `{name, username, password}` — responses never include secrets |
 | GET/PUT/DELETE | `/credentials/{id}` | Update with optional `password` rotation; delete refused while a machine prefers it |
-| GET/POST | `/machines` | `{name, hostname, sshPort, operatingSystem, osVersion, preferredCredentialId}` |
+| GET/POST | `/machines` | `{name, hostname, sshPort, operatingSystem, osVersion, preferredCredentialId, folderId?}` |
 | GET/PUT/DELETE | `/machines/{id}` | Changing host or port resets trust |
+| GET | `/machine-folders` | List logical folders with `id`, `path`, `name` and `parentId` |
+| POST | `/machine-folders/{id}/move` | `{folderId}`; null means root. Moves the whole subtree with stable IDs. Self/descendant destinations are rejected; name conflicts return `FOLDER_EXISTS` (409). |
+| POST | `/machines/move` | `{machineIds[], folderId}`; null means root. Atomic bulk move; preserves endpoint, credential and host trust. |
+| DELETE | `/machine-folders/{id}` | Deletes the subtree and moves its machines to the deleted folder's parent |
+| POST | `/machines/import/preview` | Multipart `.mxtsessions` file → sanitized session rows |
+| POST | `/machines/import` | Multipart `file` and JSON `selection: {baseFolderId?, selections[]}`. Imported paths are relative to the selected base folder; omitted/null retains root import behavior. |
 | POST | `/machines/{id}/ssh-trust/discover` | Server-side key exchange → `{algorithm, fingerprint, matchesTrusted, …}` |
 | POST | `/machines/{id}/ssh-trust/confirm` | `{expectedFingerprint}`; re-probes and stores only on an exact match |
 | DELETE | `/machines/{id}/ssh-trust` | Revoke trust |
@@ -67,6 +73,8 @@ SSE event types: `CONNECTED`, `EXECUTION_STARTED`, `MACHINE_STARTED`, `PREFLIGHT
 and ids such as `machineRunId` / `stepRunId`. Clients re-fetch `/executions/{id}` for authoritative state.
 
 ## Workflows
+
+`GET /workflows/{id}/machine-history` returns distinct IDs of machines on which this workflow's machine run actually started. It follows execution-history visibility (own runs for users; all visible runs for admins); never-started queued/skipped targets are excluded. This is a prior-run marker, not a success indicator or an instruction to select/run those machines.
 
 | Method | Path | Notes |
 |---|---|---|

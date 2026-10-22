@@ -107,7 +107,7 @@ export default function ExecutionDetailPage() {
         <div className="paramsLine">{t('commands.parameters')}: {Object.entries(q.data.parameters).map(([k, v]) => <Code key={k}>{k}={v}</Code>)}{q.data.runWithSudo && <span className="badge warn">sudo</span>}</div>
       )}
       {owner && pending.map((a) => <ApprovalCard key={a.id} approval={a} />)}
-      <ExecutionPipeline machines={machines} liveOutput={liveOutput} executionId={executionId} />
+      <ExecutionPipeline key={executionId} machines={machines} liveOutput={liveOutput} executionId={executionId} />
       {approvals.filter((a) => a.status !== 'PENDING').length > 0 && (
         <details className="card">
           <summary>{t('execution.approvalHistory')}</summary>

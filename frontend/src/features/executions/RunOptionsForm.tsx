@@ -1,53 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle } from 'lucide-react';
 import { get } from '../../services/client';
-import type { Credential, Machine, RunOptions } from '../../types/api';
+import type { Credential, RunOptions } from '../../types/api';
 import { useI18n } from '../../app/providers/I18nProvider';
-import { Checkbox, Field, Loading, SearchInput, Segmented, Select, useCollectionSearch } from '../../components/ui';
+import { Field, Segmented, Select } from '../../components/ui';
+import MachineFolderPicker from './MachineFolderPicker';
 
-export const machinesQuery = { queryKey: ['machines'], queryFn: () => get<Machine[]>('/machines') };
-
-export const defaultRunOptions = (machineIds: number[] = []): RunOptions => ({
-  machineIds, credentialId: null, mode: 'AUTOMATIC', concurrency: 1, failurePolicy: 'STOP_NEW_MACHINES',
-});
+import { machinesQuery } from './runOptions';
+export { machinesQuery, defaultRunOptions } from './runOptions';
 
 /** Machine/credential/mode/concurrency selection shared by command and workflow runs. */
-export function RunOptionsForm({ value, onChange, errors }: { value: RunOptions; onChange: (v: RunOptions) => void; errors?: Record<string, string> }) {
+export function RunOptionsForm({ value, onChange, errors, historyWorkflowId }: {
+  value: RunOptions; onChange: (v: RunOptions) => void; errors?: Record<string, string>; historyWorkflowId?: number;
+}) {
   const { t } = useI18n();
   const machines = useQuery(machinesQuery);
   const creds = useQuery({ queryKey: ['credentials'], queryFn: () => get<Credential[]>('/credentials') });
-  const { query, setQuery, filtered } = useCollectionSearch(machines.data, (m) => [m.name, m.hostname, m.operatingSystem, m.sshPort]);
-  const toggle = (id: number) => onChange({ ...value, machineIds: value.machineIds.includes(id) ? value.machineIds.filter((x) => x !== id) : [...value.machineIds, id] });
   const selected = (machines.data ?? []).filter((m) => value.machineIds.includes(m.id));
   const untrusted = selected.filter((m) => m.trustStatus !== 'TRUSTED');
   const noCred = !value.credentialId ? selected.filter((m) => !m.preferredCredentialId) : [];
   return (
     <div className="stack">
       <Field label={t('run.machines')} error={errors?.machineIds}>
-        <div className="stack tight">
-          <SearchInput aria-label={t('machines.searchPlaceholder')} placeholder={t('machines.searchPlaceholder')}
-            value={query} onChange={(event) => setQuery(event.target.value)} />
-        {machines.isLoading ? <Loading /> : (
-          <div className="checkList">
-            {(machines.data ?? []).length === 0 && <span className="muted">{t('run.noMachines')}</span>}
-            {!!machines.data?.length && filtered.length === 0 && <span className="muted">{t('machines.noMatch')}</span>}
-            {filtered.map((m) => (
-              <Checkbox
-                key={m.id} boxed
-                checked={value.machineIds.includes(m.id)}
-                onChange={() => toggle(m.id)}
-                label={(
-                  <span className="checkRow">
-                    <span className="truncate">{m.name}</span>
-                    <small className="muted mono" dir="ltr">{m.hostname}:{m.sshPort}</small>
-                    {m.trustStatus !== 'TRUSTED' && <span className="badge warn">{t('status.' + m.trustStatus)}</span>}
-                  </span>
-                )}
-              />
-            ))}
-          </div>
-        )}
-        </div>
+        <MachineFolderPicker selected={value.machineIds} onChange={machineIds => onChange({ ...value, machineIds })} historyWorkflowId={historyWorkflowId} />
       </Field>
       {untrusted.length > 0 && (
         <div className="alert warn"><AlertTriangle size={16} /> {t('run.untrustedWarning', { names: untrusted.map((m) => m.name).join(', ') })}</div>

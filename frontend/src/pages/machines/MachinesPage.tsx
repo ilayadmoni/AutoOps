@@ -21,6 +21,7 @@ import MachineCard from '../../features/machines/MachineCard';
 import MachineBulkActions from '../../features/machines/MachineBulkActions';
 import { useMachineSelection } from '../../features/machines/useMachineSelection';
 import { folderDescendants, MachineBreadcrumbs, MachineFolderCard } from '../../features/machines/MachineFolderBrowser';
+import MoveMachinesDialog, { type MoveTarget } from '../../features/machines/MoveMachinesDialog';
 
 export default function MachinesPage() {
   const { t } = useI18n();
@@ -36,6 +37,7 @@ export default function MachinesPage() {
   const [deleting, setDeleting] = useState<Machine | null>(null);
   const [deletingFolder, setDeletingFolder] = useState<MachineFolder | null>(null);
   const [importing, setImporting] = useState(false);
+  const [moving, setMoving] = useState<MoveTarget | null>(null);
   const [params, setParams] = useSearchParams();
   const folders = useMachineFolders();
   const folderTools = useCollectionTools('machine-folders', folders.data);
@@ -88,7 +90,7 @@ export default function MachinesPage() {
       {(!!q.data?.length || !!folderList.length) && <SearchToolbar value={query} onChange={setQuery} placeholder={t('machines.searchPlaceholder')} />}
       <CollectionToolbar tools={tools} visible={machines} hideBulk />
       <ErrorAlert error={folderTools.favorites.error} onRetry={() => folderTools.favorites.refetch()} />
-      <MachineBulkActions selection={selection} visible={selectable} />
+      <MachineBulkActions selection={selection} visible={selectable} onMove={() => setMoving({ kind: 'machines', machines: selection.selected })} />
       {q.isLoading || folders.isLoading ? <Loading /> : q.error || folders.error ? <ErrorAlert error={q.error || folders.error}
         onRetry={() => { void q.refetch(); void folders.refetch(); }} /> : !q.data?.length && !folderList.length ? (
         <EmptyState title={t('machines.empty')} hint={t('machines.emptyHint')} />
@@ -99,6 +101,7 @@ export default function MachinesPage() {
         <div className="cards">
           {visibleFolders.map(f => <MachineFolderCard key={'folder-' + f.id} folder={f} folders={folderList}
             machines={q.data ?? []} selection={selection} onNavigate={openFolder} onDelete={() => setDeletingFolder(f)}
+            onMove={() => setMoving({ kind: 'folder', folder: f })}
             favorite={<FavoriteButton tools={folderTools} item={{ ...f, name: f.path }} />} />)}
           {machines.map(m => <MachineCard key={m.id} machine={m}
             folderPath={tools.onlyFavorites ? folderList.find(f => f.id === m.folderId)?.path : current?.path}
@@ -107,11 +110,12 @@ export default function MachinesPage() {
             selected={selection.ids.has(m.id)} selectionDisabled={selection.busy}
             onSelect={selection.active ? () => selection.toggle(m.id) : undefined}
             onRun={() => setRunning(m)} onTest={() => setTesting(m)}
-            onEdit={() => setEditing(m)} onDelete={() => setDeleting(m)} />)}
+            onEdit={() => setEditing(m)} onDelete={() => setDeleting(m)} onMove={() => setMoving({ kind: 'machines', machines: [m] })} />)}
         </div>
       )}
       {editing && <MachineForm machine={editing === 'new' ? null : editing} initial={{ folderId: current?.id }} onClose={() => setEditing(null)} />}
-      {importing && <MachineImportDialog onClose={() => setImporting(false)} />}
+      {importing && <MachineImportDialog baseFolder={current} onClose={() => setImporting(false)} />}
+      {moving && <MoveMachinesDialog target={moving} onClose={() => setMoving(null)} onMoved={selection.clear} />}
       {testing && <MachineConnectionDialog machine={q.data?.find(machine => machine.id === testing.id) ?? testing} onClose={() => setTesting(null)} />}
       {running && <RunCommandModal initial={{ machineIds: [running.id] }} onClose={() => setRunning(null)} />}
       {deleting && <ConfirmDialog danger title={t('machines.deleteTitle')} message={t('machines.deleteMessage', { name: deleting.name })}

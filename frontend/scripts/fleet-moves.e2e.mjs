@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright';
+import { installFleetFixtures } from './fleet-fixtures.mjs';
+
+const base = process.env.AUTOOPS_UI_URL ?? 'http://localhost:5173';
+const output = new URL('../../.cache/fleet-ui/', import.meta.url);
+await mkdir(output, { recursive: true });
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+const state = await installFleetFixtures(page);
+const choose = async name => {
+  await page.getByRole('button', { name: 'Destination folder', exact: true }).click();
+  await page.getByRole('option', { name, exact: true }).click();
+};
+const finishMove = async () => {
+  await page.getByRole('dialog').getByRole('button', { name: 'Move', exact: true }).click();
+  await page.getByRole('dialog').waitFor({ state: 'hidden' });
+};
+try {
+  await page.goto(base + '/machines');
+  await page.getByRole('button', { name: 'Actions for folder Operations', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Move', exact: true }).click();
+  await page.getByRole('button', { name: 'Destination folder', exact: true }).click();
+  const options = await page.getByRole('option').allTextContents();
+  assert(!options.includes('Operations') && !options.includes('Operations/Web'), 'Invalid descendant destination offered');
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('link').filter({ hasText: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Actions for folder Web', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Move', exact: true }).click();
+  await choose('Archive');
+  await page.screenshot({ path: fileURLToPath(new URL('move-folder-desktop.png', output)) });
+  await finishMove();
+  assert.equal(state.folders.find(f => f.id === 503).path, 'Archive/Web');
+  assert.equal(state.machines.find(m => m.id === 701).folderId, 503);
+  await page.goto(base + '/machines?folder=503');
+  await page.locator('.machine').filter({ hasText: 'Alpha' }).getByRole('button', { name: 'More actions', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Move', exact: true }).click();
+  await choose('Operations'); await finishMove();
+  assert.equal(state.machines.find(m => m.id === 701).folderId, 501);
+  await page.goto(base + '/machines?folder=501');
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  const checks = page.locator('.machine input[type="checkbox"]');
+  await checks.first().check(); await checks.nth(1).check();
+  await page.locator('.machineBulkToolbar').getByRole('button', { name: 'Move', exact: true }).click();
+  await choose('Archive'); await finishMove();
+  assert.deepEqual(state.calls.find(c => c.path === '/machines/move' && c.body.machineIds.length === 2).body.machineIds.sort(), [701, 702]);
+  assert(state.machines.filter(m => [701, 702].includes(m.id)).every(m => m.folderId === 502));
+  await page.getByRole('button', { name: 'More actions', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Import MobaXterm sessions', exact: true }).click();
+  assert((await page.getByRole('dialog').innerText()).includes('Import into: Operations'));
+  await page.locator('input[type="file"]').setInputFiles({ name: 'fixture.mxtsessions', mimeType: 'text/plain', buffer: Buffer.from('[Bookmarks]\nSubRep=Imported\n') });
+  await page.getByRole('dialog').locator('button[type="submit"]').waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: fileURLToPath(new URL('import-relative-mobile.png', output)) });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await page.getByRole('dialog').locator('button[type="submit"]').click();
+  await page.getByRole('dialog').getByText('Import results', { exact: true }).waitFor();
+  assert.equal(state.calls.find(c => c.path === '/machines/import').body.baseFolderId, 501);
+  assert.equal(state.folders.find(f => f.id === 504).path, 'Operations/Imported');
+  console.log('PASS: destination exclusion, folder move, single/bulk machine moves, relative import, mobile layout');
+} finally { await browser.close(); }
